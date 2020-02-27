@@ -2,16 +2,22 @@
 public interface CalculatorTreeConstants
 {
   public int JJTEXPRESSION = 0;
-  public int JJTEXPR1 = 1;
-  public int JJTEXPR2 = 2;
-  public int JJTEXPR3 = 3;
+  public int JJTVOID = 1;
+  public int JJTADD = 2;
+  public int JJTSUB = 3;
+  public int JJTMUL = 4;
+  public int JJTDIV = 5;
+  public int JJTTERM = 6;
 
 
   public String[] jjtNodeName = {
     "Expression",
-    "Expr1",
-    "Expr2",
-    "Expr3",
+    "void",
+    "Add",
+    "Sub",
+    "Mul",
+    "Div",
+    "Term",
   };
 }
-/* JavaCC - OriginalChecksum=1da7b6ac23e2face367c29aedf567410 (do not edit this line) */
+/* JavaCC - OriginalChecksum=721484e77f25c56c180ee215a1d723c5 (do not edit this line) */
