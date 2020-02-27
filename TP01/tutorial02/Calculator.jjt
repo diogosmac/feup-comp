@@ -1,0 +1,45 @@
+options {
+    LOOKAHEAD=1;
+}
+
+PARSER_BEGIN(Calculator)
+
+public class Calculator {
+    public static void main(String[] args) throws ParseException {
+        System.out.println("Parser for a calculator that accepts expressions" +
+         " with integers, '+', '-', '*', '/', '(' and ')'. ");
+        System.out.println("Write an arithmetic expression: ");
+        Calculator myCalc = new Calculator(System.in);
+        SimpleNode root = myCalc.Expression();
+        root.dump("");
+    }
+}
+
+PARSER_END(Calculator)
+
+SKIP : {
+    " " | "\r" | "\t"
+}
+
+TOKEN : {
+    < INTEGER : (["0"-"9"])+ >
+    | < LF : "\n" >
+}
+
+SimpleNode Expression() : {} {
+    Expr1() <LF> { return jjtThis; }
+}
+
+void Expr1() : {} {
+    Expr2() [("+" | "-") Expr2()]
+}
+
+void Expr2() : {} {
+    Expr3() [("*" | "/") Expr3()]
+}
+
+void Expr3() : {} {
+    <INTEGER>
+    | "-" Expr3()
+    | "(" Expr1() ")"
+}
