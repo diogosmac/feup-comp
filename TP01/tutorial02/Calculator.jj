@@ -16,8 +16,32 @@ public class Calculator/*@bgen(jjtree)*/implements CalculatorTreeConstants/*@ege
         Calculator myCalc = new Calculator(System.in);
         SimpleNode root = myCalc.Expression();
         root.dump("");
+        
+        System.out.println("Expression value: "+myCalc.eval(root));
+    }
+
+    int eval(SimpleNode node) {
+        if(node.jjtGetNumChildren() == 0) // leaf node with integer value
+            return node.val;
+        else if(node.jjtGetNumChildren() == 1) // only one child
+        return this.eval((SimpleNode) node.jjtGetChild(0));
+        
+        SimpleNode lhs = (SimpleNode) node.jjtGetChild(0); //left child
+        SimpleNode rhs = (SimpleNode) node.jjtGetChild(1); // right child
+        
+        switch(node.Op) {
+            case MyConstants.ADD : return eval( lhs ) + eval( rhs );
+            case MyConstants.SUB : return eval( lhs ) -eval( rhs );
+            case MyConstants.MUL : return eval( lhs ) * eval( rhs );
+            case MyConstants.DIV : return eval( lhs ) / eval( rhs );
+            default : // abort
+                System.out.println("Ilegaloperator!");
+                System.exit(1);
+        }    
+        return 0;
     }
 }
+
 
 PARSER_END(Calculator)
 
@@ -72,7 +96,13 @@ void Expr1() : {/*@bgen(jjtree) Expr1 */
 /*@egen*/} {/*@bgen(jjtree) Expr1 */
     try {
 /*@egen*/
-    Expr2() [("+" | "-") Expr2()]/*@bgen(jjtree)*/
+    Expr2(1) [
+        (
+            "+" {jjtn000.Op = MyConstants.ADD;}
+            | "-" {jjtn000.Op = MyConstants.SUB;}
+        )
+        Expr2(1)
+    ]/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -95,14 +125,20 @@ void Expr1() : {/*@bgen(jjtree) Expr1 */
 /*@egen*/
 }
 
-void Expr2() : {/*@bgen(jjtree) Expr2 */
+void Expr2(int sign) : {/*@bgen(jjtree) Expr2 */
   SimpleNode jjtn000 = new SimpleNode(JJTEXPR2);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
 /*@egen*/} {/*@bgen(jjtree) Expr2 */
     try {
-/*@egen*/
-    Expr3() [("*" | "/") Expr3()]/*@bgen(jjtree)*/
+/*@egen*/ // 1: positive; -1: negative, because of the\u2018-\u2018unitary operator
+    Expr3(sign) [
+        (
+            "*" {jjtn000.Op = MyConstants.MUL;}
+            | "/" {jjtn000.Op = MyConstants.DIV;}
+        )
+        Expr3(1)
+    ]/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -125,15 +161,23 @@ void Expr2() : {/*@bgen(jjtree) Expr2 */
 /*@egen*/
 }
 
-void Expr3() : {/*@bgen(jjtree) Expr3 */
-  SimpleNode jjtn000 = new SimpleNode(JJTEXPR3);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-/*@egen*/} {/*@bgen(jjtree) Expr3 */
+void Expr3(int sign) : {/*@bgen(jjtree) Expr3 */
+                        SimpleNode jjtn000 = new SimpleNode(JJTEXPR3);
+                        boolean jjtc000 = true;
+                        jjtree.openNodeScope(jjtn000);
+/*@egen*/Token t;} {/*@bgen(jjtree) Expr3 */
     try {
 /*@egen*/
-    <INTEGER>
-    | "-" Expr3()
+    t = <INTEGER>/*@bgen(jjtree)*/
+    {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtc000 = false;
+    }
+/*@egen*/
+    {
+       jjtn000.val = sign *Integer.parseInt(t.image); 
+    }
+    | "-" Expr3(-1)
     | "(" Expr1() ")"/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {

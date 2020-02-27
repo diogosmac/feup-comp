@@ -12,8 +12,32 @@ public class Calculator {
         Calculator myCalc = new Calculator(System.in);
         SimpleNode root = myCalc.Expression();
         root.dump("");
+        
+        System.out.println("Expression value: "+myCalc.eval(root));
+    }
+
+    int eval(SimpleNode node) {
+        if(node.jjtGetNumChildren() == 0) // leaf node with integer value
+            return node.val;
+        else if(node.jjtGetNumChildren() == 1) // only one child
+        return this.eval((SimpleNode) node.jjtGetChild(0));
+        
+        SimpleNode lhs = (SimpleNode) node.jjtGetChild(0); //left child
+        SimpleNode rhs = (SimpleNode) node.jjtGetChild(1); // right child
+        
+        switch(node.Op) {
+            case MyConstants.ADD : return eval( lhs ) + eval( rhs );
+            case MyConstants.SUB : return eval( lhs ) -eval( rhs );
+            case MyConstants.MUL : return eval( lhs ) * eval( rhs );
+            case MyConstants.DIV : return eval( lhs ) / eval( rhs );
+            default : // abort
+                System.out.println("Ilegaloperator!");
+                System.exit(1);
+        }    
+        return 0;
     }
 }
+
 
 PARSER_END(Calculator)
 
@@ -31,15 +55,30 @@ SimpleNode Expression() : {} {
 }
 
 void Expr1() : {} {
-    Expr2() [("+" | "-") Expr2()]
+    Expr2(1) [
+        (
+            "+" {jjtThis.Op = MyConstants.ADD;}
+            | "-" {jjtThis.Op = MyConstants.SUB;}
+        )
+        Expr2(1)
+    ]
 }
 
-void Expr2() : {} {
-    Expr3() [("*" | "/") Expr3()]
+void Expr2(int sign) : {} { // 1: positive; -1: negative, because of the‘-‘unitary operator
+    Expr3(sign) [
+        (
+            "*" {jjtThis.Op = MyConstants.MUL;}
+            | "/" {jjtThis.Op = MyConstants.DIV;}
+        )
+        Expr3(1)
+    ]
 }
 
-void Expr3() : {} {
-    <INTEGER>
-    | "-" Expr3()
+void Expr3(int sign) : {Token t;} {
+    t = <INTEGER>
+    {
+       jjtThis.val = sign *Integer.parseInt(t.image); 
+    }
+    | "-" Expr3(-1)
     | "(" Expr1() ")"
 }

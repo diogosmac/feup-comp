@@ -1,1 +1,7 @@
+# IDE specific files
 *.idea
+.vscode
+
+# Java excutable files
+*.class
+
