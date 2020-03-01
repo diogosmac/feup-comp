@@ -65,11 +65,11 @@ public class Calculator {
             SimpleNode lhs = (SimpleNode) node.jjtGetChild(0); //left child
             SimpleNode rhs = (SimpleNode) node.jjtGetChild(1); // right child
 
-		    switch(node.Op) {
-		        case MyConstants.ADD : return eval( lhs ) + eval( rhs );
-	   			case MyConstants.SUB : return eval( lhs ) - eval( rhs );
-	   			case MyConstants.MUL : return eval( lhs ) * eval( rhs );
-	   			case MyConstants.DIV : return eval( lhs ) / eval( rhs );
+		    switch(node.id) {
+		        case CalculatorTreeConstants.JJTADD : return eval( lhs ) + eval( rhs );
+	   			case CalculatorTreeConstants.JJTSUB : return eval( lhs ) - eval( rhs );
+	   			case CalculatorTreeConstants.JJTMUL : return eval( lhs ) * eval( rhs );
+	   			case CalculatorTreeConstants.JJTDIV : return eval( lhs ) / eval( rhs );
 	   			default : // abort
                     System.out.println("Operador ilegal!");
 					System.exit(1);
@@ -109,31 +109,27 @@ void Assignment(): {Token t;}
     }
 }
 
-void Expr1(): {}
-{  
+void Expr1() #void: {}
+{
     Expr2(1)
-    (
+    [
         (
-            "+" {jjtThis.Op = MyConstants.ADD;}
-            | "-" {jjtThis.Op = MyConstants.SUB;}
+            "+" Expr2(1) #Add(2)
+            | "-" Expr2(1) #Sub(2)
         )
-        Expr2(1)
-    )?
+    ]
 }
 
 void Expr2(int sign): {}    // 1: positive; -1: negative
 {
     Expr3(sign)
     (
-        (
-            "*" {jjtThis.Op = MyConstants.MUL;}
-   	        | "/" {jjtThis.Op = MyConstants.DIV;}
-   	    )
-   	    Expr3(1)
+        "*" Expr3(1) #Mul(2)
+        | "/" Expr3(1) #Div(2)
     )?
 }
 
-void Expr3(int sign):  {Token t;}
+void Expr3(int sign) #void: {Token t;}
 {
     (
         t=<INTEGER>
@@ -145,7 +141,7 @@ void Expr3(int sign):  {Token t;}
         {
             jjtThis.identifier = new String(t.image);
         }
-	)
+	) #Term
     | "-" Expr3(-1) // para nao aceitar -(2+3)
     | "(" Expr1() ")"
 }
