@@ -60,12 +60,10 @@ SimpleNode Expression(): {}
 void Expr1(int sign) #void: {}
 {
     Expr2(sign)
-    [
-        (
-            "+" Expr2(sign) #Add(2)
-            | "-" Expr2(sign) #Sub(2)
-        )
-    ]
+    (
+        "+" Expr2(sign) #Add(2)
+        | "-" Expr2(sign) #Sub(2)
+    )*
 }
 
 void Expr2(int sign) #void: {} // 1: positive; -1: negative
@@ -74,7 +72,7 @@ void Expr2(int sign) #void: {} // 1: positive; -1: negative
     (
         "*" Expr3(Math.abs(sign)) #Mul(2)
         | "/" Expr3(Math.abs(sign)) #Div(2)
-    )? // (…)?equivalent to […]
+    )* // (…)?equivalent to […]
 }
 
 void Expr3(int sign) #void: {Token t;}
@@ -85,5 +83,5 @@ void Expr3(int sign) #void: {Token t;}
     } #Term
         | "-" Expr3(-1)
         | "(" Expr1(1) ")"
-        | "-("  Expr1(-1) ")" 
+        | "-("  Expr1(-1) ")"
 }

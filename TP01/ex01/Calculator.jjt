@@ -45,9 +45,9 @@ public class Calculator {
 		if(node.jjtGetNumChildren() == 0) { // leaf node with integer value
             if(node.identifier != null)  { //  the nodes with the identifier are assign nodes
                 if(table.containsKey(node.identifier))
-                    return  ((Integer) table.get(node.identifier)).intValue();
+                    return  (Integer) table.get(node.identifier);
                 else {
-                    System.out.println("identifier "+node.identifier+" not inicialized!");
+                    System.out.println("identifier "+node.identifier+" not initialized!");
                     System.exit(1);
                 }
             } else {
@@ -71,12 +71,13 @@ public class Calculator {
 	   			case CalculatorTreeConstants.JJTMUL : return eval( lhs ) * eval( rhs );
 	   			case CalculatorTreeConstants.JJTDIV : return eval( lhs ) / eval( rhs );
 	   			default : // abort
-                    System.out.println("Operador ilegal!");
+                    System.out.println("Illegal operator!");
 					System.exit(1);
 	        }
 		}
         return 0;
     }
+}}
 }
 
 
