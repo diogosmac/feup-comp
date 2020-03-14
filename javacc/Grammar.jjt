@@ -38,29 +38,29 @@ SKIP :
 
 TOKEN:  // KEYWORDS
 {
-    < IMPORT:   "import"                             > |
-    < EXTENDS:  "extends"                            > |
-    < PUBLIC:   "public"                             > |
-    < STATIC:   "static"                             > |
-    < CLASS:    "class"                              > |
-    < RETURN:   "return"                             > |
-    < MAIN:     "main"                               > |
-    < WHILE:    "while"                              > |
-    < IF:       "if"                                 > |
-    < ELSE:     "else"                               > |
-    < NEW:      "new"                                > |
-    < THIS:     "this"                               > |
-    < LENGTH:   "length"                             > |
-    < TRUE:     "true"                               > |
-    < FALSE:    "false"                              >
+    < IMPORT:       "import"                         > |
+    < EXTENDS:      "extends"                        > |
+    < PUBLIC:       "public"                         > |
+    < STATIC:       "static"                         > |
+    < CLASS:        "class"                          > |
+    < RETURN:       "return"                         > |
+    < MAIN:         "main"                           > |
+    < WHILE:        "while"                          > |
+    < IF:           "if"                             > |
+    < ELSE:         "else"                           > |
+    < NEW:          "new"                            > |
+    < THIS:         "this"                           > |
+    < LENGTH:       "length"                         > |
+    < TRUE:         "true"                           > |
+    < FALSE:        "false"                          >
 }
 
 TOKEN:  // VAR TYPES
 {
-    < VOID:     "void"                               > |
-    < INT:      "int"                                > |
-    < BOOLEAN:  "boolean"                            > |
-    < STRING:   "String"                             >
+    < VOID:         "void"                           > |
+    < INT:          "int"                            > |
+    < BOOLEAN:      "boolean"                        > |
+    < STRING:       "String"                         >
 }
 
 TOKEN:  // OPERATIONS
@@ -78,23 +78,27 @@ TOKEN:  // OPERATIONS
 TOKEN:  // CODE CHARACTERS
 {
     < COMMA:        ","                              > |
-    < PROPERTY:     "."                              > |
+    < DOT:          "."                              > |
     < SEMI_COLON:   ";"                              > |
     < OPEN_BLOCK:   "{"                              > |
     < CLOSE_BLOCK:  "}"                              > |
     < OPEN_ARRAY:   "["                              > |
     < CLOSE_ARRAY:  "]"                              > |
     < OPEN_PAR:     "("                              > |
-    < CLOSE_PAR:    ")"                              > |
-    < END_OF_FILE:  "\0"                             >
+    < CLOSE_PAR:    ")"                              >
 }
 
 TOKEN:  // INTEGERS AND IDENTIFIERS
 {
-    < DIGIT:        ["0"-"9"]                        > |
-    < INTEGER:      (<DIGIT>)+                       > |
-    < LETTER:       ["A"-"Z", "a"-"z"]               > |
-    < IDENTIFIER:   <LETTER> (<LETTER> | <INTEGER>)* >
+    < INTEGER:      <BINARY> | <OCTAL> | <DECIMAL> | <HEXADECIMAL>      > |
+    < #BINARY:      ( "0b" | "0B" ) ( [ "0"-"1" ] )+                    > |
+    < #OCTAL:       "0" ( [ "0"-"7" ] )*                                > |
+    < #DECIMAL:     [ "1"-"9" ] ( [ "0"-"9" ] )*                        > |
+    < #HEXADECIMAL: ( "0x" | "0X" ) ( [ "0"-"9", "A"-"F", "a"-"f" ] )+  > |
+
+    < IDENTIFIER:   <LETTER> ( <LETTER> | <DIGIT> )*                    > |
+    < #LETTER:      [ "$", "_", "a"-"z", "A"-"Z" ]                      > |
+    < #DIGIT:       [ "0"-"9" ]                                         >
 }
 
 
@@ -108,21 +112,21 @@ void Program(int sign): {}
 {
     ImportDeclaration()
     ClassDeclaration()
-    <END_OF_FILE>
+    <EOF>
 }
 
 
 void ImportDeclaration(): {}
 {
-    (<IMPORT> <IDENTIFIER> <SEMI_COLON>)*
+    ( <IMPORT> <IDENTIFIER> <SEMI_COLON> )*
 }
 
 
 void ClassDeclaration(): {}
 {
     <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_BLOCK>
-        (VarDeclaration())*
-        (MethodDeclaration())*
+        ( VarDeclaration() )*
+        ( MethodDeclaration() )*
     <CLOSE_BLOCK>
 }
 
@@ -193,9 +197,9 @@ void ExpLink() #void: {}
 }
 
 void CompareOp() #void: {} { <AND> | <LT> | <SUM> | <SUB> | <MULT> | <DIV> }
-void GetLength() #void: {} { <PROPERTY> <LENGTH> }
+void GetLength() #void: {} { <DOT> <LENGTH> }
 void CallMethod() #void: {} {
-    <PROPERTY> <IDENTIFIER> <OPEN_PAR>
+    <DOT> <IDENTIFIER> <OPEN_PAR>
         [ Expression() ( <COMMA> Expression() )* ]
     <CLOSE_PAR>
 }
