@@ -7,8 +7,23 @@ PARSER_BEGIN(Parser)
 
 public class Parser
 {
-    public static void main(String[] args) /* throws ParseException */ {
-        /* THIS IS PROBABLY NOT NECESSARY
+    /**
+     * Current number os syntax errors while parsing
+     */
+    private static int numErrors = 0;
+
+    /**
+     * Maximum number of syntax errors accepted before terminating
+     * parsing due to too many errors
+     */
+    private static int MAX_ERRORS = 10;
+
+    /**
+    * Main method
+    * @param args
+    * @throws ParseException
+    */
+    public static void main(String[] args) throws ParseException {
         System.out.println("Parser for programs in the Java-- language");
 
         Parser parser;
@@ -21,17 +36,39 @@ public class Parser
             return;
         }
 
+        SimpleNode root;
         // create Syntax Tree (returns reference to root node)
-        SimpleNode root = parser.Tree();
+        try {
+            root = parser.Tree();
+        }
+        catch (ParseException e) {
+            System.out.println(e.toString());
+            return;
+        }
 
         // Print tree to console
         root.dump("");
-         */
+    }
+
+    /**
+     * Report syntax error and increment error counter
+     */
+    static void reportError(ParseException e, String statement) {
+        System.out.println("Syntax error on " + statement + " statement.\n\n" + e.toString());
+        numErrors++;
+
+        if (numErrors >= MAX_ERRORS) {
+              System.out.println("Reached maximum number of errors (" + MAX_ERRORS + "). Terminating.");
+              System.exit(1);
+        }
     }
 }
 
 PARSER_END(Parser)
 
+/**
+ * Tokens to ignore
+ */
 SKIP :
 {
     < WHITESPACE:      " "                                                         > |
@@ -42,7 +79,10 @@ SKIP :
     < BLOCK_COMMENT:   "/*" ( ~[ "*" ] )* "*" ( ~[ "/" ] (~[ "*" ] )* "*")* "/"    >
 }
 
-TOKEN:  // KEYWORDS
+/**
+ * Keywords
+ */
+TOKEN:
 {
     < IMPORT:       "import"                         > |
     < EXTENDS:      "extends"                        > |
@@ -61,7 +101,10 @@ TOKEN:  // KEYWORDS
     < FALSE:        "false"                          >
 }
 
-TOKEN:  // VAR TYPES
+/**
+ * Variable types
+ */
+TOKEN:
 {
     < VOID:         "void"                           > |
     < INT:          "int"                            > |
@@ -69,7 +112,10 @@ TOKEN:  // VAR TYPES
     < STRING:       "String"                         >
 }
 
-TOKEN:  // OPERATIONS
+/**
+ * Operations
+ */
+TOKEN:
 {
     < ASSIGNMENT:   "="                              > |
     < AND:          "&&"                             > |
@@ -81,7 +127,10 @@ TOKEN:  // OPERATIONS
     < NOT:          "!"                              >
 }
 
-TOKEN:  // CODE CHARACTERS
+/**
+ * Code characters
+ */
+TOKEN:
 {
     < COMMA:        ","                              > |
     < DOT:          "."                              > |
@@ -94,7 +143,10 @@ TOKEN:  // CODE CHARACTERS
     < CLOSE_PAR:    ")"                              >
 }
 
-TOKEN:  // INTEGERS AND IDENTIFIERS
+/**
+ * Integers and identifiers
+ */
+TOKEN:
 {
     < INTEGER:      <BINARY> | <OCTAL> | <DECIMAL> | <HEXADECIMAL>      > |
     < #BINARY:      ( "0b" | "0B" ) ( [ "0"-"1" ] )+                    > |
@@ -171,8 +223,36 @@ void Statement(): {}
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
-void IfElseBlock() #void: {} { <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement() }
-void WhileBlock() #void: {} { <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() }
+
+void IfElseBlock() : {}
+{
+    try {
+        <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+    }
+    catch(ParseException e) {
+        reportError(e, "if");
+    }
+}
+void WhileBlock() : {}
+{
+    try {
+        <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+    }
+    catch(ParseException e) {
+        reportError(e, "while");
+        // DEEP ERROR RECOVERY
+        // The loop consumes tokens all the way up to a token of
+        // "kind".  We use a do-while loop rather than a while because the
+        // current token is the one immediately before the erroneous token
+        // (in our case the token immediately before what should have been
+        // "while".
+        Token t;
+        do {
+            t = getNextToken();
+        } while (t.kind != CLOSE_PAR);
+    }
+}
+
 void Assignment() #void: {} { <ASSIGNMENT> Expression() <SEMI_COLON> }
 void ArrayAssignment() #void: {} {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
 
@@ -192,7 +272,15 @@ void ExpLink() #void: {}
     <DOT> ( GetLength() | CallMethod() )
 }
 
-void CompareOp() #void: {} { <AND> | <LT> | <SUM> | <SUB> | <MULT> | <DIV> }
+void CompareOp() #void: {}
+{
+    <AND>  |
+    <LT>   |
+    <SUM>  |
+    <SUB>  |
+    <MULT> |
+    <DIV>
+}
 void GetLength() #void: {} { <LENGTH> }
 void CallMethod() #void: {} {
     <IDENTIFIER> <OPEN_PAR>
