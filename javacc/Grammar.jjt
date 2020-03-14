@@ -60,7 +60,7 @@ SimpleNode Tree(): {}
     Program(1) { return jjtThis; } // Java code inside brackets
 }
 
-void Program(int sign) #void: {}
+void Program(int sign): {}
 {
     ImportDeclaration()
     ClassDeclaration()
@@ -74,7 +74,7 @@ void ImportDeclaration(): {}
 
 void ClassDeclaration(): {}
 {
-    <CLASS> <IDENTIFIER> (<EXTENDS> <IDENTIFIER> )? <OPEN_BLOCK>
+    <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_BLOCK>
     (VarDeclaration())*
     (MethodDeclaration())*
     <CLOSE_BLOCK>
@@ -87,7 +87,7 @@ void VarDeclaration(): {}
 
 void MethodDeclaration(): {}
 {
-    <PUBLIC> Type() <IDENTIFIER> (Type() <IDENTIFIER> (<SEP> Type() <IDENTIFIER> )*)? <OPEN_BLOCK>
+    <PUBLIC> Type() <IDENTIFIER> [ Type() <IDENTIFIER> (<SEP> Type() <IDENTIFIER> )* ] <OPEN_BLOCK>
        (VarDeclaration())*
        (Statement())*
        <RETURN> Expression() <LF>
@@ -114,15 +114,27 @@ void Statement(): {}
 
 void Expression(): {}
 {
-    // TODO: solve left-recursive cycle problem (Expression-ception)
-    Expression() (
-        ( "&&" | "<" | "+" | "-" | "*" | "/") Expression()
-        | <PROPERTY> (
-            <LENGTH>
-            | <IDENTIFIER> "(" (Expression() (<SEP> Expression() )* )? ")"
-        )
+    SimpleExp() ComplexExp()
+}
+
+void ComplexExp() #void: {}
+{
+    [ ExpLink() ComplexExp() ]
+}
+
+void ExpLink() #void: {}
+{
+    ( "&&" | "<" | "+" | "-" | "*" | "/" ) Expression()
+    | "[" Expression() "]"
+    | <PROPERTY> (
+        <LENGTH>
+        | <IDENTIFIER> "(" [ Expression() ( <SEP> Expression() )* ] ")"
     )
-    | <INTEGER>
+}
+
+void SimpleExp() #void: {}
+{
+    <INTEGER>
     | <BOOL_VAL>
     | <IDENTIFIER>
     | <THIS>
@@ -130,5 +142,4 @@ void Expression(): {}
     | <NEW> <IDENTIFIER> "(" ")"
     | <NOT> Expression()
     | "(" Expression() ")"
-
 }
