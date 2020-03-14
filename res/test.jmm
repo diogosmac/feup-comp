@@ -1,10 +1,15 @@
 class Test {
     // this is a comment
-    int a = 1;
+    int a;
 
     public static void main(String[] args) {
+        a = 3;
+
         if(a < 2) {
             a = 2;
+        }
+        else {
+            a = 3;
         }
 
         /* Multi
