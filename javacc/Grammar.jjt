@@ -16,49 +16,93 @@ public class Parser
 
 PARSER_END(Parser)
 
-SKIP :
+TOKEN:  // SKIPS
 {
-    " " | "\r" | "\t" | "\n" |
-    <"//" "\n">     // TODO: line comments
-    | <"/*" "*/">   // TODO: multi-line comments
+    < WHITESPACE: " " >                                                         |
+    < CARRIAGE_RETURN: "\r" >                                                   |
+    < TAB: "\t" >                                                               |
+    < NEWLINE: "\n" >                                                           |
+    < INLINE_COMMENT: "//" ( ~[ "\n", "\r" ] )* ( "\n" | "\r" | "\r\n" ) >      |
+    < BLOCK_COMMENT: "/*" ( ~[ "*" ] )* "*" ( ~[ "/" ] (~[ "*" ] )* "*")* "/" >
 }
 
-TOKEN:
+SKIP :
 {
-    < IMPORT: "import" >
-    | < CLASS: "class" >
-    | < EXTENDS: "extends" >
-    | < PUBLIC: "public" >
-    | < RETURN: "return" >
-    | < INT: "int" >
-    | < BOOLEAN: "boolean" >
-    | < WHILE: "while" >
-    | < IF: "if" >
-    | < ELSE: "else" >
-    | < BOOL_VAL: "true" | "false" >
-    | < NEW: "new" >
-    | < THIS: "this" >
-    | < LENGTH: "length" >
-    | < DIGIT: ["0"-"9"]>
-    | < INTEGER: (<DIGIT>)+ >
-    | < LETTER: ["A"-"Z", "a"-"z"] >
-    | < IDENTIFIER: <LETTER> (<LETTER> | <INTEGER>)* >  // <INTEGER> could be replaced with <DIGIT>
-    | < LF: ";" >
-    | < END_OF_FILE: "\0" >
-    | < OPEN_BLOCK: "{" >
-    | < CLOSE_BLOCK: "}" >
-    | < SEP: "," >
-    | < NOT: "!" >
-    | < PROPERTY: "." >
-    | < OPEN_ARRAY: "[" >
-    | < CLOSE_ARRAY: "]" >
-    | < ASSIGNMENT: "=" >
+    <WHITESPACE>        |
+    <CARRIAGE_RETURN>   |
+    <TAB>               |
+    <NEWLINE>           |
+    <INLINE_COMMENT>    |
+    <BLOCK_COMMENT>
 }
+
+TOKEN:  // KEYWORDS
+{
+    < IMPORT:   "import"                             > |
+    < EXTENDS:  "extends"                            > |
+    < PUBLIC:   "public"                             > |
+    < STATIC:   "static"                             > |
+    < CLASS:    "class"                              > |
+    < RETURN:   "return"                             > |
+    < MAIN:     "main"                               > |
+    < WHILE:    "while"                              > |
+    < IF:       "if"                                 > |
+    < ELSE:     "else"                               > |
+    < NEW:      "new"                                > |
+    < THIS:     "this"                               > |
+    < LENGTH:   "length"                             > |
+    < TRUE:     "true"                               > |
+    < FALSE:    "false"                              >
+}
+
+TOKEN:  // VAR TYPES
+{
+    < VOID:     "void"                               > |
+    < INT:      "int"                                > |
+    < BOOLEAN:  "boolean"                            > |
+    < STRING:   "String"                             >
+}
+
+TOKEN:  // OPERATIONS
+{
+    < ASSIGNMENT:   "="                              > |
+    < AND:          "&&"                             > |
+    < LT:           "<"                              > |
+    < SUM:          "+"                              > |
+    < SUB:          "-"                              > |
+    < MULT:         "*"                              > |
+    < DIV:          "/"                              > |
+    < NOT:          "!"                              >
+}
+
+TOKEN:  // CODE CHARACTERS
+{
+    < COMMA:        ","                              > |
+    < PROPERTY:     "."                              > |
+    < SEMI_COLON:   ";"                              > |
+    < OPEN_BLOCK:   "{"                              > |
+    < CLOSE_BLOCK:  "}"                              > |
+    < OPEN_ARRAY:   "["                              > |
+    < CLOSE_ARRAY:  "]"                              > |
+    < OPEN_PAR:     "("                              > |
+    < CLOSE_PAR:    ")"                              > |
+    < END_OF_FILE:  "\0"                             >
+}
+
+TOKEN:  // INTEGERS AND IDENTIFIERS
+{
+    < DIGIT:        ["0"-"9"]                        > |
+    < INTEGER:      (<DIGIT>)+                       > |
+    < LETTER:       ["A"-"Z", "a"-"z"]               > |
+    < IDENTIFIER:   <LETTER> (<LETTER> | <INTEGER>)* >
+}
+
 
 SimpleNode Tree(): {}
 {
     Program(1) { return jjtThis; } // Java code inside brackets
 }
+
 
 void Program(int sign): {}
 {
@@ -67,79 +111,108 @@ void Program(int sign): {}
     <END_OF_FILE>
 }
 
+
 void ImportDeclaration(): {}
 {
-    (<IMPORT> <INTEGER> <LF>)*
+    (<IMPORT> <IDENTIFIER> <SEMI_COLON>)*
 }
+
 
 void ClassDeclaration(): {}
 {
     <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_BLOCK>
-    (VarDeclaration())*
-    (MethodDeclaration())*
+        (VarDeclaration())*
+        (MethodDeclaration())*
     <CLOSE_BLOCK>
 }
+
 
 void VarDeclaration(): {}
 {
-    Type() <IDENTIFIER> <LF>
+    Type() <IDENTIFIER> <SEMI_COLON>
 }
+
 
 void MethodDeclaration(): {}
 {
-    <PUBLIC> Type() <IDENTIFIER> [ Type() <IDENTIFIER> (<SEP> Type() <IDENTIFIER> )* ] <OPEN_BLOCK>
-       (VarDeclaration())*
-       (Statement())*
-       <RETURN> Expression() <LF>
-    <CLOSE_BLOCK>
+    RegularMethod() |
+    MainMethod()
 }
+
+void RegularMethod() #void: {} {
+    <PUBLIC> Type() <IDENTIFIER> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ]
+    <OPEN_BLOCK> MethodBody() <RETURN> Expression() <SEMI_COLON> <CLOSE_BLOCK>
+}
+void MainMethod() #void: {} {
+    <PUBLIC> <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> <CLOSE_PAR>
+    <OPEN_BLOCK> MethodBody() <CLOSE_BLOCK>
+}
+void MethodBody() #void: {} { ( VarDeclaration() )* ( Statement() )* }
+
 
 void Type(): {}
 {
-    <INT> "[]"
-    | <BOOLEAN>
-    | <INT>
-    | <IDENTIFIER>
+    <INT> <OPEN_ARRAY> <CLOSE_ARRAY>    |
+    <BOOLEAN>                           |
+    <INT>                               |
+    <IDENTIFIER>
 }
 
 void Statement(): {}
 {
-    "{" (Statement())* "}"
-    | <IF> "(" Expression() ")" Statement() <ELSE> Statement()
-    | <WHILE> "(" Expression() ")" Statement()
-    | Expression() <LF>
-    | <IDENTIFIER> "=" Expression() <LF>
-    | <IDENTIFIER> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> "=" Expression() <LF>
+    MultiStatementBlock()               |
+    IfElseBlock()                       |
+    WhileBlock()                        |
+    Expression() <SEMI_COLON>           |
+    Assignment()                        |
+    ArrayAssignment()
 }
 
-void Expression(): {}
-{
+void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
+void IfElseBlock() #void: {} { <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement() }
+void WhileBlock() #void: {} { <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() }
+void Assignment() #void: {} { <IDENTIFIER> <ASSIGNMENT> Expression() <SEMI_COLON> }
+void ArrayAssignment() #void: {} {
+    <IDENTIFIER> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
+
+
+void Expression(): {} {
     SimpleExp() ComplexExp()
 }
 
-void ComplexExp() #void: {}
-{
+void ComplexExp() #void: {} {
     [ ExpLink() ComplexExp() ]
 }
 
 void ExpLink() #void: {}
 {
-    ( "&&" | "<" | "+" | "-" | "*" | "/" ) Expression()
-    | "[" Expression() "]"
-    | <PROPERTY> (
-        <LENGTH>
-        | <IDENTIFIER> "(" [ Expression() ( <SEP> Expression() )* ] ")"
-    )
+    CompareOp() Expression()                |
+    <OPEN_ARRAY> Expression() <CLOSE_ARRAY> |
+    GetLength()                             |
+    CallMethod()
 }
+
+void CompareOp() #void: {} { <AND> | <LT> | <SUM> | <SUB> | <MULT> | <DIV> }
+void GetLength() #void: {} { <PROPERTY> <LENGTH> }
+void CallMethod() #void: {} {
+    <PROPERTY> <IDENTIFIER> <OPEN_PAR>
+        [ Expression() ( <COMMA> Expression() )* ]
+    <CLOSE_PAR>
+}
+
 
 void SimpleExp() #void: {}
 {
-    <INTEGER>
-    | <BOOL_VAL>
-    | <IDENTIFIER>
-    | <THIS>
-    | <NEW> <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
-    | <NEW> <IDENTIFIER> "(" ")"
-    | <NOT> Expression()
-    | "(" Expression() ")"
+    <INTEGER>                           |
+    <TRUE>                              |
+    <FALSE>                             |
+    <IDENTIFIER>                        |
+    <THIS>                              |
+    CreateArray()                       |
+    CreateObject()                      |
+    <NOT> Expression()                  |
+    <OPEN_PAR> Expression() <CLOSE_PAR>
 }
+
+void CreateArray() #void: {} { <NEW> <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
+void CreateObject() #void: {} { <NEW> <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
