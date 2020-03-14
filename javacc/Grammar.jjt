@@ -16,24 +16,14 @@ public class Parser
 
 PARSER_END(Parser)
 
-TOKEN:  // SKIPS
-{
-    < WHITESPACE: " " >                                                         |
-    < CARRIAGE_RETURN: "\r" >                                                   |
-    < TAB: "\t" >                                                               |
-    < NEWLINE: "\n" >                                                           |
-    < INLINE_COMMENT: "//" ( ~[ "\n", "\r" ] )* ( "\n" | "\r" | "\r\n" ) >      |
-    < BLOCK_COMMENT: "/*" ( ~[ "*" ] )* "*" ( ~[ "/" ] (~[ "*" ] )* "*")* "/" >
-}
-
 SKIP :
 {
-    <WHITESPACE>        |
-    <CARRIAGE_RETURN>   |
-    <TAB>               |
-    <NEWLINE>           |
-    <INLINE_COMMENT>    |
-    <BLOCK_COMMENT>
+    < WHITESPACE:      " "                                                         > |
+    < TAB:             "\t"                                                        > |
+    < CARRIAGE_RETURN: "\r"                                                        > |
+    < NEWLINE:         "\n"                                                        > |
+    < INLINE_COMMENT:  "//" ( ~[ "\n", "\r" ] )* ( "\n" | "\r" | "\r\n" )          > |
+    < BLOCK_COMMENT:   "/*" ( ~[ "*" ] )* "*" ( ~[ "/" ] (~[ "*" ] )* "*")* "/"    >
 }
 
 TOKEN:  // KEYWORDS
@@ -116,10 +106,7 @@ void Program(int sign): {}
 }
 
 
-void ImportDeclaration(): {}
-{
-    ( <IMPORT> <IDENTIFIER> <SEMI_COLON> )*
-}
+void ImportDeclaration(): {} { ( <IMPORT> <IDENTIFIER> <SEMI_COLON> )* }
 
 
 void ClassDeclaration(): {}
@@ -137,47 +124,41 @@ void VarDeclaration(): {}
 }
 
 
-void MethodDeclaration(): {}
-{
-    RegularMethod() |
-    MainMethod()
-}
+void MethodDeclaration(): {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
 void RegularMethod() #void: {} {
-    <PUBLIC> Type() <IDENTIFIER> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ]
+    Type() <IDENTIFIER> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ]
     <OPEN_BLOCK> MethodBody() <RETURN> Expression() <SEMI_COLON> <CLOSE_BLOCK>
 }
 void MainMethod() #void: {} {
-    <PUBLIC> <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> <CLOSE_PAR>
+    <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> <CLOSE_PAR>
     <OPEN_BLOCK> MethodBody() <CLOSE_BLOCK>
 }
-void MethodBody() #void: {} { ( VarDeclaration() )* ( Statement() )* }
+void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
 
 void Type(): {}
 {
-    <INT> <OPEN_ARRAY> <CLOSE_ARRAY>    |
-    <BOOLEAN>                           |
-    <INT>                               |
+    <INT> [ <OPEN_ARRAY> <CLOSE_ARRAY> ]    |
+    <BOOLEAN>                               |
     <IDENTIFIER>
 }
 
+
 void Statement(): {}
 {
-    MultiStatementBlock()               |
-    IfElseBlock()                       |
-    WhileBlock()                        |
-    Expression() <SEMI_COLON>           |
-    Assignment()                        |
-    ArrayAssignment()
+    MultiStatementBlock()                               |
+    IfElseBlock()                                       |
+    WhileBlock()                                        |
+    <IDENTIFIER> ( Assignment() | ArrayAssignment() )   |
+    Expression() <SEMI_COLON>
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
 void IfElseBlock() #void: {} { <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement() }
 void WhileBlock() #void: {} { <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() }
-void Assignment() #void: {} { <IDENTIFIER> <ASSIGNMENT> Expression() <SEMI_COLON> }
-void ArrayAssignment() #void: {} {
-    <IDENTIFIER> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
+void Assignment() #void: {} { <ASSIGNMENT> Expression() <SEMI_COLON> }
+void ArrayAssignment() #void: {} {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
 
 
 void Expression(): {} {
@@ -185,21 +166,20 @@ void Expression(): {} {
 }
 
 void ComplexExp() #void: {} {
-    [ ExpLink() ComplexExp() ]
+    [ LOOKAHEAD(2) ExpLink() ComplexExp() ]
 }
 
 void ExpLink() #void: {}
 {
     CompareOp() Expression()                |
     <OPEN_ARRAY> Expression() <CLOSE_ARRAY> |
-    GetLength()                             |
-    CallMethod()
+    <DOT> ( GetLength() | CallMethod() )
 }
 
 void CompareOp() #void: {} { <AND> | <LT> | <SUM> | <SUB> | <MULT> | <DIV> }
-void GetLength() #void: {} { <DOT> <LENGTH> }
+void GetLength() #void: {} { <LENGTH> }
 void CallMethod() #void: {} {
-    <DOT> <IDENTIFIER> <OPEN_PAR>
+    <IDENTIFIER> <OPEN_PAR>
         [ Expression() ( <COMMA> Expression() )* ]
     <CLOSE_PAR>
 }
@@ -212,11 +192,11 @@ void SimpleExp() #void: {}
     <FALSE>                             |
     <IDENTIFIER>                        |
     <THIS>                              |
-    CreateArray()                       |
     CreateObject()                      |
     <NOT> Expression()                  |
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
 
-void CreateArray() #void: {} { <NEW> <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreateObject() #void: {} { <NEW> <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
+void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
+void CreateArray() #void: {} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
+void CreatePrimitive() #void: {} { <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
