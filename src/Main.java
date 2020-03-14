@@ -1,6 +1,6 @@
 public class Main {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ParseException {
 		System.out.println("Parser for programs in the Java-- language");
 
 		Parser parser;

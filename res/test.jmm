@@ -1,10 +1,15 @@
 class Test {
+    // this is a comment
     int a = 1;
 
     public static void main(String[] args) {
         if(a < 2) {
             a = 2;
         }
+
+        /* Multi
+        line
+        comment */
 
         while(a < 10) {
             a = a + 1;

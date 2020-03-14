@@ -7,7 +7,8 @@ PARSER_BEGIN(Parser)
 
 public class Parser
 {
-    public static void main(String[] args) {
+    public static void main(String[] args) /* throws ParseException */ {
+        /* THIS IS PROBABLY NOT NECESSARY
         System.out.println("Parser for programs in the Java-- language");
 
         Parser parser;
@@ -25,6 +26,7 @@ public class Parser
 
         // Print tree to console
         root.dump("");
+         */
     }
 }
 
