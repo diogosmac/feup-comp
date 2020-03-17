@@ -203,7 +203,7 @@ void VarDeclaration(): {}
 void MethodDeclaration(): {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
 void RegularMethod() #void: {} {
-    Type() <IDENTIFIER> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ]
+    Type() <IDENTIFIER> <OPEN_PAR> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ] <CLOSE_PAR>
     <OPEN_BLOCK> MethodBody() <RETURN> Expression() <SEMI_COLON> <CLOSE_BLOCK>
 }
 void MainMethod() #void: {} {
@@ -226,13 +226,16 @@ void Statement(): {}
     MultiStatementBlock()                               |
     IfElseBlock()                                       |
     WhileBlock()                                        |
-    <IDENTIFIER> ( Assignment() | ArrayAssignment() )   |
-    Expression() <SEMI_COLON>
+    <IDENTIFIER> (
+        Assignment()                            |
+        LOOKAHEAD(2) ArrayAssignment()          |
+        ComplexExp() <SEMI_COLON>
+    )                                                   |
+    StatementExpression() <SEMI_COLON>
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
-
-void IfElseBlock() : {}
+void IfElseBlock() #void: {}
 {
     try {
         <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
@@ -241,7 +244,7 @@ void IfElseBlock() : {}
         reportError(e, "if");
     }
 }
-void WhileBlock() : {}
+void WhileBlock() #void: {}
 {
     try {
         <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
@@ -266,6 +269,10 @@ void ArrayAssignment() #void: {} {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIG
 
 
 void Expression(): {} {
+    ( SimpleExp() | <IDENTIFIER> ) ComplexExp()
+}
+
+void StatementExpression(): {} {
     SimpleExp() ComplexExp()
 }
 
@@ -302,13 +309,11 @@ void SimpleExp() #void: {}
     <INTEGER>                           |
     <TRUE>                              |
     <FALSE>                             |
-    <IDENTIFIER>                        |
     <THIS>                              |
     CreateObject()                      |
     <NOT> Expression()                  |
     <OPEN_PAR> Expression() <CLOSE_PAR>
 }
-
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
 void CreateArray() #void: {} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
 void CreatePrimitive() #void: {} { <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
