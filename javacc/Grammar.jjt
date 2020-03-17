@@ -280,6 +280,30 @@ void ComplexExp() #void: {} {
     [ LOOKAHEAD(2) ExpLink() ComplexExp() ]
 }
 
+void And() #void: {} {
+    LT() ( LOOKAHEAD(2) <AND> LT() #and(2) )*
+}
+
+void LT() #void: {} {
+    Sum() ( LOOKAHEAD(2) <LT> Sum() #lt(2) )*
+}
+
+void Sum() #void: {} {
+    Sub() ( LOOKAHEAD(2) <SUM> Sub() #sum(2) )*
+}
+
+void Sub() #void: {} {
+    Mult() ( LOOKAHEAD(2) <SUB> Mult() #sub(2) )*
+}
+
+void Mult() #void: {} {
+    Div() ( LOOKAHEAD(2) <MULT> Div() #mult(2) )*
+}
+
+void Div() #void: {} {
+    Expression() ( LOOKAHEAD(2) <DIV> Expression() #div(2) )*
+}
+
 void ExpLink() #void: {}
 {
     CompareOp() Expression()                |
