@@ -174,7 +174,15 @@ void Program(int sign): {}
 }
 
 
-void ImportDeclaration(): {} { ( <IMPORT> <IDENTIFIER> <SEMI_COLON> )* }
+void ImportDeclaration(): {} {
+    ( <IMPORT> [ <STATIC> ] <IDENTIFIER> [ ImportMethod() ] <SEMI_COLON> )*
+}
+
+void ImportMethod(): {} {
+    <DOT> <IDENTIFIER> <OPEN_PAR>
+        [ <VOID> | Type() ( <COMMA> Type() )* ] // Nothing | VOID | Types
+    <CLOSE_PAR> [ <VOID> | Type() ]
+}
 
 
 void ClassDeclaration(): {}
