@@ -206,13 +206,22 @@ void VarDeclaration(): {}
 void MethodDeclaration(): {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
 void RegularMethod() #void: {} {
-    Type() <IDENTIFIER> <OPEN_PAR> [ Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* ] <CLOSE_PAR>
-    <OPEN_BLOCK> MethodBody() <RETURN> Expression() <SEMI_COLON> <CLOSE_BLOCK>
+    Type() <IDENTIFIER> <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
+    <OPEN_BLOCK>
+        MethodBody()
+        <RETURN> Expression() <SEMI_COLON>
+    <CLOSE_BLOCK>
 }
+void MethodParams() #void: {} { Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* }
+
 void MainMethod() #void: {} {
-    <STATIC> <VOID> <MAIN> <OPEN_PAR> <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> <CLOSE_PAR>
-    <OPEN_BLOCK> MethodBody() <CLOSE_BLOCK>
+    <STATIC> <VOID> <MAIN> <OPEN_PAR> MainParams() <CLOSE_PAR>
+    <OPEN_BLOCK>
+        MethodBody()
+    <CLOSE_BLOCK>
 }
+void MainParams() #void: {} { <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> }
+
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
 
@@ -331,11 +340,8 @@ void CompareOp() #void: {}
 }
 
 void GetLength() #void: {} { <LENGTH> }
-void CallMethod() #void: {} {
-    <IDENTIFIER> <OPEN_PAR>
-        [ Expression() ( <COMMA> Expression() )* ]
-    <CLOSE_PAR>
-}
+void CallMethod() #void: {} { <IDENTIFIER> <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR> }
+void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
 
 
 void SimpleExp() #void: {}
