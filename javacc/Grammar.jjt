@@ -56,9 +56,11 @@ public class Parser
      */
     static void reportError(ParseException e, String statement) throws ParseException {
         // Print Warning
-        System.out.println("Syntax error on " + statement + " statement.\n\n");
+        System.out.println("Syntax error on " + statement + " statement.");
         // Print parsing error
         System.out.println(e.toString());
+        // Print separator
+        System.out.println("========================");
         numErrors++;
 
         if (numErrors >= MAX_ERRORS) {
@@ -265,7 +267,7 @@ void WhileBlock() #void: {}
         do {
             // getToken(int) does not consume token
             t = getToken(1);
-            if(t.kind == EOF || t.kind == OPEN_BLOCK)
+            if(t.kind == EOF || t.kind == OPEN_BLOCK || t.kind == IF || t.kind == WHILE)
                 break;
             t = getNextToken();
         } while (t.kind != CLOSE_PAR);
@@ -332,9 +334,23 @@ void CompareOp() #void: {}
 
 void GetLength() #void: {} { <LENGTH> }
 void CallMethod() #void: {} {
-    <IDENTIFIER> <OPEN_PAR>
-        [ Expression() ( <COMMA> Expression() )* ]
-    <CLOSE_PAR>
+    <IDENTIFIER>
+    try {
+        <OPEN_PAR>
+            [ Expression() ( <COMMA> Expression() )* ]
+        <CLOSE_PAR>
+    } catch(ParseException e) {
+        // clean parenthesis
+        Token t;
+        do {
+            t = getToken(1);
+            if(t.kind == EOF)
+                break;
+            t = getNextToken();
+        } while (t.kind != CLOSE_PAR);
+        // throw error so 'while' can report it
+        throw(e);
+    }
 }
 
 
@@ -346,7 +362,20 @@ void SimpleExp() #void: {}
     <THIS>                              |
     CreateObject()                      |
     <NOT> Expression()                  |
-    <OPEN_PAR> Expression() <CLOSE_PAR>
+    try {
+        <OPEN_PAR> Expression() <CLOSE_PAR>
+    } catch(ParseException e) {
+        // clean parenthesis
+        Token t;
+        do {
+            t = getToken(1);
+            if(t.kind == EOF)
+                break;
+            t = getNextToken();
+        } while (t.kind != CLOSE_PAR);
+        // throw error so 'while' can report it
+        throw(e);
+    }
 }
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
 void CreateArray() #void: {} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
