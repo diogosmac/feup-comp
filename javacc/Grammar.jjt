@@ -1,6 +1,7 @@
 options
 {
     LOOKAHEAD=1;
+    MULTI = true;
 }
 
 PARSER_BEGIN(Parser)
@@ -29,6 +30,7 @@ public class Parser
         Parser parser;
         // open file as input stream
         try {
+            numErrors = 0;
             parser = new Parser(new java.io.FileInputStream(args[0]));
         }
         catch (java.io.FileNotFoundException e) {
@@ -42,8 +44,12 @@ public class Parser
             root = parser.Tree();
         }
         catch (ParseException e) {
-            System.out.println(e.toString());
-            return;
+            throw(e);
+        }
+
+        // added
+        if(numErrors != 0) {
+            throw(new RuntimeException("SOME ERRRORS"));
         }
 
         // Print tree to console
@@ -59,7 +65,8 @@ public class Parser
 
         if (numErrors >= MAX_ERRORS) {
               System.out.println("Reached maximum number of errors (" + MAX_ERRORS + "). Terminating.");
-              System.exit(1);
+              //added
+              throw(new RuntimeException("MAX ERRRORS REACHED"));
         }
     }
 }
@@ -246,10 +253,12 @@ void IfElseBlock() #void: {}
 }
 void WhileBlock() #void: {}
 {
+    <WHILE>
     try {
-        <WHILE> <OPEN_PAR> Expression() <CLOSE_PAR> Statement()
+        <OPEN_PAR> Expression() <CLOSE_PAR>
     }
     catch(ParseException e) {
+        System.out.println(e.expectedTokenSequences[0][0]); // TODO ParserConstants.CLOSE_PAR
         reportError(e, "while");
         // DEEP ERROR RECOVERY
         // The loop consumes tokens all the way up to a token of
@@ -260,8 +269,9 @@ void WhileBlock() #void: {}
         Token t;
         do {
             t = getNextToken();
-        } while (t.kind != CLOSE_PAR);
+        } while (t.kind != CLOSE_PAR); // TODO: or EOF or "{"
     }
+    Statement()
 }
 
 void Assignment() #void: {} { <ASSIGNMENT> Expression() <SEMI_COLON> }
@@ -320,6 +330,7 @@ void CompareOp() #void: {}
     <MULT> |
     <DIV>
 }
+
 void GetLength() #void: {} { <LENGTH> }
 void CallMethod() #void: {} {
     <IDENTIFIER> <OPEN_PAR>
