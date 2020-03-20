@@ -183,13 +183,10 @@ public class ParserTest {
         test("fixtures/public/fail/syntactical/LengthError.jmm", true);
     }
 
-
-    /* LOOP
     @Test
     public void testMissingRightPar() {
         test("fixtures/public/fail/syntactical/MissingRightPar.jmm", true);
-    } */
-
+    }
 
     @Test
     public void testMultipleSequential() {
