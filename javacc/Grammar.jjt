@@ -40,16 +40,11 @@ public class Parser
 
         SimpleNode root;
         // create Syntax Tree (returns reference to root node)
-        try {
-            root = parser.Tree();
-        }
-        catch (ParseException e) {
-            throw(e);
-        }
+        root = parser.Tree();
 
         // added
         if(numErrors != 0) {
-            throw(new RuntimeException("SOME ERRRORS"));
+            throw(new ParseException("Parsing has errors!"));
         }
 
         // Print tree to console
@@ -59,14 +54,15 @@ public class Parser
     /**
      * Report syntax error and increment error counter
      */
-    static void reportError(ParseException e, String statement) {
-        System.out.println("Syntax error on " + statement + " statement.\n\n" + e.toString());
+    static void reportError(ParseException e, String statement) throws ParseException {
+        // Print Warning
+        System.out.println("Syntax error on " + statement + " statement.\n\n");
+        // Print parsing error
+        System.out.println(e.toString());
         numErrors++;
 
         if (numErrors >= MAX_ERRORS) {
-              System.out.println("Reached maximum number of errors (" + MAX_ERRORS + "). Terminating.");
-              //added
-              throw(new RuntimeException("MAX ERRRORS REACHED"));
+              throw(new ParseException("Reached maximum number of errors (" + MAX_ERRORS + "). Terminating."));
         }
     }
 }
@@ -258,7 +254,6 @@ void WhileBlock() #void: {}
         <OPEN_PAR> Expression() <CLOSE_PAR>
     }
     catch(ParseException e) {
-        System.out.println(e.expectedTokenSequences[0][0]); // TODO ParserConstants.CLOSE_PAR
         reportError(e, "while");
         // DEEP ERROR RECOVERY
         // The loop consumes tokens all the way up to a token of
@@ -268,8 +263,12 @@ void WhileBlock() #void: {}
         // "while".
         Token t;
         do {
+            // getToken(int) does not consume token
+            t = getToken(1);
+            if(t.kind == EOF || t.kind == OPEN_BLOCK)
+                break;
             t = getNextToken();
-        } while (t.kind != CLOSE_PAR); // TODO: or EOF or "{"
+        } while (t.kind != CLOSE_PAR);
     }
     Statement()
 }
