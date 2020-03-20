@@ -38,14 +38,19 @@ compileJavacc {
 sourceSets {
    main {
       java {
-         srcDir 'src'
+          srcDir 'src'
+          srcDir 'generated/javacc'
+          srcDir 'generated/jjtree'
       }
    }
 	
    test {
-      java {
-         srcDir 'test'
-      }
+       java {
+           srcDir 'test'
+       }
+       resources {
+           srcDir 'test'
+       }
    }
     
 }
