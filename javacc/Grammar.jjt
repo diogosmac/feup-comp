@@ -334,7 +334,7 @@ void Div() #void: {} {
 }
 
 void LowerExpression() #void: {Token t;} {
-    ( SimpleExp() | t=<IDENTIFIER> #id ) ComplexExp()
+    ( SimpleExp() | t=<IDENTIFIER> {jjtThis.id = t.image;} #id ) ComplexExp()
 }
 
 void StatementExpression() #void: {} {
