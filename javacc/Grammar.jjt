@@ -222,10 +222,10 @@ void MainMethod() #void: {} {
         MethodBody()
     <CLOSE_BLOCK>
 }
+
 void MainParams() #void: {} { <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> }
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
-
 
 void Type(): {}
 {
@@ -249,7 +249,7 @@ void Statement(): {}
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
-void IfElseBlock() #void: {}
+void IfElseBlock(): {}
 {
     try {
         <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
@@ -258,7 +258,7 @@ void IfElseBlock() #void: {}
         reportError(e, "if");
     }
 }
-void WhileBlock() #void: {}
+void WhileBlock(): {}
 {
     <WHILE>
     try {
@@ -288,36 +288,36 @@ void Assignment() #void: {} { <ASSIGNMENT> Expression() <SEMI_COLON> }
 void ArrayAssignment() #void: {} {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
 
 
-void Expression(): {} {
+void Expression() #void: {} {
     And()
 }
 
 void And() #void: {} {
-    LT() ( LOOKAHEAD(2) <AND> LT() )*
+    LT() ( LOOKAHEAD(2) <AND> LT() #and(2) )*
 }
 
 void LT() #void: {} {
-    Sum() ( LOOKAHEAD(2) <LT> Sum() )*
+    Sum() ( LOOKAHEAD(2) <LT> Sum() #lt(2) )*
 }
 
 void Sum() #void: {} {
-    Sub() ( LOOKAHEAD(2) <SUM> Sub() )*
+    Sub() ( LOOKAHEAD(2) <SUM> Sub() #sum(2) )*
 }
 
 void Sub() #void: {} {
-    Mult() ( LOOKAHEAD(2) <SUB> Mult() )*
+    Mult() ( LOOKAHEAD(2) <SUB> Mult() #sub(2) )*
 }
 
 void Mult() #void: {} {
-    Div() ( LOOKAHEAD(2) <MULT> Div() )*
+    Div() ( LOOKAHEAD(2) <MULT> Div() #mult(2) )*
 }
 
 void Div() #void: {} {
-    LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() )*
+    LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() #div(2) )*
 }
 
 void LowerExpression() #void: {Token t;} {
-    ( SimpleExp() | t=<IDENTIFIER> ) ComplexExp()
+    ( SimpleExp() | t=<IDENTIFIER> #id ) ComplexExp()
 }
 
 void StatementExpression() #void: {} {
@@ -333,8 +333,8 @@ void ExpLink() #void: {} {
     <DOT> ( GetLength() | CallMethod() )
 }
 
-void GetLength() #void: {} { <LENGTH> }
-void CallMethod() #void: {} {
+void GetLength(): {} { <LENGTH> }
+void CallMethod(): {} {
     <IDENTIFIER>
     try {
         <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
@@ -356,12 +356,12 @@ void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
 
 void SimpleExp() #void: {}
 {
-    <INTEGER>                           |
-    <TRUE>                              |
-    <FALSE>                             |
-    <THIS>                              |
-    CreateObject()                      |
-    <NOT> Expression()                  |
+    <INTEGER> #integer                  |
+    <TRUE>    #bool                     |
+    <FALSE>   #bool                     |
+    <THIS>    #_this                    |
+    CreateObject() #_new                |
+    <NOT> Expression() #not             |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch(ParseException e) {
