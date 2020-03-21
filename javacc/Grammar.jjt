@@ -199,9 +199,9 @@ void ClassDeclaration(): {Token id, ext;}
 }
 
 
-void VarDeclaration(): {}
+void VarDeclaration(): {Token id;}
 {
-    Type() <IDENTIFIER> <SEMI_COLON>
+    Type() id=<IDENTIFIER> <SEMI_COLON> {jjtThis.id = id.image;}
 }
 
 
