@@ -13,5 +13,14 @@ class AST_new extends SimpleNode {
     super(p, id);
   }
 
+  public String toString() {
+    if (isArray) {
+      return "_new: new int[]";
+    }
+    else {
+      return "_new: new " + primId + "()";
+    }
+  }
+
 }
 /* JavaCC - OriginalChecksum=2488efcd08b581ea0bfba40ba9ae5fca (do not edit this line) */
