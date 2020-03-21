@@ -377,7 +377,7 @@ void SimpleExp() #void: {Token t;}
     <TRUE> {jjtThis.value = true;} #bool |
     <FALSE>   #bool                     |
     <THIS>    #_this                    |
-    CreateObject() #_new                |
+    CreateObject()                      |
     <NOT> Expression() #not             |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
@@ -395,5 +395,5 @@ void SimpleExp() #void: {Token t;}
     }
 }
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
-void CreateArray() #void: {} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreatePrimitive() #void: {Token t;} { t=<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
+void CreateArray() #_new: {jjtThis.isArray = true;} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
+void CreatePrimitive() #_new: {Token t;} { t=<IDENTIFIER> {jjtThis.primId = t.image;} <OPEN_PAR> <CLOSE_PAR> }
