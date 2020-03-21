@@ -370,10 +370,10 @@ void CallMethod(): {} {
 void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
 
 
-void SimpleExp() #void: {}
+void SimpleExp() #void: {Token t;}
 {
-    <INTEGER> #integer                  |
-    <TRUE>    #bool                     |
+    t=<INTEGER> {jjtThis.value = t.image;} #integer                  |
+    <TRUE> {jjtThis.value = true;} #bool |
     <FALSE>   #bool                     |
     <THIS>    #_this                    |
     CreateObject() #_new                |
@@ -382,13 +382,13 @@ void SimpleExp() #void: {}
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch(ParseException e) {
         // clean parenthesis
-        Token t;
+        Token cleanToken;
         do {
-            t = getToken(1);
-            if(t.kind == EOF)
+            cleanToken = getToken(1);
+            if(cleanToken.kind == EOF)
                 break;
-            t = getNextToken();
-        } while (t.kind != CLOSE_PAR);
+            cleanToken = getNextToken();
+        } while (cleanToken.kind != CLOSE_PAR);
         // throw error so 'while' can report it
         throw(e);
     }
