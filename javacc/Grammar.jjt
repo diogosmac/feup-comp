@@ -214,10 +214,11 @@ void VarDeclaration(): {Token id;}
     Type() id=<IDENTIFIER> <SEMI_COLON> {jjtThis.id = id.image;}
 }
 
+
 void MethodDeclaration() #void: {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
-void RegularMethod() #void: {} {
-    Type() <IDENTIFIER> <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
+void RegularMethod() : {Token t;} {
+    Type() t=<IDENTIFIER> {jjtThis.methodId = t.image;} <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
     <OPEN_BLOCK>
         MethodBody()
         <RETURN> Expression() <SEMI_COLON>
@@ -243,11 +244,11 @@ void MainParams(): {Token id;} {
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
-void Type(): {}
+void Type(): {Token id;}
 {
-    <INT> [ <OPEN_ARRAY> <CLOSE_ARRAY> ]    |
-    <BOOLEAN>                               |
-    <IDENTIFIER>
+    <INT> {jjtThis.type = "int";} ((<OPEN_ARRAY> <CLOSE_ARRAY>) {jjtThis.array=true;})?    |
+    <BOOLEAN>      {jjtThis.type = "bool";}                         |
+    id=<IDENTIFIER> {jjtThis.id = id.image;}
 }
 
 
@@ -395,4 +396,4 @@ void SimpleExp() #void: {Token t;}
 }
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
 void CreateArray() #void: {} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreatePrimitive() #void: {} { <IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
+void CreatePrimitive() #void: {Token t;} { t=<IDENTIFIER> <OPEN_PAR> <CLOSE_PAR> }
