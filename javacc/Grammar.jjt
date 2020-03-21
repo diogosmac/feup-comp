@@ -190,9 +190,9 @@ void ImportMethod(): {} {
 }
 
 
-void ClassDeclaration(): {}
+void ClassDeclaration(): {Token id, ext;}
 {
-    <CLASS> <IDENTIFIER> [ <EXTENDS> <IDENTIFIER> ] <OPEN_BLOCK>
+    <CLASS> id=<IDENTIFIER> {jjtThis.classId = id.image;} [ <EXTENDS> ext=<IDENTIFIER> {jjtThis.extId = ext.image;} ] <OPEN_BLOCK>
         ( VarDeclaration() )*
         ( MethodDeclaration() )*
     <CLOSE_BLOCK>
