@@ -179,24 +179,32 @@ void Program(int sign): {}
 }
 
 
-void ImportDeclaration(): {Token t;} {
+void ImportDeclaration(): {Token tImport, tMethod;} {
     (
         <IMPORT>
         // may or may not be static
         [ <STATIC> { jjtThis.isStatic = true; } ]
         // import class name/identifier
-        t=<IDENTIFIER> { jjtThis.importId = t.image; }
-        [ ImportMethod() ] <SEMI_COLON>
+        tImport=<IDENTIFIER> { jjtThis.importId = tImport.image; }
+        // import method name/identifier
+        [
+            <DOT> tMethod=<IDENTIFIER> { jjtThis.methodId = tMethod.image; }
+            <OPEN_PAR>
+            [ <VOID> | Type() ( <COMMA> Type() )* ] // Nothing | VOID | Types
+            <CLOSE_PAR> [ <VOID> | Type() ]
+        ]
+        <SEMI_COLON>
     )*
 }
 
-void ImportMethod(): {Token t;} {
-    <DOT> t=<IDENTIFIER> { jjtThis.methodId = t.image; }
+/*
+void ImportMethod() #void: {Token t;} {
+    <DOT> t=<IDENTIFIER> { jjtThis.methodId = t.image; } #ImportDeclaration
     <OPEN_PAR>
         [ <VOID> | Type() ( <COMMA> Type() )* ] // Nothing | VOID | Types
     <CLOSE_PAR> [ <VOID> | Type() ]
 }
-
+*/
 void ClassDeclaration(): {Token id, ext;} {
     <CLASS>
     // class name/identifier

@@ -4,6 +4,7 @@ public
 class ASTImportDeclaration extends SimpleNode {
 
   public String importId;
+  public String methodId;
   public boolean isStatic = false;
 
   public ASTImportDeclaration(int id) {
@@ -15,7 +16,7 @@ class ASTImportDeclaration extends SimpleNode {
   }
 
   public String toString() {
-    return "ImportDeclaration: " + (isStatic ? "static " : "") + importId;
+    return "ImportDeclaration: " + (isStatic ? "static " : "") + importId + "." + methodId;
   }
 
 }
