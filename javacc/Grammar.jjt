@@ -260,14 +260,14 @@ void Type(): {Token id;}
 }
 
 
-void Statement() : { Token t; }
+void Statement(): { Token t; }
 {
-    MultiStatementBlock()                               |
+    MultiStatementBlock() {jjtThis.type = "block";}                 |
     IfElseBlock() {jjtThis.type = "if";}                |
     WhileBlock() {jjtThis.type = "while";}                 |
     t = <IDENTIFIER> { jjtThis.id = t.image; jjtThis.type = "id"; } (
-        Assignment()                            |
-        LOOKAHEAD(2) ArrayAssignment()          |
+        [ <OPEN_ARRAY> Expression() <CLOSE_ARRAY> { jjtThis.array = true; } ]
+        <ASSIGNMENT> Expression() <SEMI_COLON> { jjtThis.assign = true; } |
         ComplexExp() <SEMI_COLON>
     )                                                   |
     StatementExpression() <SEMI_COLON> {jjtThis.type = "statExp";}
@@ -309,9 +309,10 @@ void WhileBlock(): {}
     Statement()
 }
 
+/*
 void Assignment() #Statement: {jjtThis.assign = true;} { <ASSIGNMENT> Expression() <SEMI_COLON> }
 void ArrayAssignment() #Statement: { jjtThis.array = true; jjtThis.assign = true; } {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
-
+*/
 
 void Expression() #void: {} {
     And()
