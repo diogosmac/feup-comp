@@ -246,7 +246,7 @@ void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )
 
 void Type(): {Token id;}
 {
-    <INT> {jjtThis.type = "int";} ((<OPEN_ARRAY> <CLOSE_ARRAY>) {jjtThis.array=true;})?    |
+    <INT> {jjtThis.type = "int";} [ <OPEN_ARRAY> <CLOSE_ARRAY> {jjtThis.array = true;} ]    |
     <BOOLEAN>      {jjtThis.type = "bool";}                         |
     id=<IDENTIFIER> {jjtThis.id = id.image;}
 }
