@@ -179,25 +179,35 @@ void Program(int sign): {}
 }
 
 
-void ImportDeclaration(): {} {
-    ( <IMPORT> [ <STATIC> ] <IDENTIFIER> [ ImportMethod() ] <SEMI_COLON> )*
+void ImportDeclaration(): {Token t;} {
+    (
+        <IMPORT>
+        // may or may not be static
+        [ <STATIC> { jjtThis.isStatic = true; } ]
+        // import class name/identifier
+        t=<IDENTIFIER> { jjtThis.importId = t.image; }
+        [ ImportMethod() ] <SEMI_COLON>
+    )*
 }
 
-void ImportMethod(): {} {
-    <DOT> <IDENTIFIER> <OPEN_PAR>
+void ImportMethod(): {Token t;} {
+    <DOT> t=<IDENTIFIER> { jjtThis.methodId = t.image; }
+    <OPEN_PAR>
         [ <VOID> | Type() ( <COMMA> Type() )* ] // Nothing | VOID | Types
     <CLOSE_PAR> [ <VOID> | Type() ]
 }
 
-
-void ClassDeclaration(): {Token id, ext;}
-{
-    <CLASS> id=<IDENTIFIER> {jjtThis.classId = id.image;} [ <EXTENDS> ext=<IDENTIFIER> {jjtThis.extId = ext.image;} ] <OPEN_BLOCK>
+void ClassDeclaration(): {Token id, ext;} {
+    <CLASS>
+    // class name/identifier
+    id=<IDENTIFIER> {jjtThis.classId = id.image;}
+    // extended class name/identifier
+    [ <EXTENDS> ext=<IDENTIFIER> {jjtThis.extId = ext.image;} ]
+    <OPEN_BLOCK>
         ( VarDeclaration() )*
         ( MethodDeclaration() )*
     <CLOSE_BLOCK>
 }
-
 
 void VarDeclaration(): {Token id;}
 {
@@ -214,16 +224,23 @@ void RegularMethod() : {Token t;} {
         <RETURN> Expression() <SEMI_COLON>
     <CLOSE_BLOCK>
 }
-void MethodParams() #void: {} { Type() <IDENTIFIER> ( <COMMA> Type() <IDENTIFIER> )* }
 
-void MainMethod() #void: {} {
+void MethodParams(): {} { MethodParam() ( <COMMA> MethodParam() )* }
+
+void MethodParam(): {Token id;} {
+    Type() id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+}
+
+void MainMethod(): {} {
     <STATIC> <VOID> <MAIN> <OPEN_PAR> MainParams() <CLOSE_PAR>
     <OPEN_BLOCK>
         MethodBody()
     <CLOSE_BLOCK>
 }
 
-void MainParams() #void: {} { <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> <IDENTIFIER> }
+void MainParams(): {Token id;} {
+    <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+}
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
