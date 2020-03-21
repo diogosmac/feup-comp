@@ -351,8 +351,8 @@ void ExpLink() #void: {} {
 }
 
 void GetLength(): {} { <LENGTH> }
-void CallMethod(): {} {
-    <IDENTIFIER>
+void CallMethod(): {Token id;} {
+    id=<IDENTIFIER> {jjtThis.methodId = id.image;}
     try {
         <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
     } catch(ParseException e) {
