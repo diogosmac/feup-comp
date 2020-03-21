@@ -209,9 +209,9 @@ void ClassDeclaration(): {Token id, ext;} {
     <CLOSE_BLOCK>
 }
 
-
-void VarDeclaration(): {} {
-    Type() <IDENTIFIER> <SEMI_COLON>
+void VarDeclaration(): {Token id;}
+{
+    Type() id=<IDENTIFIER> <SEMI_COLON> {jjtThis.id = id.image;}
 }
 
 void MethodDeclaration() #void: {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
