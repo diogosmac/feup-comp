@@ -7,7 +7,6 @@ class ASTImport extends SimpleNode {
   public String importId;
   public boolean isMethod = false;
   public String methodId;
-  public String returnType = "void";
 
   public ASTImport(int id) {
     super(id);
@@ -20,7 +19,7 @@ class ASTImport extends SimpleNode {
   public String toString() {
     String out = "Import: " + (isStatic ? "static " : "") + importId;
     if (isMethod) {
-      out += "." + methodId + " - returns " + returnType;
+      out += "." + methodId;
     }
     return out;
   }

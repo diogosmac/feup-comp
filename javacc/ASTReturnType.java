@@ -17,15 +17,14 @@ class ASTReturnType extends SimpleNode {
 
   public String toString() {
 
-    String out = "Return Type: ";
+    String out = "Returns: ";
 
-    if (type == "int" || type == "bool" || type == "void")
+    if (type == "int" || type == "bool" || type == "void") {
       out += type;
-    else
+      if (type == "int" && array)
+        out += "[]";
+    } else
       out += id;
-
-    if (type == "int" && array)
-      out += "[]";
 
     return out;
 

@@ -274,10 +274,10 @@ void Type() : { Token id; }
 }
 
 void ReturnType() : { Token id; } {
-    <VOID> { jjtThis.type = "void"; }                               |
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
     <BOOLEAN> { jjtThis.type = "bool"; }                            |
+    <VOID> { jjtThis.type  = "void"; }                              |
     id=<IDENTIFIER> { jjtThis.id = id.image; }
 }
 
