@@ -1,3 +1,5 @@
+package SymbolTable;
+
 public class Symbol {
     public int order;
     public String id;

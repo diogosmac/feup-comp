@@ -24,31 +24,19 @@ public class Parser
     * @param args
     * @throws ParseException
     */
-    public static void main(String[] args) throws ParseException {
+    public SimpleNode parse() throws ParseException {
         System.out.println("Parser for programs in the Java-- language");
 
-        Parser parser;
-        // open file as input stream
-        try {
-            numErrors = 0;
-            parser = new Parser(new java.io.FileInputStream(args[0]));
-        }
-        catch (java.io.FileNotFoundException e) {
-            System.out.println("ERROR: file " + args[0] + " not found.");
-            return;
-        }
+        numErrors = 0;
 
-        SimpleNode root;
-        // create Syntax Tree (returns reference to root node)
-        root = parser.Tree();
+        SimpleNode root = this.Tree();
 
         // added
         if (numErrors != 0) {
             throw(new ParseException("Parsing has errors!"));
         }
 
-        // Print tree to console
-        root.dump("");
+		return root;
     }
 
     /**
