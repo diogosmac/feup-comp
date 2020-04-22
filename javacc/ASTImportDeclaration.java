@@ -3,9 +3,9 @@
 public
 class ASTImportDeclaration extends SimpleNode {
 
-  public String importId;
-  public String methodId;
-  public boolean isStatic = false;
+//  public String importId;
+//  public String methodId;
+//  public boolean isStatic = false;
 
   public ASTImportDeclaration(int id) {
     super(id);
@@ -15,9 +15,9 @@ class ASTImportDeclaration extends SimpleNode {
     super(p, id);
   }
 
-  public String toString() {
-    return "ImportDeclaration: " + (isStatic ? "static " : "") + importId + "." + methodId;
-  }
+//  public String toString() {
+//    return "ImportDeclaration: " + (isStatic ? "static " : "") + importId + "." + methodId;
+//  }
 
 }
 /* JavaCC - OriginalChecksum=58cf9268d6c581cdfa9ac5a77cd0cce3 (do not edit this line) */

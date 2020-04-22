@@ -43,7 +43,7 @@ public class Parser
         root = parser.Tree();
 
         // added
-        if(numErrors != 0) {
+        if (numErrors != 0) {
             throw(new ParseException("Parsing has errors!"));
         }
 
@@ -180,40 +180,34 @@ void Program(int sign): {}
 
 
 void ImportDeclaration() : {} {
-    ( Import() <SEMI_COLON> )*
+    ( Import() )*
 }
 
 void Import() : { Token t, tMethod; } {
-    ImportClass() | ImportStaticMethod()
-}
-
-void ImportStaticMethod() : { Token t, tMethod; } {
 
     <IMPORT>
-    <STATIC> { jjtThis.isStatic = true; }
-    // class name/identifier
-    t=<IDENTIFIER> { jjtThis.importId = t.image; }
-    <DOT>
-    // method name/identifier
-    tMethod=<IDENTIFIER> { jjtThis.methodId = tMethod.image; }
-    // method parameters
-        <OPEN_PAR>
-            [ Type() ( <COMMA> Type() )* ]
-        <CLOSE_PAR>
-    ReturnType()
-
-}
-
-void ImportClass() : { Token t; } {
-
-    <IMPORT>
-    // class name/identifier
+    [ <STATIC> { jjtThis.isStatic = true; } ]
     t=<IDENTIFIER> { jjtThis.importId = t.image; }
     [
-        <OPEN_PAR>
-        [ Type() ( <COMMA> Type() )* ]
-        <CLOSE_PAR>
+        (
+            <OPEN_PAR>
+            [ Type() ( <COMMA> Type() )* ]
+            <CLOSE_PAR>
+        )
+                |
+        (
+            <DOT> { jjtThis.isMethod = true; }
+            tMethod=<IDENTIFIER> { jjtThis.methodId = tMethod.image; }
+            <OPEN_PAR>
+                [
+                    Type() ( <COMMA> Type() )*      |
+                    <VOID>
+                ]
+            <CLOSE_PAR>
+            [ ReturnType() ]
+        )
     ]
+    <SEMI_COLON>
 
 }
 
@@ -265,22 +259,26 @@ void MainMethod() : {} {
     <CLOSE_BLOCK>
 }
 
-void MainParams() : {Token id;} {
+void MainParams() : { Token id; } {
     <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> id=<IDENTIFIER> { jjtThis.paramId = id.image; }
 }
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
-void Type() : {Token id;}
+void Type() : { Token id; }
 {
-    <INT> {jjtThis.type = "int";} [ <OPEN_ARRAY> <CLOSE_ARRAY> {jjtThis.array = true;} ]    |
-    <BOOLEAN> {jjtThis.type = "bool";}                                                      |
-    id=<IDENTIFIER> {jjtThis.id = id.image;}
+    <INT> { jjtThis.type = "int"; }
+        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
+    <BOOLEAN> { jjtThis.type = "bool"; }                            |
+    id=<IDENTIFIER> { jjtThis.id = id.image; }
 }
 
-void ReturnType() : {} {
-    Type()          |
-    <VOID> #void
+void ReturnType() : { Token id; } {
+    <VOID> { jjtThis.type = "void"; }                               |
+    <INT> { jjtThis.type = "int"; }
+        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
+    <BOOLEAN> { jjtThis.type = "bool"; }                            |
+    id=<IDENTIFIER> { jjtThis.id = id.image; }
 }
 
 void Statement() : { Token t; } {
@@ -289,12 +287,17 @@ void Statement() : { Token t; } {
     IfElseBlock() { jjtThis.type = "if"; }                              |
     WhileBlock() { jjtThis.type = "while"; }                            |
     t = <IDENTIFIER> { jjtThis.id = t.image; jjtThis.type = "id"; } (
-        [ <OPEN_ARRAY> Expression() <CLOSE_ARRAY> { jjtThis.array = true; } ]
-        <ASSIGNMENT> Expression() <SEMI_COLON> { jjtThis.assign = true; }       |
-        ComplexExp() <SEMI_COLON>
-    )                                                                   |
+        ArrayExp() { jjtThis.array = true; }
+        [ AssignStatement() { jjtThis.assign = true; } ]    |
+        AssignStatement() { jjtThis.assign = true; }        |
+        ObjectSpecific()
+    ) <SEMI_COLON>                                                      |
     StatementExpression() <SEMI_COLON> { jjtThis.type = "statExp"; }
 
+}
+
+void AssignStatement() : {} {
+    <ASSIGNMENT> Expression()
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
@@ -326,7 +329,7 @@ void WhileBlock() : {}
         do {
             // getToken(int) does not consume token
             t = getToken(1);
-            if(t.kind == EOF || t.kind == OPEN_BLOCK || t.kind == IF || t.kind == WHILE)
+            if (t.kind == EOF || t.kind == OPEN_BLOCK || t.kind == IF || t.kind == WHILE)
                 break;
             t = getNextToken();
         } while (t.kind != CLOSE_PAR);
@@ -369,7 +372,7 @@ void Div() #void: {} {
     LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() #div(2) )*
 }
 
-void LowerExpression() #void: {Token t;} {
+void LowerExpression() #void: { Token t; } {
     ( SimpleExp() | t=<IDENTIFIER> { jjtThis.id = t.image; } #id ) ComplexExp()
 }
 
@@ -382,7 +385,14 @@ void ComplexExp() #void: {} {
 }
 
 void ExpLink() #void: {} {
-    <OPEN_ARRAY> Expression() <CLOSE_ARRAY> |
+    ArrayExp() | ObjectSpecific()
+}
+
+void ArrayExp() #void: {} {
+    <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
+}
+
+void ObjectSpecific() #void: {} {
     <DOT> ( GetLength() | CallMethod() )
 }
 
@@ -397,7 +407,7 @@ void CallMethod() : { Token id; } {
         Token t;
         do {
             t = getToken(1);
-            if(t.kind == EOF)
+            if (t.kind == EOF)
                 break;
             t = getNextToken();
         } while (t.kind != CLOSE_PAR);
@@ -409,7 +419,7 @@ void CallMethod() : { Token id; } {
 void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
 
 
-void SimpleExp() #void: {Token t;}
+void SimpleExp() #void: { Token t; }
 {
     t=<INTEGER> { jjtThis.value = t.image; } #integer   |
     <TRUE> { jjtThis.value = true; } #bool              |
@@ -425,7 +435,7 @@ void SimpleExp() #void: {Token t;}
         Token cleanToken;
         do {
             cleanToken = getToken(1);
-            if(cleanToken.kind == EOF)
+            if (cleanToken.kind == EOF)
                 break;
             cleanToken = getNextToken();
         } while (cleanToken.kind != CLOSE_PAR);
@@ -434,5 +444,5 @@ void SimpleExp() #void: {Token t;}
     }
 }
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
-void CreateArray() #_new: {jjtThis.isArray = true;} { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreatePrimitive() #_new: {Token t;} { t=<IDENTIFIER> {jjtThis.primId = t.image;} <OPEN_PAR> <CLOSE_PAR> }
+void CreateArray() #_new: { jjtThis.isArray = true; } { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
+void CreatePrimitive() #_new: { Token t; } { t=<IDENTIFIER> { jjtThis.primId = t.image; } <OPEN_PAR> <CLOSE_PAR> }
