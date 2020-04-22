@@ -3,6 +3,9 @@
 /generated/
 *.jar
 
+# do not ignore jasmin
+!jasmin.jar
+
 # Ignore Gradle GUI config
 gradle-app.setting
 
