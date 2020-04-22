@@ -274,7 +274,7 @@ void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )
 void Type() : {Token id;}
 {
     <INT> {jjtThis.type = "int";} [ <OPEN_ARRAY> <CLOSE_ARRAY> {jjtThis.array = true;} ]    |
-    <BOOLEAN>      {jjtThis.type = "bool";}                         |
+    <BOOLEAN> {jjtThis.type = "bool";}                                                      |
     id=<IDENTIFIER> {jjtThis.id = id.image;}
 }
 
@@ -283,28 +283,30 @@ void ReturnType() : {} {
     <VOID> #void
 }
 
-void Statement() : { Token t; }
-{
-    MultiStatementBlock() {jjtThis.type = "block";}                 |
-    IfElseBlock() {jjtThis.type = "if";}                |
-    WhileBlock() {jjtThis.type = "while";}                 |
+void Statement() : { Token t; } {
+
+    MultiStatementBlock() { jjtThis.type = "block"; }                   |
+    IfElseBlock() { jjtThis.type = "if"; }                              |
+    WhileBlock() { jjtThis.type = "while"; }                            |
     t = <IDENTIFIER> { jjtThis.id = t.image; jjtThis.type = "id"; } (
         [ <OPEN_ARRAY> Expression() <CLOSE_ARRAY> { jjtThis.array = true; } ]
-        <ASSIGNMENT> Expression() <SEMI_COLON> { jjtThis.assign = true; } |
+        <ASSIGNMENT> Expression() <SEMI_COLON> { jjtThis.assign = true; }       |
         ComplexExp() <SEMI_COLON>
-    )                                                   |
-    StatementExpression() <SEMI_COLON> {jjtThis.type = "statExp";}
+    )                                                                   |
+    StatementExpression() <SEMI_COLON> { jjtThis.type = "statExp"; }
+
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
-void IfElseBlock() : {}
-{
+void IfElseBlock() : {} {
+
     try {
         <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
     }
     catch(ParseException e) {
-        reportError(e, "if");
+        reportError(e, "Error parsing If-Else block");
     }
+
 }
 void WhileBlock() : {}
 {
@@ -313,7 +315,7 @@ void WhileBlock() : {}
         <OPEN_PAR> Expression() <CLOSE_PAR>
     }
     catch(ParseException e) {
-        reportError(e, "while");
+        reportError(e, "Error parsing While block");
         // DEEP ERROR RECOVERY
         // The loop consumes tokens all the way up to a token of
         // "kind".  We use a do-while loop rather than a while because the
@@ -333,8 +335,10 @@ void WhileBlock() : {}
 }
 
 /*
-void Assignment() #Statement: {jjtThis.assign = true;} { <ASSIGNMENT> Expression() <SEMI_COLON> }
-void ArrayAssignment() #Statement: { jjtThis.array = true; jjtThis.assign = true; } {<OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON> }
+void Assignment() #Statement: { jjtThis.assign = true; } { <ASSIGNMENT> Expression() <SEMI_COLON> }
+void ArrayAssignment() #Statement: { jjtThis.array = true; jjtThis.assign = true; } {
+    <OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON>
+}
 */
 
 void Expression() #void: {} {
@@ -366,7 +370,7 @@ void Div() #void: {} {
 }
 
 void LowerExpression() #void: {Token t;} {
-    ( SimpleExp() | t=<IDENTIFIER> {jjtThis.id = t.image;} #id ) ComplexExp()
+    ( SimpleExp() | t=<IDENTIFIER> { jjtThis.id = t.image; } #id ) ComplexExp()
 }
 
 void StatementExpression() #void: {} {
@@ -388,6 +392,7 @@ void CallMethod() : { Token id; } {
     try {
         <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
     } catch (ParseException e) {
+        reportError(e, "Error calling method for object");
         // clean parenthesis
         Token t;
         do {
@@ -414,7 +419,8 @@ void SimpleExp() #void: {Token t;}
     <NOT> Expression() #not             |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
-    } catch(ParseException e) {
+    } catch (ParseException e) {
+        reportError(e, "Missing parenthesis");
         // clean parenthesis
         Token cleanToken;
         do {
