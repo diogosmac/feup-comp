@@ -411,12 +411,12 @@ void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
 
 void SimpleExp() #void: {Token t;}
 {
-    t=<INTEGER> {jjtThis.value = t.image;} #integer                  |
-    <TRUE> {jjtThis.value = true;} #bool |
-    <FALSE>   #bool                     |
-    <THIS>    #_this                    |
-    CreateObject()                      |
-    <NOT> Expression() #not             |
+    t=<INTEGER> { jjtThis.value = t.image; } #integer   |
+    <TRUE> { jjtThis.value = true; } #bool              |
+    <FALSE>   #bool                                     |
+    <THIS>    #_this                                    |
+    CreateObject()                                      |
+    <NOT> Expression() #not                             |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch (ParseException e) {
