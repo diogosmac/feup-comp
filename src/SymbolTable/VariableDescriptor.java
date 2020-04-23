@@ -14,4 +14,8 @@ public class VariableDescriptor {
     public void setDataType(String dataType) {
         this.dataType = dataType;
     }
+
+    public String dump(String prefix) {
+        return prefix + "Descriptor " + this.dataType;
+    }
 }

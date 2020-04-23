@@ -2,6 +2,7 @@ package SymbolTable;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class MethodDescriptor {
     private String returnType;
@@ -26,5 +27,33 @@ public class MethodDescriptor {
             this.variableDescriptors.put(identifier, new LinkedList<>());
 
         this.variableDescriptors.get(identifier).add(new VariableDescriptor(dataType));
+    }
+
+    public String dump(String prefix) {
+        StringBuilder buf = new StringBuilder(prefix + "Descriptor " + "\n");
+        // get return type
+        buf.append(prefix).append("Return type ").append(this.returnType).append("\n");
+        // get parameters
+        buf.append(prefix).append("Parameters").append("\n");
+        for (Map.Entry<String, LinkedList<String>> entry : this.parameters.entrySet()) {
+            buf.append(prefix).append("\tParameter Name: ");
+            // get parameter name
+            buf.append(entry.getKey()).append(" : ");
+            // get all parameters
+            for (String dataType : entry.getValue())
+                buf.append(dataType).append(" ");
+        }
+
+        // get local variable descriptors
+        buf.append("\n").append(prefix).append("Local Variables").append("\n");
+        for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
+            buf.append(prefix).append("\tVariable Name: ");
+            // get variable name
+            buf.append(entry.getKey()).append("\n");
+            // get all descriptor with the same name
+            for (VariableDescriptor var : entry.getValue())
+                buf.append(var.dump(prefix + "\t\t")).append("\n");
+        }
+        return buf.toString();
     }
 }
