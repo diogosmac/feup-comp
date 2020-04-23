@@ -251,16 +251,16 @@ void Type() : { Token id; }
 {
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
-    <BOOLEAN> { jjtThis.type = "bool"; }                            |
+    <BOOLEAN> { jjtThis.type = "boolean"; }                            |
     id=<IDENTIFIER> { jjtThis.type = id.image; }
 }
 
 void ReturnType() : { Token id; } {
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
-    <BOOLEAN> { jjtThis.type = "bool"; }                            |
+    <BOOLEAN> { jjtThis.type = "boolean"; }                            |
     <VOID> { jjtThis.type  = "void"; }                              |
-    id=<IDENTIFIER> { jjtThis.id = id.image; }
+    id=<IDENTIFIER> { jjtThis.type = id.image; }
 }
 
 void Statement() : { Token t; } {
