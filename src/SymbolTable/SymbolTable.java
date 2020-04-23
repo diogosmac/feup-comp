@@ -25,6 +25,7 @@ public class SymbolTable {
     public SymbolTable() {
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
+        this.importDescriptors = new HashMap<>();
     }
 
     public void addVariable(String identifier, String dataType) {
@@ -53,11 +54,11 @@ public class SymbolTable {
         if (!this.importDescriptors.containsKey(importIdentifier))
             this.importDescriptors.put(importIdentifier, new LinkedList<>());
 
-        this.methodDescriptors.get(importIdentifier).add(new ImportDescriptor(isStatic, isMethod));
+        this.importDescriptors.get(importIdentifier).add(new ImportDescriptor(isStatic, isMethod));
     }
 
-    public void addImportParameter(String importIdentifier, String parameterIdentifier, String dataType) {
-        this.importDescriptors.get(importIdentifier).getLast().addParameter(parameterIdentifier, dataType);
+    public void addImportParameter(String importIdentifier, String dataType) {
+        this.importDescriptors.get(importIdentifier).getLast().addParameter(dataType);
     }
 
     public void setImportReturnType(String importIdentifier, String dataType) {

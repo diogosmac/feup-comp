@@ -79,9 +79,9 @@ public class SymbolTableBuilder {
 
     private void processImport(ASTImport node) {
         // get import id node children
-        String importIdentifier = node.id;
+        String importIdentifier = node.descriptorId();
         // put import entry in symbol table
-        this.table.addImport(variableIdentifier, node.isStatic);
+        this.table.addImport(importIdentifier, node.isStatic, node.isMethod);
         // get import node children
         Node[] children = node.jjtGetChildren();
         // check if there are parameters or return value
@@ -92,7 +92,7 @@ public class SymbolTableBuilder {
         for (Node child : children) {
             if (child instanceof ASTType) {
                 ASTType typeNode = (ASTType) child;
-                this.table.addImportParameter(importIdentifier, typeNode.id, typeNode.getType());
+                this.table.addImportParameter(importIdentifier, typeNode.getType());
             }
             else if (child instanceof ASTReturnType) {
                 ASTReturnType returnTypeNode = (ASTReturnType) child;

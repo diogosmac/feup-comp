@@ -20,8 +20,8 @@ class ASTImport extends SimpleNode {
 
   public boolean isMethod() { return this.isMethod; }
 
-  public String methodCall() {
-    return importId + "." + methodId;
+  public String descriptorId() {
+    return importId + (isMethod ? "." + methodId : "");
   }
 
   public String toString() {
