@@ -17,7 +17,7 @@ public class SymbolTable {
      */
     private HashMap<String, LinkedList<MethodDescriptor>> methodDescriptors;
 
-    private SymbolTable() {
+    public SymbolTable() {
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
     }
