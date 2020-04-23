@@ -16,6 +16,14 @@ class ASTImport extends SimpleNode {
     super(p, id);
   }
 
+  public boolean isStatic() { return this.isStatic; }
+
+  public boolean isMethod() { return this.isMethod; }
+
+  public String descriptorId() {
+    return importId + (isMethod ? "." + methodId : "");
+  }
+
   public String toString() {
     String out = "Import: " + (isStatic ? "static " : "") + importId;
     if (isMethod) {

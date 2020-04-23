@@ -10,17 +10,22 @@ import java.util.Map;
 public class SymbolTable {
 
     /**
-     * identifier -> <data type>
+     * identifier -> < data type >
      */
     private HashMap<String, LinkedList<VariableDescriptor>> variableDescriptors;
     /**
      * identifier -> < return data type, list of params, list of local variables >
      */
     private HashMap<String, LinkedList<MethodDescriptor>> methodDescriptors;
+    /**
+     * identifier -> <  >
+     */
+    private HashMap<String, LinkedList<ImportDescriptor>> importDescriptors;
 
     public SymbolTable() {
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
+        this.importDescriptors = new HashMap<>();
     }
 
     public void addVariable(String identifier, String dataType) {
@@ -45,14 +50,41 @@ public class SymbolTable {
         this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
     }
 
+    public void addImport(String importIdentifier, boolean isStatic, boolean isMethod) {
+        if (!this.importDescriptors.containsKey(importIdentifier))
+            this.importDescriptors.put(importIdentifier, new LinkedList<>());
+
+        this.importDescriptors.get(importIdentifier).add(new ImportDescriptor(isStatic, isMethod));
+    }
+
+    public void addImportParameter(String importIdentifier, String dataType) {
+        this.importDescriptors.get(importIdentifier).getLast().addParameter(dataType);
+    }
+
+    public void setImportReturnType(String importIdentifier, String dataType) {
+        this.importDescriptors.get(importIdentifier).getLast().setReturnType(dataType);
+    }
+
     public void dump() {
+        // Import Descriptors
+        System.out.println("Import Descriptors");
+        for (Map.Entry<String, LinkedList<ImportDescriptor>> entry : this.importDescriptors.entrySet()) {
+            StringBuilder buf = new StringBuilder(" Import name: ");
+            // get import name
+            buf.append(entry.getKey()).append("\n");
+            // get all descriptors with the same name
+            for (ImportDescriptor var : entry.getValue())
+                buf.append(var.dump("    "));
+            System.out.println(buf.toString());
+        }
+
         // Variable Descriptors
         System.out.println("Variable Descriptors:");
         for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
             StringBuilder buf = new StringBuilder("  Variable name: ");
             // get variable name
             buf.append(entry.getKey()).append("\n");
-            // get all descriptor with the same name
+            // get all descriptors with the same name
             for (VariableDescriptor var : entry.getValue())
                 buf.append(var.dump("    "));
             System.out.println(buf.toString());
@@ -64,7 +96,7 @@ public class SymbolTable {
             StringBuilder buf = new StringBuilder("  Method name: ");
             // get method name
             buf.append(entry.getKey()).append("\n");
-            // get all descriptor with the same name
+            // get all descriptors with the same name
             for (MethodDescriptor method : entry.getValue())
                 buf.append(method.dump("    ")).append("\n");
             System.out.println(buf.toString());

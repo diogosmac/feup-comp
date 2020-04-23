@@ -15,6 +15,10 @@ class ASTReturnType extends SimpleNode {
     super(p, id);
   }
 
+  public String getType() {
+    return type;
+  }
+
   public String toString() {
 
     String out = "Returns: ";
