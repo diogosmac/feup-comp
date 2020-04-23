@@ -54,6 +54,34 @@ public class SymbolTableBuilder {
     private void processRegularMethodDeclaration(ASTRegularMethod node) {
         // get method declaration node children
         Node[] children = node.jjtGetChildren();
+        //get method  id node children
+        String methodName = node.methodId;
+        // get method type
+        ASTType typeNode = (ASTType) node.jjtGetChild(0);
+        String methodType = typeNode.getType();
+        // put method to method descriptors
+        this.table.addMethod(methodName, methodType);
+
+        for(Node child : children){
+            if (child instanceof ASTMethodParam){
+                // parse parameter declarations
+                String parameterName = ((ASTMethodParam) child).paramId;
+                // get parameter type
+                ASTType typeParam = (ASTType) child.jjtGetChild(0);
+                String paramType = typeParam.getType();
+                // put parameter entry in symbol table
+                this.table.addMethodParameter(methodName, parameterName, paramType);
+
+            }else if (child instanceof ASTVarDeclaration) {
+                // parse variable declarations
+                String variableName = ((ASTVarDeclaration) child).id;
+                // get variable type
+                ASTType typeVar = (ASTType) child.jjtGetChild(0);
+                String varType = typeVar.getType();
+                // put variable entry in symbol table
+                this.table.addMethodVariable(methodName, variableName, varType);
+            }
+        }
     }
 
     private void processMainMethodDeclaration(ASTMainMethod node) {
