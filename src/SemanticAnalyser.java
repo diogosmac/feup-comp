@@ -49,12 +49,8 @@ public class SemanticAnalyser {
         SimpleNode left = (SimpleNode) node.jjtGetChild(0);
         SimpleNode right = (SimpleNode) node.jjtGetChild(1);
         // check if children:
-        // - boolean values or boolean operations
-        String leftType = left.getType();
-        String rightType = right.getType();
+        // - boolean values
+        // - boolean operations
         // - boolean identifiers
-        if ()
-
     }
-
 }
