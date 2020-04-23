@@ -10,6 +10,10 @@ public class SemanticAnalyser {
      */
     private SymbolTable table;
 
+    private static int MAX_ERRORS = 5;
+
+    private static int currentErrors = 0;
+
     public SemanticAnalyser(SimpleNode root, SymbolTable table) {
         this.root = root;
         this.table = table;
@@ -21,45 +25,35 @@ public class SemanticAnalyser {
     }
 
     private void analyseNode(SimpleNode node) {
+        // analyse single node
+        try {
+            node.analyse(this);
+        } catch (SemanticException e) {
+            currentErrors++;
+            System.err.println("SEMANTIC ERROR: " + e.getMessage());
+        }
+
         // get all children
         Node[] children = node.jjtGetChildren();
+        // check if current node has children
+        if (children == null)
+            return;
         // visit all nodes
         for (Node child : children) {
-            // Operators
-            if (child instanceof ASTand)
-                this.analyseAnd((ASTand) child);
-            else if (child instanceof ASTlt)
-                this.analyseLessThan((ASTlt) child);
-            else if (child instanceof ASTsum)
-                return;
-            else if (child instanceof ASTsub)
-                return;
-            else if (child instanceof ASTmult)
-                return;
-            else if (child instanceof ASTdiv)
-                return;
-            else if (child instanceof ASTnot)
-                return;
-            // control flow
-            else if (child instanceof ASTIfElseBlock)
-                return;
-            else if (child instanceof ASTWhileBlock)
-                return;
-            // declarations
-            else if (child instanceof ASTVarDeclaration)
-                return;
-            // repeat analysis for child nodes
             this.analyseNode((SimpleNode) child);
         }
     }
 
-    private void analyseAnd(ASTand child) {
+    public void analyseAnd(ASTand node) throws SemanticException {
+        // get children
+        SimpleNode left = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode right = (SimpleNode) node.jjtGetChild(1);
+        // check if children:
+        // - boolean values
+        // - boolean operations
+        // - boolean ids
+
 
     }
-
-    private void analyseLessThan(ASTlt child) {
-
-    }
-
 
 }

@@ -15,11 +15,16 @@ public class Main {
 		root.dump("");
 
 		// ***** Semantic Analysis
+		// build symbol table
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
 
 		System.out.println("\n==== Dumping SymbolTable ====\n");
 		symbolTable.dump();
+
+		// analyse
+		SemanticAnalyser analyser = new SemanticAnalyser(root, symbolTable);
+		analyser.analyse();
 	}
 
 	public static SimpleNode parse(String filename) throws ParseException {

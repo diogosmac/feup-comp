@@ -5,7 +5,6 @@ class ASTReturnType extends SimpleNode {
 
   public String type;
   public boolean array = false;
-  public String id;
 
   public ASTReturnType(int id) {
     super(id);
@@ -16,18 +15,7 @@ class ASTReturnType extends SimpleNode {
   }
 
   public String toString() {
-
-    String out = "Returns: ";
-
-    if (type == "int" || type == "bool" || type == "void") {
-      out += type;
-      if (type == "int" && array)
-        out += "[]";
-    } else
-      out += id;
-
-    return out;
-
+    return "Returns: " + type + (array ? "[]" : "");
   }
 
 }
