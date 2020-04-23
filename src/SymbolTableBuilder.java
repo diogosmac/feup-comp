@@ -63,15 +63,19 @@ public class SymbolTableBuilder {
         this.table.addMethod(methodName, methodType);
 
         for(Node child : children){
-            if (child instanceof ASTMethodParam){
-                // parse parameter declarations
-                String parameterName = ((ASTMethodParam) child).paramId;
-                // get parameter type
-                ASTType typeParam = (ASTType) child.jjtGetChild(0);
-                String paramType = typeParam.getType();
-                // put parameter entry in symbol table
-                this.table.addMethodParameter(methodName, parameterName, paramType);
-
+            if (child instanceof ASTMethodParams){
+                Node[] grandChildren = ((SimpleNode) child).jjtGetChildren();
+                for(Node grandchild : grandChildren) {
+                    if (grandchild instanceof ASTMethodParam) {
+                        // parse parameter declarations
+                        String parameterName = ((ASTMethodParam) grandchild).paramId;
+                        // get parameter type
+                        ASTType typeParam = (ASTType) grandchild.jjtGetChild(0);
+                        String paramType = typeParam.getType();
+                        // put parameter entry in symbol table
+                        this.table.addMethodParameter(methodName, parameterName, paramType);
+                    }
+                }
             }else if (child instanceof ASTVarDeclaration) {
                 // parse variable declarations
                 String variableName = ((ASTVarDeclaration) child).id;
