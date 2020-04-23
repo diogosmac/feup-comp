@@ -35,4 +35,12 @@ public class SymbolTable {
 
         this.methodDescriptors.get(identifier).add(new MethodDescriptor(dataType));
     }
+
+    public void addMethodParameter(String methodIdentifer, String parameterIdentifier, String dataType) {
+        this.methodDescriptors.get(methodIdentifer).getLast().addParameter(parameterIdentifier, dataType);
+    }
+
+    public void addMethodVariable(String methodIdentifer, String variableIdentifier, String dataType) {
+        this.methodDescriptors.get(methodIdentifer).getLast().addVariable(variableIdentifier, dataType);
+    }
 }
