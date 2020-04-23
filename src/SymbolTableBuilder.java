@@ -2,8 +2,10 @@ import SymbolTable.SymbolTable;
 
 public class SymbolTableBuilder {
 
+    private SymbolTable table;
+
     public SymbolTable buildSymbolTable(SimpleNode root) {
-        SymbolTable table = new SymbolTable();
+        this.table = new SymbolTable();
         // get root's children
         Node[] children = root.jjtGetChildren();
         // find ASTClassDeclaration Node
@@ -11,7 +13,7 @@ public class SymbolTableBuilder {
             if (child instanceof ASTClassDeclaration)
                 this.processClassDeclaration((ASTClassDeclaration) child);
 
-        return table;
+        return this.table;
     }
 
     private void processClassDeclaration(ASTClassDeclaration node) {
@@ -29,14 +31,17 @@ public class SymbolTableBuilder {
     }
 
     private void processVariableDeclaration(ASTVarDeclaration node) {
-
+        // get variable declaration node children
+        Node[] children = node.jjtGetChildren();
     }
 
     private void processRegularMethodDeclaration(ASTRegularMethod node) {
-
+        // get method declaration node children
+        Node[] children = node.jjtGetChildren();
     }
 
     private void processMainMethodDeclaration(ASTMainMethod node) {
-
+        // get method declaration node children
+        Node[] children = node.jjtGetChildren();
     }
 }
