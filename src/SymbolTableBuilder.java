@@ -18,6 +18,8 @@ public class SymbolTableBuilder {
         for (Node child : children) {
             if (child instanceof ASTClassDeclaration)
                 this.processClassDeclaration((ASTClassDeclaration) child);
+            else if (child instanceof ASTImportDeclaration)
+                this.processImportDeclaration((ASTImportDeclaration) child);
         }
 
         return this.table;
@@ -60,4 +62,43 @@ public class SymbolTableBuilder {
         // get method declaration node children
         Node[] children = node.jjtGetChildren();
     }
+
+    private void processImportDeclaration(ASTImportDeclaration node) {
+        // get import declaration node children
+        Node[] children = node.jjtGetChildren();
+        // check if there are imports
+        if (children == null) {
+            return;
+        }
+        // find class and method declarations
+        for (Node child : children) {
+            if (child instanceof ASTImport)
+                this.processImport((ASTImport) child);
+        }
+    }
+
+    private void processImport(ASTImport node) {
+        // get import id node children
+        String importIdentifier = node.id;
+        // put import entry in symbol table
+        this.table.addImport(variableIdentifier, node.isStatic);
+        // get import node children
+        Node[] children = node.jjtGetChildren();
+        // check if there are parameters or return value
+        if (children == null) {
+            return;
+        }
+        // add parameters and return value
+        for (Node child : children) {
+            if (child instanceof ASTType) {
+                ASTType typeNode = (ASTType) child;
+                this.table.addImportParameter(importIdentifier, typeNode.id, typeNode.getType());
+            }
+            else if (child instanceof ASTReturnType) {
+                ASTReturnType returnTypeNode = (ASTReturnType) child;
+                this.table.setImportReturnType(importIdentifier, returnTypeNode.getType());
+            }
+        }
+    }
+
 }
