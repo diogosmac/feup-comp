@@ -47,12 +47,12 @@ public class MethodDescriptor {
         // get local variable descriptors
         buf.append("\n").append(prefix).append("Local Variables").append("\n");
         for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
-            buf.append(prefix).append("\tVariable Name: ");
+            buf.append(prefix).append("  Variable Name: ");
             // get variable name
             buf.append(entry.getKey()).append("\n");
             // get all descriptor with the same name
             for (VariableDescriptor var : entry.getValue())
-                buf.append(var.dump(prefix + "\t\t")).append("\n");
+                buf.append(var.dump(prefix + "    ")).append("\n");
         }
         return buf.toString();
     }

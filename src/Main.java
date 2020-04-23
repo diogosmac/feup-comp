@@ -18,6 +18,7 @@ public class Main {
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
 
+		System.out.println("\n==== Dumping SymbolTable ====\n");
 		symbolTable.dump();
 	}
 
