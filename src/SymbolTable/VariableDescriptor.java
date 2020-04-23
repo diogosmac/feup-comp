@@ -16,6 +16,6 @@ public class VariableDescriptor {
     }
 
     public String dump(String prefix) {
-        return prefix + "Descriptor " + this.dataType;
+        return prefix + "Descriptor: " + this.dataType;
     }
 }

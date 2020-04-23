@@ -14,7 +14,6 @@ public class Main {
 		// Print tree to console
 		root.dump("");
 
-
 		// ***** Semantic Analysis
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
@@ -35,7 +34,4 @@ public class Main {
 
 		return parser.parse();
 	}
-
-
-
 }
