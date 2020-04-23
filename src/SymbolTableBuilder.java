@@ -2,12 +2,18 @@ import SymbolTable.SymbolTable;
 
 public class SymbolTableBuilder {
 
+    private SimpleNode root;
+
     private SymbolTable table;
 
-    public SymbolTable buildSymbolTable(SimpleNode root) {
+    public SymbolTableBuilder(SimpleNode root) {
+        this.root = root;
         this.table = new SymbolTable();
+    }
+
+    public SymbolTable buildSymbolTable() {
         // get root's children
-        Node[] children = root.jjtGetChildren();
+        Node[] children = this.root.jjtGetChildren();
         // find ASTClassDeclaration Node
         for (Node child : children)
             if (child instanceof ASTClassDeclaration)
