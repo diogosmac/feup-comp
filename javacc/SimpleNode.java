@@ -8,6 +8,9 @@ public class SimpleNode implements Node {
   protected Object value;
   protected Parser parser;
 
+  public int line;
+  public int column;
+
   public SimpleNode(int i) {
     id = i;
   }
