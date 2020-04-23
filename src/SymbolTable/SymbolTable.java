@@ -37,17 +37,17 @@ public class SymbolTable {
         this.methodDescriptors.get(identifier).add(new MethodDescriptor(dataType));
     }
 
-    public void addMethodParameter(String methodIdentifer, String parameterIdentifier, String dataType) {
-        this.methodDescriptors.get(methodIdentifer).getLast().addParameter(parameterIdentifier, dataType);
+    public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) {
+        this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
     }
 
-    public void addMethodVariable(String methodIdentifer, String variableIdentifier, String dataType) {
-        this.methodDescriptors.get(methodIdentifer).getLast().addVariable(variableIdentifier, dataType);
+    public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) {
+        this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
     }
 
     public void dump() {
         // Variable Descriptors
-        System.out.println("Variable Descriptors");
+        System.out.println("Variable Descriptors:");
         for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
             StringBuilder buf = new StringBuilder("  Variable name: ");
             // get variable name
@@ -59,7 +59,7 @@ public class SymbolTable {
         }
 
         // Method Descriptors
-        System.out.println("Method Descriptors");
+        System.out.println("\nMethod Descriptors:");
         for (Map.Entry<String, LinkedList<MethodDescriptor>> entry : this.methodDescriptors.entrySet()) {
             StringBuilder buf = new StringBuilder("  Method name: ");
             // get method name

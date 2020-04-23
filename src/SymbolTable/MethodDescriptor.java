@@ -30,13 +30,13 @@ public class MethodDescriptor {
     }
 
     public String dump(String prefix) {
-        StringBuilder buf = new StringBuilder(prefix + "Descriptor " + "\n");
+        StringBuilder buf = new StringBuilder();
         // get return type
-        buf.append(prefix).append("Return type ").append(this.returnType).append("\n");
+        buf.append(prefix).append("Return type: ").append(this.returnType).append("\n");
         // get parameters
-        buf.append(prefix).append("Parameters").append("\n");
+        buf.append(prefix).append("Parameters:").append("\n");
         for (Map.Entry<String, LinkedList<String>> entry : this.parameters.entrySet()) {
-            buf.append(prefix).append("\tParameter Name: ");
+            buf.append(prefix).append("  Parameter Name: ");
             // get parameter name
             buf.append(entry.getKey()).append(" : ");
             // get all parameters
@@ -45,7 +45,7 @@ public class MethodDescriptor {
         }
 
         // get local variable descriptors
-        buf.append("\n").append(prefix).append("Local Variables").append("\n");
+        buf.append("\n").append(prefix).append("Local Variables:").append("\n");
         for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
             buf.append(prefix).append("  Variable Name: ");
             // get variable name
