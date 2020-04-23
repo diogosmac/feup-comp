@@ -29,7 +29,7 @@ public class Parser
 
         numErrors = 0;
 
-        SimpleNode root = this.Tree();
+        SimpleNode root = this.Program();
 
         // added
         if (numErrors != 0) {
@@ -152,18 +152,12 @@ TOKEN:
     < #DIGIT:       [ "0"-"9" ]                                         >
 }
 
-
-SimpleNode Tree() : {}
-{
-    Program(1) { return jjtThis; } // Java code inside brackets
-}
-
-
-void Program(int sign): {}
+SimpleNode Program(): {}
 {
     ImportDeclaration()
     ClassDeclaration()
     <EOF>
+    { return jjtThis; }
 }
 
 
@@ -258,7 +252,7 @@ void Type() : { Token id; }
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
     <BOOLEAN> { jjtThis.type = "bool"; }                            |
-    id=<IDENTIFIER> { jjtThis.id = id.image; }
+    id=<IDENTIFIER> { jjtThis.type = id.image; }
 }
 
 void ReturnType() : { Token id; } {

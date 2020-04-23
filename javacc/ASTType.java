@@ -5,7 +5,6 @@ class ASTType extends SimpleNode {
 
   public String type;
   public boolean array = false;
-  public String id;
 
   public ASTType(int id) {
     super(id);
@@ -16,13 +15,11 @@ class ASTType extends SimpleNode {
   }
 
   public String toString() {
+      return "Type: " + type + (array ? "[]" : "");
+  }
 
-    if(type == "int") {
-        return "Type: " + type + (array ? "[]" : "");
-    } else if(type == "bool") {
-        return "Type: " + type;
-    } else 
-        return "Type: " + id;
+  public String getType() {
+    return type + (array ? "[]" : "");
   }
 
 }

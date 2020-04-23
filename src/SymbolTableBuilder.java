@@ -15,9 +15,10 @@ public class SymbolTableBuilder {
         // get root's children
         Node[] children = this.root.jjtGetChildren();
         // find ASTClassDeclaration Node
-        for (Node child : children)
+        for (Node child : children) {
             if (child instanceof ASTClassDeclaration)
                 this.processClassDeclaration((ASTClassDeclaration) child);
+        }
 
         return this.table;
     }
@@ -37,8 +38,15 @@ public class SymbolTableBuilder {
     }
 
     private void processVariableDeclaration(ASTVarDeclaration node) {
-        // get variable declaration node children
-        Node[] children = node.jjtGetChildren();
+        // get variable id node children
+        String variableIdentifier = node.id;
+        System.out.println("SUUUP");
+        // get variable type
+        ASTType typeNode = (ASTType) node.jjtGetChild(0);
+        String variableType = typeNode.getType();
+        // put variable entry in symbol table
+        this.table.addVariable(variableIdentifier, variableType);
+
     }
 
     private void processRegularMethodDeclaration(ASTRegularMethod node) {
