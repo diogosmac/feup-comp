@@ -16,11 +16,11 @@ public class Main {
 
 		// ***** Semantic Analysis
 		// build symbol table
-		//SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
-		//SymbolTable symbolTable = tableBuilder.buildSymbolTable();
+		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
+		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
 
-		//System.out.println("\n==== Dumping SymbolTable ====\n");
-		//symbolTable.dump();
+		System.out.println("\n==== Dumping SymbolTable ====\n");
+		symbolTable.dump();
 
 		// analyse
 		test(root);
