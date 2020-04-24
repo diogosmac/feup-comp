@@ -23,8 +23,7 @@ public class Main {
 		symbolTable.dump();
 
 		// analyse
-		SemanticAnalyser analyser = new SemanticAnalyser(root, symbolTable);
-		analyser.analyse();
+
 	}
 
 	public static SimpleNode parse(String filename) throws ParseException {
