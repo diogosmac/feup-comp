@@ -23,7 +23,20 @@ public class SymbolTableBuilder {
         }
 
         return this.table;
+
     }
+
+    public boolean analyseTable() {
+        // IMPORTS do not need to be analysed because we can import the same method more than once
+
+        // VARIABLES check if there are variables with the same name
+
+
+        // METHODS
+        return true;
+    }
+
+    private boolean analyse
 
     private void processClassDeclaration(ASTClassDeclaration node) {
         // get class declaration node children
