@@ -23,8 +23,8 @@ public class Main {
 		symbolTable.dump();
 
 		// analyse
-		test(root);
-
+		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
+		semanticAnalyser.visit(root, null);
 	}
 
 	public static void test(SimpleNode node) {

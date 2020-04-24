@@ -1,4 +1,12 @@
+import SymbolTable.SymbolTable;
+
 public class SemanticAnalyser implements ParserVisitor {
+
+    private SymbolTable table;
+
+    public SemanticAnalyser(SymbolTable table) {
+        this.table = table;
+    }
 
     @Override
     public Object visit(SimpleNode node, Object data) {
@@ -117,12 +125,13 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTid node, Object data) {
+        // lookup identifier in the symbol table
         return null;
     }
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
-        return null;
+        return "int";
     }
 
     @Override
