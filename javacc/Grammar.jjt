@@ -158,12 +158,16 @@ SimpleNode Program(): {}
     ImportDeclaration()
     ClassDeclaration()
     <EOF>
-    { return jjtThis; }
+    {
+        jjtThis.value = "program";
+        return jjtThis;
+    }
 }
 
 
 void ImportDeclaration() : {} {
     ( Import() )*
+    {jjtThis.value = "importDeclaration";}
 }
 
 void Import() : { Token t, tMethod; } {
@@ -201,24 +205,24 @@ void ClassDeclaration() : { Token id, ext; } {
     // class name/identifier
     id=<IDENTIFIER> { jjtThis.classId = id.image; }
     // extended class name/identifier
-    [ <EXTENDS> ext=<IDENTIFIER> { jjtThis.extId = ext.image; } ]
+    [ <EXTENDS> ext=<IDENTIFIER> { jjtThis.extId = ext.image;} ]
     <OPEN_BLOCK>
         ( VarDeclaration() )*
         ( MethodDeclaration() )*
     <CLOSE_BLOCK>
-
+    {jjtThis.value = "classDeclaration";}
 }
 
 
 void VarDeclaration() : { Token id; } {
-    Type() id=<IDENTIFIER> <SEMI_COLON> { jjtThis.id = id.image; }
+    Type() id=<IDENTIFIER> <SEMI_COLON> { jjtThis.value = id.image; }
 }
 
 
 void MethodDeclaration() #void: {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
 void RegularMethod() : { Token t; } {
-    Type() t=<IDENTIFIER> { jjtThis.methodId = t.image; } <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
+    Type() t=<IDENTIFIER> { jjtThis.value = t.image; } <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
     <OPEN_BLOCK>
         MethodBody()
         Return()
@@ -227,12 +231,13 @@ void RegularMethod() : { Token t; } {
 
 void Return() : {} {
     <RETURN> Expression() <SEMI_COLON>
+    {jjtThis.value = "return";}
 }
 
-void MethodParams() : {} { MethodParam() ( <COMMA> MethodParam() )* }
+void MethodParams() #void : {} { MethodParam() ( <COMMA> MethodParam() )* }
 
 void MethodParam() : { Token id; } {
-    Type() id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+    Type() id=<IDENTIFIER> { jjtThis.value = id.image; }
 }
 
 void MainMethod() : {} {
@@ -240,10 +245,11 @@ void MainMethod() : {} {
     <OPEN_BLOCK>
         MethodBody()
     <CLOSE_BLOCK>
+    {jjtThis.value = "main";}
 }
 
 void MainParams() : { Token id; } {
-    <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+    <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> id=<IDENTIFIER> { jjtThis.value = id.image; }
 }
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
@@ -281,6 +287,7 @@ void Statement() : { Token t; } {
 
 void AssignStatement() : {} {
     <ASSIGNMENT> Expression()
+    {jjtThis.value = "assignment";}
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
@@ -293,6 +300,7 @@ void IfElseBlock() : {} {
         reportError(e, "Error parsing If-Else block");
     }
 
+    {jjtThis.value = "if_else";}
 }
 void WhileBlock() : {}
 {
@@ -318,6 +326,8 @@ void WhileBlock() : {}
         } while (t.kind != CLOSE_PAR);
     }
     Statement()
+
+    {jjtThis.value = "while";}
 }
 
 /*
@@ -332,31 +342,31 @@ void Expression() #void: {} {
 }
 
 void And() #void: {} {
-    LT() ( LOOKAHEAD(2) <AND> LT() #and(2) )*
+    LT() ( LOOKAHEAD(2) <AND> LT() {jjtThis.value = "boolean";} #and(2))*
 }
 
 void LT() #void: {} {
-    Sum() ( LOOKAHEAD(2) <LT> Sum() #lt(2) )*
+    Sum() ( LOOKAHEAD(2) <LT> Sum() {jjtThis.value = "boolean";} #lt(2))*
 }
 
 void Sum() #void: {} {
-    Sub() ( LOOKAHEAD(2) <SUM> Sub() #sum(2) )*
+    Sub() ( LOOKAHEAD(2) <SUM> Sub() {jjtThis.value = "int";} #sum(2))*
 }
 
 void Sub() #void: {} {
-    Mult() ( LOOKAHEAD(2) <SUB> Mult() #sub(2) )*
+    Mult() ( LOOKAHEAD(2) <SUB> Mult() {jjtThis.value = "int";} #sub(2))*
 }
 
 void Mult() #void: {} {
-    Div() ( LOOKAHEAD(2) <MULT> Div() #mult(2) )*
+    Div() ( LOOKAHEAD(2) <MULT> Div() {jjtThis.value = "int";} #mult(2) )*
 }
 
 void Div() #void: {} {
-    LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() #div(2) )*
+    LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() {jjtThis.value = "int";} #div(2) )*
 }
 
 void LowerExpression() #void: { Token t; } {
-    ( SimpleExp() | t=<IDENTIFIER> { jjtThis.id = t.image; } #id ) ComplexExp()
+    ( SimpleExp() | t=<IDENTIFIER> { jjtThis.value = t.image; } #id ) ComplexExp()
 }
 
 void StatementExpression() #void: {} {
@@ -379,9 +389,9 @@ void ObjectSpecific() #void: {} {
     <DOT> ( GetLength() | CallMethod() )
 }
 
-void GetLength() : {} { <LENGTH> }
+void GetLength() : {} { <LENGTH> {jjtThis.value = "getLen";} }
 void CallMethod() : { Token id; } {
-    id=<IDENTIFIER> { jjtThis.methodId = id.image; }
+    id=<IDENTIFIER> { jjtThis.value = id.image; }
     try {
         <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
     } catch (ParseException e) {
@@ -406,10 +416,10 @@ void SimpleExp() #void: { Token t; }
 {
     t=<INTEGER> { jjtThis.value = t.image; } #integer   |
     <TRUE> { jjtThis.value = true; } #bool              |
-    <FALSE>   #bool                                     |
-    <THIS>    #_this                                    |
+    <FALSE> {jjtThis.value = false; }   #bool                                     |
+    <THIS> {jjtThis.value = "this";} #_this                                    |
     CreateObject()                                      |
-    <NOT> Expression() #not                             |
+    <NOT> Expression() {jjtThis.value = "not";} #not                             |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch (ParseException e) {

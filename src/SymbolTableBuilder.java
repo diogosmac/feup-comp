@@ -45,10 +45,10 @@ public class SymbolTableBuilder {
 
     private void processVariableDeclaration(ASTVarDeclaration node) {
         // get variable id node children
-        String variableIdentifier = node.id;
+        String variableIdentifier = (String) node.jjtGetValue();
         // get variable type
         ASTType typeNode = (ASTType) node.jjtGetChild(0);
-        String variableType = typeNode.getType();
+        String variableType = (String) typeNode.jjtGetValue();
         // put variable entry in symbol table
         this.table.addVariable(variableIdentifier, variableType);
     }
@@ -57,10 +57,10 @@ public class SymbolTableBuilder {
         // get method declaration node children
         Node[] children = node.jjtGetChildren();
         //get method  id node children
-        String methodName = node.methodId;
+        String methodName = (String) node.jjtGetValue();
         // get method type
         ASTType typeNode = (ASTType) node.jjtGetChild(0);
-        String methodType = typeNode.getType();
+        String methodType = (String) typeNode.jjtGetValue();
         // put method to method descriptors
         this.table.addMethod(methodName, methodType);
 
@@ -70,20 +70,20 @@ public class SymbolTableBuilder {
                 for(Node grandchild : grandChildren) {
                     if (grandchild instanceof ASTMethodParam) {
                         // parse parameter declarations
-                        String parameterName = ((ASTMethodParam) grandchild).paramId;
+                        String parameterName = (String) ((ASTMethodParam) grandchild).jjtGetValue();
                         // get parameter type
                         ASTType typeParam = (ASTType) grandchild.jjtGetChild(0);
-                        String paramType = typeParam.getType();
+                        String paramType = (String) typeParam.jjtGetValue();
                         // put parameter entry in symbol table
                         this.table.addMethodParameter(methodName, parameterName, paramType);
                     }
                 }
             }else if (child instanceof ASTVarDeclaration) {
                 // parse variable declarations
-                String variableName = ((ASTVarDeclaration) child).id;
+                String variableName = (String) ((ASTVarDeclaration) child).jjtGetValue();
                 // get variable type
                 ASTType typeVar = (ASTType) child.jjtGetChild(0);
-                String varType = typeVar.getType();
+                String varType = (String) typeVar.jjtGetValue();
                 // put variable entry in symbol table
                 this.table.addMethodVariable(methodName, variableName, varType);
             }
@@ -99,14 +99,14 @@ public class SymbolTableBuilder {
         for (Node child : children) {
             if (child instanceof ASTMainParams) {
                 // parse main parameters
-                String parameterName = ((ASTMainParams) child).paramId;
+                String parameterName = (String) ((ASTMainParams) child).jjtGetValue();
                 this.table.addMethodParameter("main", parameterName, "String[]");
             } else if (child instanceof ASTVarDeclaration) {
                 // parse variable declarations
-                String variableIdentifier = ((ASTVarDeclaration) child).id;
+                String variableIdentifier = (String) ((ASTVarDeclaration) child).jjtGetValue();
                 // get variable type
                 ASTType typeNode = (ASTType) child.jjtGetChild(0);
-                String variableType = typeNode.getType();
+                String variableType = (String) typeNode.jjtGetValue();
                 // put variable entry in symbol table
                 this.table.addMethodVariable("main", variableIdentifier, variableType);
             }
@@ -129,7 +129,7 @@ public class SymbolTableBuilder {
 
     private void processImport(ASTImport node) {
         // get import id node children
-        String importIdentifier = node.descriptorId();
+        String importIdentifier = (String) node.jjtGetValue();
         // put import entry in symbol table
         this.table.addImport(importIdentifier, node.isStatic, node.isMethod);
         // get import node children
@@ -142,11 +142,11 @@ public class SymbolTableBuilder {
         for (Node child : children) {
             if (child instanceof ASTType) {
                 ASTType typeNode = (ASTType) child;
-                this.table.addImportParameter(importIdentifier, typeNode.getType());
+                this.table.addImportParameter(importIdentifier, (String) typeNode.jjtGetValue());
             }
             else if (child instanceof ASTReturnType) {
                 ASTReturnType returnTypeNode = (ASTReturnType) child;
-                this.table.setImportReturnType(importIdentifier, returnTypeNode.getType());
+                this.table.setImportReturnType(importIdentifier, (String) returnTypeNode.jjtGetValue());
             }
         }
     }
