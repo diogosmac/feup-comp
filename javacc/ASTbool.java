@@ -16,10 +16,5 @@ class ASTbool extends SimpleNode {
   public String toString() {
     return "Boolean: " + value;
   }
-
-  @Override
-  public String getType() {
-    return "boolean";
-  }
 }
 /* JavaCC - OriginalChecksum=c0ce3381abd6f4b6829e72d98ac633a3 (do not edit this line) */

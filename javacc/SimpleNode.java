@@ -56,19 +56,6 @@ public class SimpleNode implements Node {
     return children;
   }
 
-  /**
-   * To be overriden by other classes
-   * @param analyser
-   */
-  public void analyse(SemanticAnalyser analyser) throws SemanticException { }
-
-  /**
-   * To be overriden by other classes, returns type
-   */
-  public String getType() {
-    return null;
-  }
-
   /* END CREATED METHOD */
 
   /* You can override these two methods in subclasses of SimpleNode to

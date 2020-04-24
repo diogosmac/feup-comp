@@ -1,7 +1,8 @@
 options
 {
-    LOOKAHEAD=1;
-    MULTI = true;
+    LOOKAHEAD=1;    // define global lookahead
+    MULTI = true;   // create AST classes
+    VISITOR = true; // add visitor pattern "support"
 }
 
 PARSER_BEGIN(Parser)
