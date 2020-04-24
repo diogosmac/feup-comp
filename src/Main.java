@@ -23,6 +23,19 @@ public class Main {
 		symbolTable.dump();
 
 		// analyse
+		test(root);
+
+	}
+
+	public static void test(SimpleNode node) {
+		System.out.println(node.jjtGetValue());
+
+		Node[] children = node.jjtGetChildren();
+
+		if (children == null) return;
+
+		for (Node c : children)
+			test((SimpleNode) c);
 
 	}
 
