@@ -34,22 +34,48 @@ public class SymbolTable {
         if (!this.variableDescriptors.containsKey(identifier))
             this.variableDescriptors.put(identifier, new VariableDescriptor(dataType));
         else
-            throw new SemanticErrorException("Variable " + identifier + " already defined");
+            throw new SemanticErrorException("Variable '" + identifier + "' already defined");
     }
 
     public void addMethod(String identifier, String dataType) {
+        // no methods with the name 'identifier'
         if (!this.methodDescriptors.containsKey(identifier))
             this.methodDescriptors.put(identifier, new LinkedList<>());
-
+        // methods with the name 'identifier' are already present
         this.methodDescriptors.get(identifier).add(new MethodDescriptor(dataType));
     }
 
-    public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) {
-        this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
+    public void checkEqualMethods(String identifier) throws SemanticErrorException {
+        // get method descriptor list
+        LinkedList<MethodDescriptor> methods = this.methodDescriptors.get(identifier);
+        // cross check parameter list and return type
+        for (int firstIndex = 0; firstIndex < methods.size(); firstIndex++) {
+            for (int secondIndex = firstIndex + 1; secondIndex < methods.size(); secondIndex++) {
+                MethodDescriptor first = methods.get(firstIndex);
+                MethodDescriptor second = methods.get(secondIndex);
+                try {
+                    first.checkEqualMethod(second.getParameters(), second.getType());
+                } catch (SemanticErrorException e) {
+                    throw new SemanticErrorException(e.getMessage() + " in method '" + identifier + "'");
+                }
+            }
+        }
     }
 
-    public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) {
-        this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
+    public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) throws SemanticErrorException {
+        try {
+            this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
+        } catch (SemanticErrorException e) {
+            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
+        }
+    }
+
+    public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) throws SemanticErrorException {
+        try {
+            this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
+        } catch (SemanticErrorException e) {
+            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
+        }
     }
 
     public void addImport(String importIdentifier, boolean isStatic, boolean isMethod) {

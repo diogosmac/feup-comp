@@ -92,7 +92,11 @@ public class SymbolTableBuilder implements ParserVisitor {
             // get variable type
             String varType = (String) node.jjtGetChild(0).jjtAccept(this, data);
             // put variable entry in symbol table
-            this.table.addMethodVariable(methodName, variableName, varType);
+            try {
+                this.table.addMethodVariable(methodName, variableName, varType);
+            } catch (SemanticErrorException e) {
+                this.printError(e.getMessage(), node.line, node.column);
+            }
         }
         return null;
     }
@@ -108,6 +112,13 @@ public class SymbolTableBuilder implements ParserVisitor {
         // get Method Parameters and Variable Declarations
         // send method name for editing MethodDescriptor
         node.childrenAccept(this, methodName);
+        // check if this method is in sync with others
+        // same identifier -> same return type, but different parameter list
+        try {
+            this.table.checkEqualMethods(methodName);
+        } catch (SemanticErrorException e) {
+            this.printError(e.getMessage(), node.line, node.column);
+        }
         return null;
     }
 
@@ -125,7 +136,11 @@ public class SymbolTableBuilder implements ParserVisitor {
         // get parameter type
         String paramType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // put parameter entry in symbol table
-        this.table.addMethodParameter(methodName, parameterName, paramType);
+        try {
+            this.table.addMethodParameter(methodName, parameterName, paramType);
+        } catch (SemanticErrorException e) {
+            this.printError(e.getMessage(), node.line, node.column);
+        }
         return null;
     }
 
@@ -145,7 +160,11 @@ public class SymbolTableBuilder implements ParserVisitor {
         // parse main parameters
         String parameterName = (String) node.jjtGetValue();
         // add parameter name to main method
-        this.table.addMethodParameter("main", parameterName, "String[]");
+        try {
+            this.table.addMethodParameter("main", parameterName, "String[]");
+        } catch (SemanticErrorException e) {
+            this.printError(e.getMessage(), node.line, node.column);
+        }
         return null;
     }
 

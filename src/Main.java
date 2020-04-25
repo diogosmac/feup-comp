@@ -20,7 +20,7 @@ public class Main {
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
 		// dump table TODO: DELETE AFTER EVERYTHING IS OK :)
 		System.out.println("\n==== Dumping SymbolTable ====\n");
-		symbolTable.dump();
+		//symbolTable.dump();
 
 		// analyse
 		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
