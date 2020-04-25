@@ -162,7 +162,7 @@ public class SemanticAnalyser implements ParserVisitor {
         String childType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // verify data type
         if (!childType.equals("boolean"))
-            printError("Operand " + child.jjtGetValue() + " of '!' is not of 'boolean' type at line " + node.line + ", column " + node.column + ".");
+            printError("Operand " + child.jjtGetValue() + " of '!' is not of 'boolean' type", node.line, node.column );
         // '!' operator returns a boolean
         return "boolean";
     }
@@ -172,7 +172,7 @@ public class SemanticAnalyser implements ParserVisitor {
         return null;
     }
 
-    private void printError(String message) {
-        System.out.println("SEMANTIC ERROR: " + message);
+    private void printError(String message, int line, int column) {
+        System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
     }
 }

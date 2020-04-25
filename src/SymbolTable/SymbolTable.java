@@ -1,5 +1,7 @@
 package SymbolTable;
 
+import Exceptions.SemanticErrorException;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -12,7 +14,7 @@ public class SymbolTable {
     /**
      * identifier -> < data type >
      */
-    private HashMap<String, LinkedList<VariableDescriptor>> variableDescriptors;
+    private HashMap<String, VariableDescriptor> variableDescriptors;
     /**
      * identifier -> < return data type, list of params, list of local variables >
      */
@@ -28,11 +30,11 @@ public class SymbolTable {
         this.importDescriptors = new HashMap<>();
     }
 
-    public void addVariable(String identifier, String dataType) {
+    public void addVariable(String identifier, String dataType) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(identifier))
-            this.variableDescriptors.put(identifier, new LinkedList<>());
-
-        this.variableDescriptors.get(identifier).add(new VariableDescriptor(dataType));
+            this.variableDescriptors.put(identifier, new VariableDescriptor(dataType));
+        else
+            throw new SemanticErrorException("Variable " + identifier + " already defined");
     }
 
     public void addMethod(String identifier, String dataType) {

@@ -1,3 +1,4 @@
+import Exceptions.SemanticErrorException;
 import SymbolTable.SymbolTable;
 
 public class SymbolTableBuilder implements ParserVisitor {
@@ -18,7 +19,12 @@ public class SymbolTableBuilder implements ParserVisitor {
         return this.table;
     }
 
-        @Override
+    private void printError(String message, int line, int column) {
+        System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
+    }
+
+
+    @Override
     public Object visit(SimpleNode node, Object data) {
         return node.childrenAccept(this, data);
     }
@@ -73,7 +79,11 @@ public class SymbolTableBuilder implements ParserVisitor {
             // get variable type
             String variableType = (String) node.jjtGetChild(0).jjtAccept(this, data);
             // put variable entry in symbol table
-            this.table.addVariable(variableIdentifier, variableType);
+            try {
+                this.table.addVariable(variableIdentifier, variableType);
+            } catch (SemanticErrorException e) {
+                this.printError(e.getMessage(), node.line, node.column);
+            }
         } else { // Method variable declaration
             // get method name from data
             String methodName = (String) data;
