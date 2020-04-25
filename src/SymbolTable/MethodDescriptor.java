@@ -4,13 +4,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-public class MethodDescriptor {
-    private String returnType;
+public class MethodDescriptor extends Descriptor {
     private HashMap<String, LinkedList<String>> parameters;
     private HashMap<String, LinkedList<VariableDescriptor>> variableDescriptors;
 
-    public MethodDescriptor(String returnType) {
-        this.returnType = returnType;
+    public MethodDescriptor(String type) {
+        this.type = type;
         this.parameters = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
     }
@@ -32,7 +31,7 @@ public class MethodDescriptor {
     public String dump(String prefix) {
         StringBuilder buf = new StringBuilder();
         // get return type
-        buf.append(prefix).append("Return type: ").append(this.returnType).append("\n");
+        buf.append(prefix).append("Return type: ").append(this.type).append("\n");
         // get parameters
         buf.append(prefix).append("Parameters:").append("\n");
         for (Map.Entry<String, LinkedList<String>> entry : this.parameters.entrySet()) {

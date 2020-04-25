@@ -6,7 +6,6 @@ public class VariableDescriptor extends Descriptor {
         this.type = dataType;
     }
 
-
     public String dump(String prefix) {
         return prefix + "Variable Descriptor: " + this.type;
     }

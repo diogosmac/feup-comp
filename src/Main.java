@@ -18,8 +18,6 @@ public class Main {
 		// build symbol table
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
-		// analyse table
-		tableBuilder.analyseTable();
 		// dump table TODO: DELETE AFTER EVERYTHING IS OK :)
 		System.out.println("\n==== Dumping SymbolTable ====\n");
 		symbolTable.dump();
