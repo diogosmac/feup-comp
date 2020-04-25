@@ -98,10 +98,8 @@ public class SymbolTable {
         // get import descriptor list
         LinkedList<ImportDescriptor> imports = this.importDescriptors.get(identifier);
         // verification only valid for method imports
-        LinkedList<ImportDescriptor> methodImports = new LinkedList<>();
-        for (ImportDescriptor descriptor : imports)
-            if (descriptor.isMethod())
-                methodImports.add(descriptor);
+        LinkedList<ImportDescriptor> methodImports = new LinkedList<>(imports);
+        methodImports.removeIf(ImportDescriptor -> !ImportDescriptor.isMethod());
         // cross check parameter list and return type
         for (int firstIndex = 0; firstIndex < methodImports.size(); firstIndex++) {
             for (int secondIndex = firstIndex + 1; secondIndex < methodImports.size(); secondIndex++) {
@@ -110,7 +108,7 @@ public class SymbolTable {
                 try {
                     first.checkEqualImport(second.getParameters(), second.getType());
                 } catch (SemanticErrorException e) {
-                    throw new SemanticErrorException(e.getMessage() + " in method '" + identifier + "'");
+                    throw new SemanticErrorException(e.getMessage() + " in import '" + identifier + "'");
                 }
             }
         }

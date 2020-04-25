@@ -44,7 +44,7 @@ public class MethodDescriptor extends Descriptor {
         List<String> parametersTypes = new ArrayList<String>(parameters.values());
         // check if both parameter lists are the same
         if (thisParametersTypes.equals(parametersTypes))
-            throw new SemanticErrorException("Parameters types already defined");
+            throw new SemanticErrorException("Parameter type list already defined");
         // check return type
         if (!this.getType().equals(returnType))
             throw new SemanticErrorException("Return type '" + returnType + "' different from other methods with the same identifier");

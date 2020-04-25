@@ -40,7 +40,7 @@ public class ImportDescriptor extends Descriptor{
     public void checkEqualImport(LinkedList<String> parameters, String returnType) throws SemanticErrorException {
         // check if both parameter lists are the same
         if (this.parameters.equals(parameters))
-            throw new SemanticErrorException("Parameters types already defined");
+            throw new SemanticErrorException("Parameter type list already defined");
         // check return type
         if (!this.getType().equals(returnType))
             throw new SemanticErrorException("Return type '" + returnType + "' different from other imports with the same identifier");
