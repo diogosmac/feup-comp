@@ -36,8 +36,6 @@ public class SymbolTableBuilder {
         return true;
     }
 
-    private boolean analyse
-
     private void processClassDeclaration(ASTClassDeclaration node) {
         // get class declaration node children
         Node[] children = node.jjtGetChildren();

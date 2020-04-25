@@ -95,32 +95,110 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTand node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("boolean"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '&&' is not of 'boolean' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("boolean"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '&&' is not of 'boolean' type at line " + node.line + ", column " + node.column + ".");
+
+        // '&&' operator returns an int
+        return "boolean";
     }
 
     @Override
     public Object visit(ASTlt node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("integer"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '<' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("integer"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '<' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+
+        // '<' operator returns an int
+        return "integer";
     }
 
     @Override
     public Object visit(ASTsum node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("integer"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '+' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("integer"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '+' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+
+        // '+' operator returns an int
+        return "integer";
     }
 
     @Override
     public Object visit(ASTsub node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("integer"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '-' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("integer"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '-' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+
+        // '-' operator returns an int
+        return "integer";
     }
 
     @Override
     public Object visit(ASTmult node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("integer"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '*' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("integer"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '*' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+
+        // '*' operator returns an int
+        return "integer";
     }
 
     @Override
     public Object visit(ASTdiv node, Object data) {
-        return null;
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(0);
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+        String leftChildType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+
+        // verify data type
+        if (!leftChildType.equals("integer"))
+            printError("Operand " + leftChildType.jjtGetValue() + " of '/' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+        else if(!rightChildType.equals("integer"))
+            printError("Operand " + rightChildType.jjtGetValue() + " of '/' is not of 'integer' type at line " + node.line + ", column " + node.column + ".");
+
+        // '/' operator returns an int
+        return "integer";
     }
 
     @Override
