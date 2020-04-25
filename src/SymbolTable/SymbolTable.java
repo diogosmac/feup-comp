@@ -82,13 +82,12 @@ public class SymbolTable {
 
         // Variable Descriptors
         System.out.println("Variable Descriptors:");
-        for (Map.Entry<String, LinkedList<VariableDescriptor>> entry : this.variableDescriptors.entrySet()) {
+        for (Map.Entry<String, VariableDescriptor> entry : this.variableDescriptors.entrySet()) {
             StringBuilder buf = new StringBuilder("  Variable name: ");
             // get variable name
             buf.append(entry.getKey()).append("\n");
             // get all descriptors with the same name
-            for (VariableDescriptor var : entry.getValue())
-                buf.append(var.dump("    "));
+            buf.append(entry.getValue().dump("    "));
             System.out.println(buf.toString());
         }
 
