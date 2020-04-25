@@ -45,6 +45,22 @@ public class SymbolTable {
         this.methodDescriptors.get(identifier).add(new MethodDescriptor(dataType));
     }
 
+    public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) throws SemanticErrorException {
+        try {
+            this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
+        } catch (SemanticErrorException e) {
+            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
+        }
+    }
+
+    public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) throws SemanticErrorException {
+        try {
+            this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
+        } catch (SemanticErrorException e) {
+            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
+        }
+    }
+
     public void checkEqualMethods(String identifier) throws SemanticErrorException {
         // get method descriptor list
         LinkedList<MethodDescriptor> methods = this.methodDescriptors.get(identifier);
@@ -62,26 +78,11 @@ public class SymbolTable {
         }
     }
 
-    public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) throws SemanticErrorException {
-        try {
-            this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
-        } catch (SemanticErrorException e) {
-            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
-        }
-    }
-
-    public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) throws SemanticErrorException {
-        try {
-            this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
-        } catch (SemanticErrorException e) {
-            throw new SemanticErrorException(e.getMessage() + " in method " + methodIdentifier + "'");
-        }
-    }
-
     public void addImport(String importIdentifier, boolean isStatic, boolean isMethod) {
+        // no imports with the name 'identifier'
         if (!this.importDescriptors.containsKey(importIdentifier))
             this.importDescriptors.put(importIdentifier, new LinkedList<>());
-
+        // imports with the name 'identifier' are already present
         this.importDescriptors.get(importIdentifier).add(new ImportDescriptor(isStatic, isMethod));
     }
 
@@ -91,6 +92,28 @@ public class SymbolTable {
 
     public void setImportReturnType(String importIdentifier, String dataType) {
         this.importDescriptors.get(importIdentifier).getLast().setReturnType(dataType);
+    }
+
+    public void checkEqualImports(String identifier) throws SemanticErrorException {
+        // get import descriptor list
+        LinkedList<ImportDescriptor> imports = this.importDescriptors.get(identifier);
+        // verification only valid for method imports
+        LinkedList<ImportDescriptor> methodImports = new LinkedList<>();
+        for (ImportDescriptor descriptor : imports)
+            if (descriptor.isMethod())
+                methodImports.add(descriptor);
+        // cross check parameter list and return type
+        for (int firstIndex = 0; firstIndex < methodImports.size(); firstIndex++) {
+            for (int secondIndex = firstIndex + 1; secondIndex < methodImports.size(); secondIndex++) {
+                ImportDescriptor first = methodImports.get(firstIndex);
+                ImportDescriptor second = methodImports.get(secondIndex);
+                try {
+                    first.checkEqualImport(second.getParameters(), second.getType());
+                } catch (SemanticErrorException e) {
+                    throw new SemanticErrorException(e.getMessage() + " in method '" + identifier + "'");
+                }
+            }
+        }
     }
 
     public void dump() {

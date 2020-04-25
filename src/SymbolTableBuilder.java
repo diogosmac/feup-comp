@@ -23,7 +23,6 @@ public class SymbolTableBuilder implements ParserVisitor {
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
     }
 
-
     @Override
     public Object visit(SimpleNode node, Object data) {
         return node.childrenAccept(this, data);
@@ -62,6 +61,13 @@ public class SymbolTableBuilder implements ParserVisitor {
                 this.table.setImportReturnType(importIdentifier, (String) returnTypeNode.jjtGetValue());
             }
         }
+        // check if this import is in sync with others
+        // same identifier -> same return type, but different parameter type list
+        try {
+            this.table.checkEqualImports(importIdentifier);
+        } catch (SemanticErrorException e) {
+            this.printError(e.getMessage(), node.line, node.column);
+        }
         return null;
     }
 
@@ -72,12 +78,13 @@ public class SymbolTableBuilder implements ParserVisitor {
 
     @Override
     public Object visit(ASTVarDeclaration node, Object data) {
+        // parse variable declarations
+        String variableIdentifier = (String) node.jjtGetValue();
+        // get variable type
+        String variableType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+
         // Class attribute declaration
         if (data == null) {
-            // get variable id node children
-            String variableIdentifier = (String) node.jjtGetValue();
-            // get variable type
-            String variableType = (String) node.jjtGetChild(0).jjtAccept(this, data);
             // put variable entry in symbol table
             try {
                 this.table.addVariable(variableIdentifier, variableType);
@@ -86,36 +93,33 @@ public class SymbolTableBuilder implements ParserVisitor {
             }
         } else { // Method variable declaration
             // get method name from data
-            String methodName = (String) data;
-            // parse variable declarations
-            String variableName = (String) node.jjtGetValue();
-            // get variable type
-            String varType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+            String methodIdentifier = (String) data;
             // put variable entry in symbol table
             try {
-                this.table.addMethodVariable(methodName, variableName, varType);
+                this.table.addMethodVariable(methodIdentifier, variableIdentifier, variableType);
             } catch (SemanticErrorException e) {
                 this.printError(e.getMessage(), node.line, node.column);
             }
         }
+
         return null;
     }
 
     @Override
     public Object visit(ASTRegularMethod node, Object data) {
         // get method  id node children
-        String methodName = (String) node.jjtGetValue();
+        String methodIdentifier = (String) node.jjtGetValue();
         // get method type
         String methodType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // put method to method descriptors
-        this.table.addMethod(methodName, methodType);
+        this.table.addMethod(methodIdentifier, methodType);
         // get Method Parameters and Variable Declarations
         // send method name for editing MethodDescriptor
-        node.childrenAccept(this, methodName);
+        node.childrenAccept(this, methodIdentifier);
         // check if this method is in sync with others
-        // same identifier -> same return type, but different parameter list
+        // same identifier -> same return type, but different parameter type list
         try {
-            this.table.checkEqualMethods(methodName);
+            this.table.checkEqualMethods(methodIdentifier);
         } catch (SemanticErrorException e) {
             this.printError(e.getMessage(), node.line, node.column);
         }
@@ -130,14 +134,14 @@ public class SymbolTableBuilder implements ParserVisitor {
     @Override
     public Object visit(ASTMethodParam node, Object data) {
         // get method name from data
-        String methodName = (String) data;
+        String methodIdentifier = (String) data;
         // parse parameter declarations
         String parameterName = (String) node.jjtGetValue();
         // get parameter type
         String paramType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // put parameter entry in symbol table
         try {
-            this.table.addMethodParameter(methodName, parameterName, paramType);
+            this.table.addMethodParameter(methodIdentifier, parameterName, paramType);
         } catch (SemanticErrorException e) {
             this.printError(e.getMessage(), node.line, node.column);
         }
@@ -158,10 +162,10 @@ public class SymbolTableBuilder implements ParserVisitor {
     public Object visit(ASTMainParams node, Object data) {
         node.childrenAccept(this, data);
         // parse main parameters
-        String parameterName = (String) node.jjtGetValue();
+        String parameterIdentifier = (String) node.jjtGetValue();
         // add parameter name to main method
         try {
-            this.table.addMethodParameter("main", parameterName, "String[]");
+            this.table.addMethodParameter("main", parameterIdentifier, "String[]");
         } catch (SemanticErrorException e) {
             this.printError(e.getMessage(), node.line, node.column);
         }
