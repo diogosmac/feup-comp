@@ -1,5 +1,7 @@
 package SymbolTable;
 
+import Exceptions.SemanticErrorException;
+
 import java.util.LinkedList;
 
 public class ImportDescriptor extends Descriptor{
@@ -31,6 +33,19 @@ public class ImportDescriptor extends Descriptor{
         this.type = dataType;
     }
 
+    public boolean isMethod() {
+        return isMethod;
+    }
+
+    public void checkEqualImport(LinkedList<String> parameters, String returnType) throws SemanticErrorException {
+        // check if both parameter lists are the same
+        if (this.parameters.equals(parameters))
+            throw new SemanticErrorException("Parameter type list already defined");
+        // check return type
+        if (!this.getType().equals(returnType))
+            throw new SemanticErrorException("Return type '" + returnType + "' different from other imports with the same identifier");
+    }
+
     public String dump(String prefix) {
 
         StringBuilder buf = new StringBuilder(prefix + "Descriptor " + "\n");
@@ -46,8 +61,10 @@ public class ImportDescriptor extends Descriptor{
                 buf.append(param).append("\n");
             }
         }
-
         return buf.toString();
+    }
 
+    public LinkedList<String> getParameters() {
+        return parameters;
     }
 }
