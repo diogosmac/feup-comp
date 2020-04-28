@@ -111,7 +111,7 @@ public class SymbolTableBuilder implements ParserVisitor {
         String methodIdentifier = (String) node.jjtGetValue();
         // get method type
         String methodType = (String) node.jjtGetChild(0).jjtAccept(this, data);
-        // put method to method descriptors
+        // put method in method descriptors
         this.table.addMethod(methodIdentifier, methodType);
         // get Method Parameters and Variable Declarations
         // send method name for editing MethodDescriptor
@@ -133,7 +133,7 @@ public class SymbolTableBuilder implements ParserVisitor {
 
     @Override
     public Object visit(ASTMethodParams node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override

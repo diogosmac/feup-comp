@@ -1,4 +1,8 @@
+import Exceptions.SemanticErrorException;
+import SymbolTable.MethodDescriptor;
 import SymbolTable.SymbolTable;
+
+import java.util.LinkedList;
 
 public class SemanticAnalyser implements ParserVisitor {
 
@@ -8,38 +12,53 @@ public class SemanticAnalyser implements ParserVisitor {
         this.table = table;
     }
 
+    private void printError(String message, int line, int column) {
+        System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
+    }
+
     @Override
     public Object visit(SimpleNode node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTProgram node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTImportDeclaration node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTImport node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTClassDeclaration node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTVarDeclaration node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override
     public Object visit(ASTRegularMethod node, Object data) {
+        // get method  id node children
+        String methodIdentifier = (String) node.jjtGetValue();
+        // get method parameters
+        LinkedList<String> parameterList = (LinkedList<String>) node.jjtGetChild(1).jjtAccept(this, data);
+        // lookup method
+        try {
+            MethodDescriptor method = this.table.lookupMethod(methodIdentifier, parameterList);
+            return node.childrenAccept(this, method);
+        } catch (SemanticErrorException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -50,12 +69,24 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTMethodParams node, Object data) {
-        return null;
+        // get parameters node children
+        Node[] children = node.jjtGetChildren();
+        if (children == null) {
+            return null;
+        }
+        // create parameter type list
+        LinkedList<String> parameterList = new LinkedList<>();
+        for (Node child : children) {
+            String parameterType = (String) child.jjtAccept(this, data);
+            parameterList.add(parameterType);
+        }
+        return parameterList;
     }
 
     @Override
     public Object visit(ASTMethodParam node, Object data) {
-        return null;
+        // return parameter type
+        return node.jjtGetChild(0).jjtAccept(this, data);
     }
 
     @Override
@@ -70,7 +101,7 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTType node, Object data) {
-        return null;
+        return node.jjtGetValue();
     }
 
     @Override
@@ -212,12 +243,34 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
+    public Object visit(ASTid node, Object data) {
+        // get method descriptor
+        MethodDescriptor method = (MethodDescriptor) data;
+        // get variable id
+        String variableIdentifier = (String) node.jjtGetValue();
+        // lookup variable in method
+        try {
+            return method.lookupVariable(variableIdentifier);
+        } catch (SemanticErrorException ignored) {
+        }
+        // lookup variable in class
+        try {
+            return table.lookupAttribute(variableIdentifier);
+        } catch (SemanticErrorException e) {
+            this.printError(e.getMessage(), node.line, node.column);
+        }
+        // Semantic error: return null
+        return null;
+    }
+
+    @Override
     public Object visit(ASTGetLength node, Object data) {
         return "int";
     }
 
     @Override
     public Object visit(ASTCallMethod node, Object data) {
+        // lookup identifier in the symbol table
         return null;
     }
 
@@ -252,9 +305,5 @@ public class SemanticAnalyser implements ParserVisitor {
     @Override
     public Object visit(AST_new node, Object data) {
         return null;
-    }
-
-    private void printError(String message, int line, int column) {
-        System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
     }
 }
