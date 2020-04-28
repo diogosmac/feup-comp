@@ -148,6 +148,15 @@ public class SemanticAnalyser implements ParserVisitor {
         if (node.array) {
 
         }
+
+        // $allowedNameI = $allowedNameI + 1;
+        // Results in:
+        // Statement: id $allowedNameI =
+        //   AssignStatement
+        //     sum
+        //       id: $allowedNameI
+        //       Integer: 1
+
         // Assign
         if (node.assign) {
 
