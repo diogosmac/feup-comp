@@ -51,7 +51,13 @@ public class SemanticAnalyser implements ParserVisitor {
         // get method  id node children
         String methodIdentifier = (String) node.jjtGetValue();
         // get method parameters
-        LinkedList<String> parameterList = (LinkedList<String>) node.jjtGetChild(1).jjtAccept(this, data);
+        // method parameters is always second child
+        // NOTE: may not exist
+        LinkedList<String> parameterList = new LinkedList<>();
+        if (node.jjtGetChild(1) instanceof ASTMethodParams) {
+            parameterList = (LinkedList<String>) node.jjtGetChild(1).jjtAccept(this, data);
+        }
+
         // lookup method
         try {
             MethodDescriptor method = this.table.lookupMethod(methodIdentifier, parameterList);
@@ -71,9 +77,6 @@ public class SemanticAnalyser implements ParserVisitor {
     public Object visit(ASTMethodParams node, Object data) {
         // get parameters node children
         Node[] children = node.jjtGetChildren();
-        if (children == null) {
-            return null;
-        }
         // create parameter type list
         LinkedList<String> parameterList = new LinkedList<>();
         for (Node child : children) {
@@ -270,7 +273,12 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTCallMethod node, Object data) {
+        // get method id
+        String methodIdentifier = (String) node.jjtGetValue();
+        // get method call arguments list
+
         // lookup identifier in the symbol table
+        // this.table.lookupMethod(methodIdentifier, );
         return null;
     }
 
