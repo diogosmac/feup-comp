@@ -80,6 +80,7 @@ public class SemanticAnalyser implements ParserVisitor {
         // get parameters node children
         Node[] children = node.jjtGetChildren();
         // create parameter type list
+        // for each child node (ASTMethodParam) get type
         LinkedList<String> parameterList = new LinkedList<>();
         for (Node child : children) {
             String parameterType = (String) child.jjtAccept(this, data);
