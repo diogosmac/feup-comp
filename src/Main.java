@@ -1,4 +1,7 @@
-import SymbolTable.SymbolTable;
+import Exceptions.SemanticErrorException;
+import SymbolTable.*;
+
+import java.util.LinkedList;
 
 public class Main {
 
@@ -21,6 +24,22 @@ public class Main {
 		// dump table TODO: DELETE AFTER EVERYTHING IS OK :)
 		System.out.println("\n==== Dumping SymbolTable ====\n");
 		symbolTable.dump();
+		// test lookups
+		try {
+			LinkedList<String> methPar = new LinkedList<>();
+			methPar.add("int[]");
+			// variable - class attribute
+			VariableDescriptor var = symbolTable.lookupVariable("test_arr", "find_maximum", methPar);
+			System.out.println(var.dump(""));
+			// method
+			MethodDescriptor meth = symbolTable.lookupMethod("find_maximum", methPar);
+			System.out.println(meth.dump(""));
+			// method variable
+			VariableDescriptor methVar = symbolTable.lookupVariable("ed", "find_maximum", methPar);
+			System.out.println(methVar.dump(""));
+		} catch (SemanticErrorException e) {
+			System.out.println(e.getMessage());
+		}
 
 		// analyse
 		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);

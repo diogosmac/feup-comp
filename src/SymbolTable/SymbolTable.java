@@ -30,14 +30,14 @@ public class SymbolTable {
         this.importDescriptors = new HashMap<>();
     }
 
-    public VariableDescriptor lookupVariable(String variableIdentifier) throws SemanticErrorException {
+    private VariableDescriptor lookupAttribute(String variableIdentifier) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(variableIdentifier))
             throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
         else
             return this.variableDescriptors.get(variableIdentifier);
     }
 
-    public VariableDescriptor lookupMethodVariable(String variableIdentifier, String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
+    public VariableDescriptor lookupVariable(String variableIdentifier, String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
         // get wanted method descriptor
         MethodDescriptor method = this.lookupMethod(methodIdentifier, parameterTypes);
         try {
@@ -45,16 +45,14 @@ public class SymbolTable {
             return method.lookupVariable(variableIdentifier);
         } catch (SemanticErrorException ignored) {
             // if not found lookup variable on class
-            return this.lookupVariable(variableIdentifier);
+            return this.lookupAttribute(variableIdentifier);
         }
     }
 
     public MethodDescriptor lookupMethod(String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
         // build error message
         StringBuilder message = new StringBuilder(methodIdentifier + "(");
-        for (String parameterType : parameterTypes) {
-            message.append(parameterType).append(", ");
-        }
+        message.append(String.join(", ", parameterTypes));
         message.append(")");
         // if method name does not exist throw error
         if (!this.methodDescriptors.containsKey(methodIdentifier))
@@ -64,7 +62,7 @@ public class SymbolTable {
         LinkedList<MethodDescriptor> possibleMethods = this.methodDescriptors.get(methodIdentifier);
         for (MethodDescriptor possibleMethod : possibleMethods) {
             // get List of parameter types
-            LinkedList<String> possibleParameterTypes = new LinkedList<String>(possibleMethod.getParameters().values());
+            LinkedList<VariableDescriptor> possibleParameterTypes = new LinkedList<VariableDescriptor>(possibleMethod.getParameters().values());
             if (possibleParameterTypes.equals(parameterTypes))
                 return possibleMethod;
         }
@@ -88,7 +86,7 @@ public class SymbolTable {
         LinkedList<ImportDescriptor> possibleImports = this.importDescriptors.get(importIdentifier);
         for (ImportDescriptor possibleImport : possibleImports) {
             // get List of parameter types
-            LinkedList<String> possibleParameterTypes = possibleImport.getParameters();
+            LinkedList<VariableDescriptor> possibleParameterTypes = possibleImport.getParameters();
             if (possibleParameterTypes.equals(parameterTypes))
                 return possibleImport;
         }

@@ -8,7 +8,7 @@ public class ImportDescriptor extends Descriptor{
 
     private final boolean isStatic;
     private final boolean isMethod;
-    private LinkedList<String> parameters;
+    private LinkedList<VariableDescriptor> parameters;
 
     public ImportDescriptor(boolean isStatic, boolean isMethod) {
         this.isStatic = isStatic;
@@ -23,7 +23,7 @@ public class ImportDescriptor extends Descriptor{
         if (!this.isMethod)
             return;
 
-        this.parameters.add(dataType);
+        this.parameters.add(new VariableDescriptor(dataType));
     }
 
     public void setReturnType(String dataType) {
@@ -37,7 +37,7 @@ public class ImportDescriptor extends Descriptor{
         return isMethod;
     }
 
-    public void checkEqualImport(LinkedList<String> parameters, String returnType) throws SemanticErrorException {
+    public void checkEqualImport(LinkedList<VariableDescriptor> parameters, String returnType) throws SemanticErrorException {
         // check if both parameter lists are the same
         if (this.parameters.equals(parameters))
             throw new SemanticErrorException("Parameter type list already defined");
@@ -55,16 +55,15 @@ public class ImportDescriptor extends Descriptor{
             // get parameters
             buf.append(prefix).append("  Parameters").append("\n");
 
-            for (String param : this.parameters) {
-                buf.append(prefix).append("    Parameter Name: ");
+            for (VariableDescriptor param : this.parameters) {
                 //get parameter type
-                buf.append(param).append("\n");
+                buf.append(param.dump(prefix + "    ")).append("\n");
             }
         }
         return buf.toString();
     }
 
-    public LinkedList<String> getParameters() {
+    public LinkedList<VariableDescriptor> getParameters() {
         return parameters;
     }
 }

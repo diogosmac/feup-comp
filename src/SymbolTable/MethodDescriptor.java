@@ -2,16 +2,13 @@ package SymbolTable;
 
 import Exceptions.SemanticErrorException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MethodDescriptor extends Descriptor {
     /**
      * identifier -> < data type >
      */
-    private HashMap<String, String> parameters;
+    private HashMap<String, VariableDescriptor> parameters;
 
     /**
      * identifier -> < data type >
@@ -25,15 +22,19 @@ public class MethodDescriptor extends Descriptor {
     }
 
     public VariableDescriptor lookupVariable(String variableIdentifier) throws SemanticErrorException {
-        if (!this.variableDescriptors.containsKey(variableIdentifier))
-            throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
-        else
+        // find variable descriptor in defined variables
+        if (this.variableDescriptors.containsKey(variableIdentifier))
             return this.variableDescriptors.get(variableIdentifier);
+            // find variable descriptor in parameter list
+        else if (this.parameters.containsKey(variableIdentifier))
+            return this.parameters.get(variableIdentifier);
+        else
+            throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
     }
 
     public void addParameter(String identifier, String dataType) throws SemanticErrorException {
         if (!this.parameters.containsKey(identifier))
-            this.parameters.put(identifier, dataType);
+            this.parameters.put(identifier, new VariableDescriptor(dataType));
         else
             throw new SemanticErrorException("Parameter name" + identifier + " already in use");
     }
@@ -45,10 +46,10 @@ public class MethodDescriptor extends Descriptor {
             throw new SemanticErrorException("Variable " + identifier + " already defined");
     }
 
-    public void checkEqualMethod(HashMap<String, String> parameters, String returnType) throws SemanticErrorException {
+    public void checkEqualMethod(HashMap<String, VariableDescriptor> parameters, String returnType) throws SemanticErrorException {
         // get parameters types list
-        List<String> thisParametersTypes = new ArrayList<String>(this.parameters.values());
-        List<String> parametersTypes = new ArrayList<String>(parameters.values());
+        List<VariableDescriptor> thisParametersTypes = new ArrayList<VariableDescriptor>(this.parameters.values());
+        List<VariableDescriptor> parametersTypes = new ArrayList<VariableDescriptor>(parameters.values());
         // check if both parameter lists are the same
         if (thisParametersTypes.equals(parametersTypes))
             throw new SemanticErrorException("Parameter type list already defined");
@@ -63,13 +64,12 @@ public class MethodDescriptor extends Descriptor {
         buf.append(prefix).append("Return type: ").append(this.type).append("\n");
         // get parameters
         buf.append(prefix).append("Parameters:").append("\n");
-        for (Map.Entry<String, String> entry : this.parameters.entrySet()) {
+        for (Map.Entry<String, VariableDescriptor> entry : this.parameters.entrySet()) {
             buf.append(prefix).append("  Parameter Name: ");
             // get parameter name
-            buf.append(entry.getKey()).append(" : ");
-            // get all parameters
-            buf.append(entry.getValue());
-            buf.append("\n");
+            buf.append(entry.getKey()).append("\n");
+            // get all descriptor with the same name
+            buf.append(entry.getValue().dump(prefix + "    ")).append("\n");
         }
 
         // get local variable descriptors
@@ -84,7 +84,7 @@ public class MethodDescriptor extends Descriptor {
         return buf.toString();
     }
 
-    public HashMap<String, String> getParameters() {
+    public HashMap<String, VariableDescriptor> getParameters() {
         return this.parameters;
     }
 }
