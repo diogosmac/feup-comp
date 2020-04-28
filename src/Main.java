@@ -25,6 +25,10 @@ public class Main {
 		// analyse
 		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
 		semanticAnalyser.visit(root, null);
+
+		//generate code
+		CodeGenerator codeGenerator = new CodeGenerator(symbolTable,root);
+		codeGenerator.generateCode();
 	}
 
 	public static void test(SimpleNode node) {
@@ -40,7 +44,6 @@ public class Main {
 
 		for (Node c : children)
 			test((SimpleNode) c);
-
 	}
 
 	public static SimpleNode parse(String filename) throws ParseException {
