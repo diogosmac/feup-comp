@@ -36,14 +36,14 @@ public class MethodDescriptor extends Descriptor {
         if (!this.parameters.containsKey(identifier))
             this.parameters.put(identifier, new VariableDescriptor(dataType));
         else
-            throw new SemanticErrorException("Parameter name" + identifier + " already in use");
+            throw new SemanticErrorException("Parameter name '" + identifier + "' already in use");
     }
 
     public void addVariable(String identifier, String dataType) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(identifier))
             this.variableDescriptors.put(identifier, new VariableDescriptor(dataType));
         else
-            throw new SemanticErrorException("Variable " + identifier + " already defined");
+            throw new SemanticErrorException("Variable '" + identifier + "' already defined");
     }
 
     public void checkEqualMethod(HashMap<String, VariableDescriptor> parameters, String returnType) throws SemanticErrorException {
