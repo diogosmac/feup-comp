@@ -66,4 +66,12 @@ public class ImportDescriptor extends Descriptor{
     public LinkedList<VariableDescriptor> getParameters() {
         return parameters;
     }
+
+    public LinkedList<String> getStringParameters() {
+        LinkedList<String> returnTypes = new LinkedList<>();
+        for (VariableDescriptor parameter : this.parameters) {
+            returnTypes.add(parameter.getType());
+        }
+        return returnTypes;
+    }
 }

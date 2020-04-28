@@ -87,4 +87,13 @@ public class MethodDescriptor extends Descriptor {
     public HashMap<String, VariableDescriptor> getParameters() {
         return this.parameters;
     }
+
+    public LinkedList<String> getStringParameters() {
+        LinkedList<VariableDescriptor> parameterTypes = new LinkedList<VariableDescriptor>(this.parameters.values());
+        LinkedList<String> returnTypes = new LinkedList<>();
+        for (VariableDescriptor parameter : parameterTypes) {
+            returnTypes.add(parameter.getType());
+        }
+        return returnTypes;
+    }
 }
