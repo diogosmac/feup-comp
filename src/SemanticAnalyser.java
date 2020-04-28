@@ -58,7 +58,9 @@ public class SemanticAnalyser implements ParserVisitor {
             parameterList = (LinkedList<String>) node.jjtGetChild(1).jjtAccept(this, data);
         }
 
-        // lookup method
+        // lookup method with methodIdentifier and parameterList
+        // visit RegularMethod children with MethodDescriptor
+        // for method specific symbol table lookups
         try {
             MethodDescriptor method = this.table.lookupMethod(methodIdentifier, parameterList);
             return node.childrenAccept(this, method);
