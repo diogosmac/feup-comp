@@ -20,7 +20,7 @@ public class SymbolTable {
      */
     private HashMap<String, LinkedList<MethodDescriptor>> methodDescriptors;
     /**
-     * identifier -> <  >
+     * identifier -> < isMethod, isStatic, return data type, list of params >
      */
     private HashMap<String, LinkedList<ImportDescriptor>> importDescriptors;
 
@@ -28,6 +28,73 @@ public class SymbolTable {
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
         this.importDescriptors = new HashMap<>();
+    }
+
+    public VariableDescriptor lookupVariable(String variableIdentifier) throws SemanticErrorException {
+        if (!this.variableDescriptors.containsKey(variableIdentifier))
+            throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
+        else
+            return this.variableDescriptors.get(variableIdentifier);
+    }
+
+    public VariableDescriptor lookupMethodVariable(String variableIdentifier, String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
+        // get wanted method descriptor
+        MethodDescriptor method = this.lookupMethod(methodIdentifier, parameterTypes);
+        try {
+            // lookup variable on that method
+            return method.lookupVariable(variableIdentifier);
+        } catch (SemanticErrorException ignored) {
+            // if not found lookup variable on class
+            return this.lookupVariable(variableIdentifier);
+        }
+    }
+
+    public MethodDescriptor lookupMethod(String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
+        // build error message
+        StringBuilder message = new StringBuilder(methodIdentifier + "(");
+        for (String parameterType : parameterTypes) {
+            message.append(parameterType).append(", ");
+        }
+        message.append(")");
+        // if method name does not exist throw error
+        if (!this.methodDescriptors.containsKey(methodIdentifier))
+            throw new SemanticErrorException("Method '" + message + "' not defined");
+        // methodIdentifier exists, now we must check for parameter types
+        // find method in possible method descriptors
+        LinkedList<MethodDescriptor> possibleMethods = this.methodDescriptors.get(methodIdentifier);
+        for (MethodDescriptor possibleMethod : possibleMethods) {
+            // get List of parameter types
+            LinkedList<String> possibleParameterTypes = new LinkedList<String>(possibleMethod.getParameters().values());
+            if (possibleParameterTypes.equals(parameterTypes))
+                return possibleMethod;
+        }
+        // if method parameter types do not match any of the declared
+        // then the method is not defined
+        throw new SemanticErrorException("Method '" + message + "' not defined");
+    }
+
+    public ImportDescriptor lookupImport(String importIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
+        // build error message
+        StringBuilder message = new StringBuilder(importIdentifier + "(");
+        for (String parameterType : parameterTypes) {
+            message.append(parameterType).append(", ");
+        }
+        message.append(")");
+        // if method name does not exist throw error
+        if (!this.importDescriptors.containsKey(importIdentifier))
+            throw new SemanticErrorException("Method '" + message + "' not defined");
+        // methodIdentifier exists, now we must check for parameter types
+        // find method in possible method descriptors
+        LinkedList<ImportDescriptor> possibleImports = this.importDescriptors.get(importIdentifier);
+        for (ImportDescriptor possibleImport : possibleImports) {
+            // get List of parameter types
+            LinkedList<String> possibleParameterTypes = possibleImport.getParameters();
+            if (possibleParameterTypes.equals(parameterTypes))
+                return possibleImport;
+        }
+        // if method parameter types do not match any of the declared
+        // then the method is not defined
+        throw new SemanticErrorException("Method '" + message + "' not defined");
     }
 
     public void addVariable(String identifier, String dataType) throws SemanticErrorException {

@@ -24,6 +24,13 @@ public class MethodDescriptor extends Descriptor {
         this.variableDescriptors = new HashMap<>();
     }
 
+    public VariableDescriptor lookupVariable(String variableIdentifier) throws SemanticErrorException {
+        if (!this.variableDescriptors.containsKey(variableIdentifier))
+            throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
+        else
+            return this.variableDescriptors.get(variableIdentifier);
+    }
+
     public void addParameter(String identifier, String dataType) throws SemanticErrorException {
         if (!this.parameters.containsKey(identifier))
             this.parameters.put(identifier, dataType);
