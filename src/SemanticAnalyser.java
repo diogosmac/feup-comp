@@ -48,7 +48,7 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTRegularMethod node, Object data) {
-        // get method  id node children
+        // get method id node children
         String methodIdentifier = (String) node.jjtGetValue();
         // get method parameters
         // method parameters is always second child
@@ -57,7 +57,6 @@ public class SemanticAnalyser implements ParserVisitor {
         if (node.jjtGetChild(1) instanceof ASTMethodParams) {
             parameterList = (LinkedList<String>) node.jjtGetChild(1).jjtAccept(this, data);
         }
-
         // lookup method with methodIdentifier and parameterList
         // visit RegularMethod children with MethodDescriptor
         // for method specific symbol table lookups
@@ -97,11 +96,27 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTMainMethod node, Object data) {
+        // special case of MainMethod: main(String[] <parameter_name>);
+        // get method id node children
+        String methodIdentifier = "main";
+        // get method parameters
+        LinkedList<String> parameterList = new LinkedList<>();
+        parameterList.add("String[]");
+        // lookup method with methodIdentifier and parameterList
+        // visit RegularMethod children with MethodDescriptor
+        // for method specific symbol table lookups
+        try {
+            MethodDescriptor method = this.table.lookupMethod(methodIdentifier, parameterList);
+            return node.childrenAccept(this, method);
+        } catch (SemanticErrorException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public Object visit(ASTMainParams node, Object data) {
+        // not necessary since argument is always of type 'String[]'
         return null;
     }
 
@@ -112,12 +127,32 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTReturnType node, Object data) {
-        return null;
+        return node.jjtGetValue();
     }
 
     @Override
-    public Object visit(ASTAssignment node, Object data) {
-        return null;
+    public Object visit(ASTStatement node, Object data) {
+        // L[$allowedNameI] = MathUtils.random(0, 10) + 1;
+        // Results in:
+        // Statement: id L[] =
+        //   id: $allowedNameI
+        //   AssignStatement
+        //     id: MathUtils
+        //       sum
+        //         CallMethod: random
+        //           Integer: 0
+        //           Integer: 10
+        //         Integer: 1
+
+        // Array
+        if (node.array) {
+
+        }
+        // Assign
+        if (node.assign) {
+
+        }
+        return node.childrenAccept(this, data);
     }
 
     @Override
