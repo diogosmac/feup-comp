@@ -7,6 +7,9 @@ class ASTImport extends SimpleNode {
   public boolean isMethod = false;
   public String methodId;
 
+  public int methodLine;
+  public int methodColumn;
+
   public ASTImport(int id) {
     super(id);
   }

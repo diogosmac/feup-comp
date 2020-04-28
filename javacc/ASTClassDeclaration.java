@@ -5,6 +5,9 @@ class ASTClassDeclaration extends SimpleNode {
   public String classId;
   public String extId;
 
+  public int extLine;
+  public int extColumn;
+
   public ASTClassDeclaration(int id) {
     super(id);
   }
