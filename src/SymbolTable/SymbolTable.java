@@ -30,7 +30,7 @@ public class SymbolTable {
         this.importDescriptors = new HashMap<>();
     }
 
-    private VariableDescriptor lookupAttribute(String variableIdentifier) throws SemanticErrorException {
+    public VariableDescriptor lookupAttribute(String variableIdentifier) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(variableIdentifier))
             throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
         else
