@@ -30,6 +30,4 @@ class ASTAssignStatement extends SimpleNode {
     return "statement";
   }
 }
-
-}
 /* JavaCC - OriginalChecksum=9d9f1a0a449037b7428e259f93835c4f (do not edit this line) */

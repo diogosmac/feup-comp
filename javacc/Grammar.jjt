@@ -166,11 +166,11 @@ SimpleNode Program(): {}
 
 
 void ImportDeclaration() : {} {
-    ( SingleImport() )*
+    ( Import() )*
     { jjtThis.value = "importDeclaration"; }
 }
 
-void SingleImport() : { Token t, tMethod; } {
+void Import() : { Token t, tMethod; } {
 
     <IMPORT>
     [ <STATIC> { jjtThis.isStatic = true; } ]
@@ -252,7 +252,7 @@ void Return() : {} {
     { jjtThis.value = "return"; }
 }
 
-void MethodParams() #void : {} { MethodParam() ( <COMMA> MethodParam() )* }
+void MethodParams() : {} { MethodParam() ( <COMMA> MethodParam() )* }
 
 void MethodParam() : { Token id; } {
     Type() id=<IDENTIFIER> {
@@ -311,35 +311,29 @@ void Statement() #void: {} {
     MultiStatementBlock()               |
     IfElseBlock()                       |
     WhileBlock()                        |
-    AssignStatement()                   |
-    ObjectCall()                        |
+    (
+        LOOKAHEAD(2) AssignStatement()      |
+        ObjectCall()
+    )                                   |
     StatementExpression()
 }
 
 void AssignStatement() : { Token t; } {
-
     Identifier()
     [ ArrayExp() { jjtThis.array = true; } ]
     ( <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #assign(2) )+
     <SEMI_COLON>
-
 }
 
-void ObjectCall() : {} {
-    ObjectCall() |
-    Identifier() ObjectSpecific()
+void ObjectCall() #void : {} {
+    ChainCall() <SEMI_COLON>
 }
 
-void ChainedCall() #void: {} {
-    ( Identifier() | ObjectCall() )
+void ChainCall() #void : {} {
+    Identifier() ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )+
+    |
     ObjectSpecific()
 }
-
-
-void Example() #void: {} {
-    <IDENTIFIER> ( <SUM> <IDENTIFIER> #sum(2) )+
-}
-
 
 void Identifier() : { Token t; } {
      t=<IDENTIFIER> {
@@ -445,11 +439,6 @@ void ArrayExp() #void: {} {
 
 void ObjectSpecific() #void: {} {
     <DOT> ( GetLength() | CallMethod() )
-//    <DOT> (
-//        ObjectSpecific()    |
-//        GetLength()         |
-//        CallMethod()
-//    )
 }
 
 void GetLength() : {} { <LENGTH> {jjtThis.value = "getLen";} }
