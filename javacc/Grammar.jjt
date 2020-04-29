@@ -166,11 +166,11 @@ SimpleNode Program(): {}
 
 
 void ImportDeclaration() : {} {
-    ( Import() )*
+    ( SingleImport() )*
     { jjtThis.value = "importDeclaration"; }
 }
 
-void Import() : { Token t, tMethod; } {
+void SingleImport() : { Token t, tMethod; } {
 
     <IMPORT>
     [ <STATIC> { jjtThis.isStatic = true; } ]
@@ -218,7 +218,8 @@ void ClassDeclaration() : { Token id, ext; } {
         ( VarDeclaration() )*
         ( MethodDeclaration() )*
     <CLOSE_BLOCK>
-    {jjtThis.value = "classDeclaration";}
+    { jjtThis.value = "classDeclaration"; }
+
 }
 
 
@@ -248,7 +249,7 @@ void RegularMethod() : { Token t; } {
 
 void Return() : {} {
     <RETURN> Expression() <SEMI_COLON>
-    {jjtThis.value = "return";}
+    { jjtThis.value = "return"; }
 }
 
 void MethodParams() #void : {} { MethodParam() ( <COMMA> MethodParam() )* }
@@ -279,8 +280,8 @@ void MainParams() : { Token id; } {
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
-void Type() : { Token id; }
-{
+void Type() : { Token id; } {
+
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]        |
     <BOOLEAN> { jjtThis.type = "boolean"; }                             |
@@ -289,9 +290,11 @@ void Type() : { Token id; }
         jjtThis.line = id.beginLine;
         jjtThis.column = id.beginColumn;
     }
+
 }
 
 void ReturnType() : { Token id; } {
+
     <INT> { jjtThis.type = "int"; }
         [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]        |
     <BOOLEAN> { jjtThis.type = "boolean"; }                             |
@@ -301,31 +304,49 @@ void ReturnType() : { Token id; } {
         jjtThis.line = id.beginLine;
         jjtThis.column = id.beginColumn;
     }
+
 }
 
-void Statement() : { Token t; } {
+void Statement() #void: {} {
+    MultiStatementBlock()               |
+    IfElseBlock()                       |
+    WhileBlock()                        |
+    AssignStatement()                   |
+    ObjectCall()                        |
+    StatementExpression()
+}
 
-    MultiStatementBlock() { jjtThis.type = "block"; }                   |
-    IfElseBlock() { jjtThis.type = "if"; }                              |
-    WhileBlock() { jjtThis.type = "while"; }                            |
-    t = <IDENTIFIER> {
-        jjtThis.id = t.image;
-        jjtThis.type = "id";
+void AssignStatement() : { Token t; } {
+
+    Identifier()
+    [ ArrayExp() { jjtThis.array = true; } ]
+    ( <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #assign(2) )+
+    <SEMI_COLON>
+
+}
+
+void ObjectCall() : {} {
+    ObjectCall() |
+    Identifier() ObjectSpecific()
+}
+
+void ChainedCall() #void: {} {
+    ( Identifier() | ObjectCall() )
+    ObjectSpecific()
+}
+
+
+void Example() #void: {} {
+    <IDENTIFIER> ( <SUM> <IDENTIFIER> #sum(2) )+
+}
+
+
+void Identifier() : { Token t; } {
+     t=<IDENTIFIER> {
+        jjtThis.value = t.image;
         jjtThis.line = t.beginLine;
         jjtThis.column = t.beginColumn;
-    } (
-        ArrayExp() { jjtThis.array = true; }
-        [ AssignStatement() { jjtThis.assign = true; } ]        |
-        AssignStatement() { jjtThis.assign = true; }            |
-        ObjectSpecific()
-    ) <SEMI_COLON>                                                      |
-    StatementExpression() <SEMI_COLON> { jjtThis.type = "statExp"; }
-
-}
-
-void AssignStatement() : {} {
-    <ASSIGNMENT> Expression()
-    {jjtThis.value = "assignment";}
+     }
 }
 
 void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
@@ -338,7 +359,8 @@ void IfElseBlock() : {} {
         reportError(e, "Error parsing If-Else block");
     }
 
-    {jjtThis.value = "if_else";}
+    { jjtThis.value = "if_else"; }
+
 }
 void WhileBlock() : {}
 {
@@ -365,15 +387,10 @@ void WhileBlock() : {}
     }
     Statement()
 
-    {jjtThis.value = "while";}
+    { jjtThis.value = "while"; }
+
 }
 
-/*
-void Assignment() #Statement: { jjtThis.assign = true; } { <ASSIGNMENT> Expression() <SEMI_COLON> }
-void ArrayAssignment() #Statement: { jjtThis.array = true; jjtThis.assign = true; } {
-    <OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON>
-}
-*/
 
 void Expression() #void: {} {
     And()
@@ -406,16 +423,12 @@ void Div() #void: {} {
 void LowerExpression() #void: { Token t; } {
     (
         SimpleExp() |
-        t=<IDENTIFIER> {
-            jjtThis.value = t.image;
-            jjtThis.line = t.beginLine;
-            jjtThis.column = t.beginColumn;
-        } #id
+        Identifier()
     ) ComplexExp()
 }
 
 void StatementExpression() #void: {} {
-    SimpleExp() ComplexExp()
+    SimpleExp() ComplexExp() <SEMI_COLON>
 }
 
 void ComplexExp() #void: {} {
@@ -432,6 +445,11 @@ void ArrayExp() #void: {} {
 
 void ObjectSpecific() #void: {} {
     <DOT> ( GetLength() | CallMethod() )
+//    <DOT> (
+//        ObjectSpecific()    |
+//        GetLength()         |
+//        CallMethod()
+//    )
 }
 
 void GetLength() : {} { <LENGTH> {jjtThis.value = "getLen";} }
@@ -456,6 +474,7 @@ void CallMethod() : { Token id; } {
         // throw error so 'while' can report it
         throw(e);
     }
+
 }
 
 void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
