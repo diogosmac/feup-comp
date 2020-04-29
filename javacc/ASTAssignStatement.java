@@ -21,8 +21,7 @@ class ASTAssignStatement extends SimpleNode {
   }
 
   public String toString() {
-    return "Assignment";
-//    return "Assignment" + type + ((id != null) ? (" " + id) : "") + (array ? "[]" : "") + (assign ? " =" : "");
+    return "Assignment " + (array ? "[]" : "");
   }
 
   @Override

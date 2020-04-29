@@ -330,16 +330,20 @@ void ObjectCall() #void : {} {
 }
 
 void ChainCall() #void : {} {
-    Identifier() ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )+
+    (
+        <THIS> { jjtThis.value = "this"; } #_this |
+        Identifier()
+    )
+    ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )+
     |
     ObjectSpecific()
 }
 
 void Identifier() : { Token t; } {
      t=<IDENTIFIER> {
-        jjtThis.value = t.image;
-        jjtThis.line = t.beginLine;
-        jjtThis.column = t.beginColumn;
+         jjtThis.value = t.image;
+         jjtThis.line = t.beginLine;
+         jjtThis.column = t.beginColumn;
      }
 }
 
@@ -356,8 +360,7 @@ void IfElseBlock() : {} {
     { jjtThis.value = "if_else"; }
 
 }
-void WhileBlock() : {}
-{
+void WhileBlock() : {} {
     <WHILE>
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
@@ -380,9 +383,7 @@ void WhileBlock() : {}
         } while (t.kind != CLOSE_PAR);
     }
     Statement()
-
     { jjtThis.value = "while"; }
-
 }
 
 
@@ -418,15 +419,19 @@ void LowerExpression() #void: { Token t; } {
     (
         SimpleExp() |
         Identifier()
-    ) ComplexExp()
+    ) ComplexExpression()
 }
 
 void StatementExpression() #void: {} {
-    SimpleExp() ComplexExp() <SEMI_COLON>
+    (
+        SimpleExp() ComplexExpression()  |
+        ChainCall()
+    )
+    <SEMI_COLON>
 }
 
-void ComplexExp() #void: {} {
-    [ LOOKAHEAD(2) ExpLink() ComplexExp() ]
+void ComplexExpression() #void : {} {
+    ( LOOKAHEAD(2) ExpLink() )*
 }
 
 void ExpLink() #void: {} {
