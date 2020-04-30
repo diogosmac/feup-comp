@@ -131,46 +131,12 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTStatement node, Object data) {
-        // L[$allowedNameI] = MathUtils.random(0, 10) + 1;
-        // Results in:
-        // Statement: id L[] =
-        //   id: $allowedNameI
-        //   AssignStatement
-        //     id: MathUtils
-        //       sum
-        //         CallMethod: random
-        //           Integer: 0
-        //           Integer: 10
-        //         Integer: 1
-
-        // Array
-        if (node.array) {
-
-        }
-
-        // $allowedNameI = $allowedNameI + 1;
-        // Results in:
-        // Statement: id $allowedNameI =
-        //   AssignStatement
-        //     sum
-        //       id: $allowedNameI
-        //       Integer: 1
-
-        // Assign
-        if (node.assign) {
-
-        }
-        return node.childrenAccept(this, data);
-    }
-
-    @Override
-    public Object visit(ASTObjectCall node, Object data) {
+    public Object visit(ASTAssignment node, Object data) {
         return null;
     }
 
     @Override
-    public Object visit(ASTIdentifier node, Object data) {
+    public Object visit(ASTObjectCall node, Object data) {
         return null;
     }
 
@@ -293,7 +259,7 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTid node, Object data) {
+    public Object visit(ASTIdentifier node, Object data) {
         // get method descriptor
         MethodDescriptor method = (MethodDescriptor) data;
         // get variable id
