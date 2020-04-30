@@ -79,12 +79,7 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTAssignStatement node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTassign node, Object data) {
+    public Object visit(ASTAssignment node, Object data) {
         return null;
     }
 

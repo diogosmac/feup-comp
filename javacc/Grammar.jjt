@@ -317,10 +317,11 @@ void Statement() #void: {} {
     )
 }
 
-void AssignStatement() : { Token t; } {
-    Identifier()
-    [ ArrayExp() { jjtThis.array = true; } ]
-    ( <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #assign(2) )+
+void AssignStatement() #void: { Token t; } {
+    Identifier() (
+        <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #Assignment(2)  |
+        ArrayExp() <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.array = true; } #Assignment(3)
+    )+
     <SEMI_COLON>
 }
 
