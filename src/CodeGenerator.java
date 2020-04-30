@@ -254,6 +254,7 @@ public class CodeGenerator implements ParserVisitor{
         return null;
     }
 
+    /* TODO: SORRY LEO
     @Override
     public Object visit(ASTStatement node, Object data) {
         return node.childrenAccept(this, data);
@@ -291,7 +292,9 @@ public class CodeGenerator implements ParserVisitor{
 
         return null;
     }
+    */
 
+    /* TODO: SORRY LEO
     @Override
     public Object visit(ASTAssignStatement node, Object data) {
         //Preform children operations
@@ -309,10 +312,10 @@ public class CodeGenerator implements ParserVisitor{
         }
         else { //Probably a field
             //TODO deal with a field or invalid variable
-        }*/
+        }
 
         return null;
-    }
+    }*/
 
     @Override
     public Object visit(ASTProgram node, Object data) {
@@ -335,6 +338,11 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+    public Object visit(ASTMethodParams node, Object data) {
+        return null;
+    }
+
+    @Override
     public Object visit(ASTMethodParam node, Object data) {
         return null;
     }
@@ -351,6 +359,11 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTReturnType node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTAssignment node, Object data) {
         return null;
     }
 
@@ -395,12 +408,17 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
-    public Object visit(ASTid node, Object data) {
+    public Object visit(ASTIdentifier node, Object data) {
         return null;
     }
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTCallMethod node, Object data) {
         return null;
     }
 
@@ -416,6 +434,11 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(AST_this node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTObjectCall node, Object data) {
         return null;
     }
 
