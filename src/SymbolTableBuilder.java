@@ -132,6 +132,11 @@ public class SymbolTableBuilder implements ParserVisitor {
     }
 
     @Override
+    public Object visit(ASTMethodParams node, Object data) {
+        return null;
+    }
+
+    @Override
     public Object visit(ASTMethodParam node, Object data) {
         // get method name from data
         String methodIdentifier = (String) data;
@@ -183,12 +188,17 @@ public class SymbolTableBuilder implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTStatement node, Object data) {
+    public Object visit(ASTAssignment node, Object data) {
         return null;
     }
 
     @Override
-    public Object visit(ASTAssignStatement node, Object data) {
+    public Object visit(ASTObjectCall node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTIdentifier node, Object data) {
         return null;
     }
 
@@ -229,11 +239,6 @@ public class SymbolTableBuilder implements ParserVisitor {
 
     @Override
     public Object visit(ASTdiv node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTid node, Object data) {
         return null;
     }
 
