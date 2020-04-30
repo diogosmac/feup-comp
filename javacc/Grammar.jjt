@@ -313,9 +313,8 @@ void Statement() #void: {} {
     WhileBlock()                        |
     (
         LOOKAHEAD(2) AssignStatement()      |
-        ObjectCall()
-    )                                   |
-    StatementExpression()
+        StatementExpression()
+    )
 }
 
 void AssignStatement() : { Token t; } {
@@ -325,16 +324,14 @@ void AssignStatement() : { Token t; } {
     <SEMI_COLON>
 }
 
-void ObjectCall() #void : {} {
-    ChainCall() <SEMI_COLON>
-}
-
 void ChainCall() #void : {} {
     (
         <THIS> { jjtThis.value = "this"; } #_this |
         Identifier()
     )
     ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )+
+    |
+    CreateObject() ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )*
     |
     ObjectSpecific()
 }
@@ -416,6 +413,8 @@ void Div() #void: {} {
 }
 
 void LowerExpression() #void: { Token t; } {
+    LOOKAHEAD(2) ChainCall()
+    |
     (
         SimpleExp() |
         Identifier()
@@ -423,19 +422,11 @@ void LowerExpression() #void: { Token t; } {
 }
 
 void StatementExpression() #void: {} {
-    (
-        SimpleExp() ComplexExpression()  |
-        ChainCall()
-    )
-    <SEMI_COLON>
+    Expression() <SEMI_COLON>
 }
 
 void ComplexExpression() #void : {} {
-    ( LOOKAHEAD(2) ExpLink() )*
-}
-
-void ExpLink() #void: {} {
-    ArrayExp() | ObjectSpecific()
+    ( LOOKAHEAD(2) ArrayExp() )*
 }
 
 void ArrayExp() #void: {} {
@@ -454,7 +445,7 @@ void CallMethod() : { Token id; } {
         jjtThis.column = id.beginColumn;
     }
     try {
-        <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
+        [ <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR> ]
     } catch (ParseException e) {
         reportError(e, "Error calling method for object");
         // clean parenthesis
@@ -483,8 +474,6 @@ void SimpleExp() #void: { Token t; }
     } #integer                                          |
     <TRUE> { jjtThis.value = true; } #bool              |
     <FALSE> { jjtThis.value = false; } #bool            |
-    <THIS> { jjtThis.value = "this"; } #_this           |
-    CreateObject()                                      |
     <NOT> Expression() { jjtThis.value = "not"; } #not  |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
