@@ -472,10 +472,10 @@ void SimpleExp() #void: { Token t; }
         jjtThis.value = t.image;
         jjtThis.line = t.beginLine;
         jjtThis.column = t.beginColumn;
-    } #integer                                          |
-    <TRUE> { jjtThis.value = true; } #bool              |
-    <FALSE> { jjtThis.value = false; } #bool            |
-    <NOT> Expression() { jjtThis.value = "not"; } #not  |
+    } #integer                                              |
+    <TRUE> { jjtThis.value = true; } #bool                  |
+    <FALSE> { jjtThis.value = false; } #bool                |
+    <NOT> Expression() { jjtThis.value = "not"; } #not(1)   |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch (ParseException e) {
