@@ -176,7 +176,7 @@ public class SemanticAnalyser implements ParserVisitor {
             if (methodIdentifier.equals("getLen"))
                 return "int";
             else
-                this.printError("'int[]' has no method " + methodIdentifier, node.line, node.column);
+                this.printError("'int[]' has no method " + methodIdentifier, identifier.line, identifier.column);
             return null;
         }
         // lookup 'objectType.methodName'
@@ -194,7 +194,7 @@ public class SemanticAnalyser implements ParserVisitor {
                 MethodDescriptor descriptor = this.table.lookupMethod(methodIdentifier, parameterList);
                 return descriptor.getType();
             } catch (SemanticErrorException e) {
-                printError(e.getMessage(), node.line, node.column);
+                printError(e.getMessage(), callMethod.line, callMethod.column);
             }
         }
         // 2. objectType = imported class name
@@ -203,7 +203,7 @@ public class SemanticAnalyser implements ParserVisitor {
                 ImportDescriptor descriptor = this.table.lookupImport(objectType + "." + methodIdentifier, parameterList);
                 return descriptor.getType();
             } catch (SemanticErrorException e) {
-                printError(e.getMessage(), node.line, node.column);
+                printError(e.getMessage(), callMethod.line, callMethod.column);
             }
         }
         return null;
@@ -319,9 +319,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("int"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '/' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '/' is not of 'integer' type", leftChild.line,leftChild.column);
         else if(!rightChildType.equals("int"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '/' is not of 'integer' type", node.line, node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '/' is not of 'integer' type", rightChild.line, rightChild.column);
 
         // '/' operator returns an int
         return "int";
