@@ -172,7 +172,6 @@ public class SemanticAnalyser implements ParserVisitor {
         objectType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // int[] case
         if (objectType.equals("int[]")) {
-            System.out.println("AAAAAAAAAAAAAAAAAA");
             if (methodIdentifier.equals("getLen"))
                 return "int";
             else
@@ -211,11 +210,25 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
+
+        String expressionType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+
+        //verify data type
+        if(!expressionType.equals("boolean"))
+            printError("Conditional expression is not of 'boolean' type", node.line, node.column);
+
         return null;
     }
 
     @Override
     public Object visit(ASTWhileBlock node, Object data) {
+
+        String expressionType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+
+        //verify data type
+        if(!expressionType.equals("boolean"))
+            printError("Conditional expression is not of 'boolean' type", node.line, node.column);
+
         return null;
     }
 
@@ -246,9 +259,9 @@ public class SemanticAnalyser implements ParserVisitor {
         String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
 
         // verify data type
-        if (!leftChildType.equals("boolean"))
+        if (!leftChildType.equals("int"))
             printError("Operand " + leftChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
-        else if(!rightChildType.equals("boolean"))
+        else if(!rightChildType.equals("int"))
             printError("Operand " + rightChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
 
         // '<' operator returns a boolean
