@@ -317,7 +317,8 @@ void Statement() #void: {} {
     )
 }
 
-void AssignStatement() #void: { Token t; } {
+void AssignStatement() #void : { } {
+
     Identifier() (
         <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #Assignment(2)  |
         ArrayExp() <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.array = true; } #Assignment(3)
