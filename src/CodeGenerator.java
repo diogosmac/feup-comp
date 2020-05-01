@@ -254,6 +254,10 @@ public class CodeGenerator implements ParserVisitor{
         return null;
     }
 
+<<<<<<< HEAD
+=======
+    /* TODO: SORRY LEO
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     @Override
     public Object visit(ASTStatement node, Object data) {
         return node.childrenAccept(this, data);
@@ -291,7 +295,13 @@ public class CodeGenerator implements ParserVisitor{
 
         return null;
     }
+<<<<<<< HEAD
 
+=======
+    */
+
+    /* TODO: SORRY LEO
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     @Override
     public Object visit(ASTAssignStatement node, Object data) {
         //Preform children operations
@@ -309,10 +319,17 @@ public class CodeGenerator implements ParserVisitor{
         }
         else { //Probably a field
             //TODO deal with a field or invalid variable
+<<<<<<< HEAD
         }*/
 
         return null;
     }
+=======
+        }
+
+        return null;
+    }*/
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
 
     @Override
     public Object visit(ASTProgram node, Object data) {
@@ -335,6 +352,14 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public Object visit(ASTMethodParams node, Object data) {
+        return null;
+    }
+
+    @Override
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     public Object visit(ASTMethodParam node, Object data) {
         return null;
     }
@@ -355,6 +380,14 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public Object visit(ASTAssignment node, Object data) {
+        return null;
+    }
+
+    @Override
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     public Object visit(ASTIfElseBlock node, Object data) {
         return null;
     }
@@ -395,7 +428,11 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+<<<<<<< HEAD
     public Object visit(ASTid node, Object data) {
+=======
+    public Object visit(ASTIdentifier node, Object data) {
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
         return null;
     }
 
@@ -405,6 +442,14 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public Object visit(ASTCallMethod node, Object data) {
+        return null;
+    }
+
+    @Override
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     public Object visit(ASTinteger node, Object data) {
         return null;
     }
@@ -420,6 +465,14 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public Object visit(ASTObjectCall node, Object data) {
+        return null;
+    }
+
+    @Override
+>>>>>>> bf79fd411bfb194374f3494f1514412853b678fa
     public Object visit(ASTnot node, Object data) {
         return null;
     }

@@ -49,6 +49,11 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
+    public Object visit(ASTMethodParams node, Object data) {
+        return null;
+    }
+
+    @Override
     public Object visit(ASTMethodParam node, Object data) {
         return null;
     }
@@ -74,12 +79,17 @@ public class SemanticAnalyser implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTStatement node, Object data) {
+    public Object visit(ASTAssignment node, Object data) {
         return null;
     }
 
     @Override
-    public Object visit(ASTAssignStatement node, Object data) {
+    public Object visit(ASTObjectCall node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTIdentifier node, Object data) {
         return null;
     }
 
@@ -199,12 +209,6 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // '/' operator returns an int
         return "integer";
-    }
-
-    @Override
-    public Object visit(ASTid node, Object data) {
-        // lookup identifier in the symbol table
-        return null;
     }
 
     @Override
