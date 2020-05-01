@@ -152,28 +152,58 @@ public class SemanticAnalyser implements ParserVisitor {
     public Object visit(ASTObjectCall node, Object data) {
         // an object call has two child nodes
         // first child is the object (caller)
-        String objectType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        SimpleNode identifier = (SimpleNode) node.jjtGetChild(0);
+        String objectType = (String) identifier.jjtGetValue();
         // second child is the method (callee)
-        ASTCallMethod callMethod = (ASTCallMethod) node.jjtGetChild(1);
+        SimpleNode callMethod = (SimpleNode) node.jjtGetChild(1);
         String methodIdentifier = (String) callMethod.jjtGetValue();
         LinkedList<String> parameterList = (LinkedList<String>) callMethod.jjtAccept(this, data);
+
+        // special import case
+        // lookup 'objectType.methodName' static import
+        try {
+            String importIdentifier = objectType + "." + methodIdentifier;
+            ImportDescriptor descriptor = this.table.lookupImport(importIdentifier, parameterList);
+            if (descriptor.isStatic())
+                return descriptor.getType();
+        } catch (SemanticErrorException ignored) { }
+
+        // normal case
+        objectType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        // int[] case
+        if (objectType.equals("int[]")) {
+            System.out.println("AAAAAAAAAAAAAAAAAA");
+            if (methodIdentifier.equals("getLen"))
+                return "int";
+            else
+                this.printError("'int[]' has no method " + methodIdentifier, node.line, node.column);
+            return null;
+        }
         // lookup 'objectType.methodName'
-        //      1. objectType = class name
+        // 1. objectType = class name
         if (objectType.contains(this.table.getClassName())) {
+            // extended class method call
+            if (!this.table.getExtendedClassName().equals(""))
+                try {
+                    String importIdentifier = this.table.getExtendedClassName() + "." + methodIdentifier;
+                    ImportDescriptor descriptor = this.table.lookupImport(importIdentifier, parameterList);
+                    return descriptor.getType();
+                } catch (SemanticErrorException ignored) { }
+            // this class method call
             try {
                 MethodDescriptor descriptor = this.table.lookupMethod(methodIdentifier, parameterList);
                 return descriptor.getType();
             } catch (SemanticErrorException e) {
-                printError(e.getMessage(), callMethod.line, callMethod.column);
+                printError(e.getMessage(), node.line, node.column);
             }
         }
-        //      2. objectType = imported class name
+        // 2. objectType = imported class name
         else {
             try {
-                ImportDescriptor descriptor = this.table.lookupImport(objectType + "." + callMethod, parameterList);
+                ImportDescriptor descriptor = this.table.lookupImport(objectType + "." + methodIdentifier, parameterList);
                 return descriptor.getType();
             } catch (SemanticErrorException e) {
-                printError(e.getMessage(), callMethod.line, callMethod.column);
+                printError(e.getMessage(), node.line, node.column);
             }
         }
         return null;
@@ -234,13 +264,13 @@ public class SemanticAnalyser implements ParserVisitor {
         String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
 
         // verify data type
-        if (!leftChildType.equals("integer"))
+        if (!leftChildType.equals("int"))
             printError("Operand " + leftChild.jjtGetValue() + " of '+' is not of 'integer' type", node.line,node.column);
-        else if(!rightChildType.equals("integer"))
+        else if(!rightChildType.equals("int"))
             printError("Operand " + rightChild.jjtGetValue() + " of '+' is not of 'integer' type", node.line,node.column);
 
         // '+' operator returns an int
-        return "integer";
+        return "int";
     }
 
     @Override
@@ -252,13 +282,13 @@ public class SemanticAnalyser implements ParserVisitor {
         String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
 
         // verify data type
-        if (!leftChildType.equals("integer"))
+        if (!leftChildType.equals("int"))
             printError("Operand " + leftChild.jjtGetValue() + " of '-' is not of 'integer' type", node.line,node.column);
-        else if(!rightChildType.equals("integer"))
+        else if(!rightChildType.equals("int"))
             printError("Operand " + rightChild.jjtGetValue() + " of '-' is not of 'integer' type", node.line,node.column);
 
         // '-' operator returns an int
-        return "integer";
+        return "int";
     }
 
     @Override
@@ -270,13 +300,13 @@ public class SemanticAnalyser implements ParserVisitor {
         String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
 
         // verify data type
-        if (!leftChildType.equals("integer"))
+        if (!leftChildType.equals("int"))
             printError("Operand " + leftChild.jjtGetValue() + " of '*' is not of 'integer' type", node.line,node.column);
-        else if(!rightChildType.equals("integer"))
+        else if(!rightChildType.equals("int"))
             printError("Operand " + rightChild.jjtGetValue() + " of '*' is not of 'integer' type", node.line,node.column);
 
         // '*' operator returns an int
-        return "integer";
+        return "int";
     }
 
     @Override
@@ -288,13 +318,13 @@ public class SemanticAnalyser implements ParserVisitor {
         String rightChildType = (String) node.jjtGetChild(1).jjtAccept(this, data);
 
         // verify data type
-        if (!leftChildType.equals("integer"))
+        if (!leftChildType.equals("int"))
             printError("Operand " + leftChild.jjtGetValue() + " of '/' is not of 'integer' type", node.line,node.column);
-        else if(!rightChildType.equals("integer"))
+        else if(!rightChildType.equals("int"))
             printError("Operand " + rightChild.jjtGetValue() + " of '/' is not of 'integer' type", node.line, node.column);
 
         // '/' operator returns an int
-        return "integer";
+        return "int";
     }
 
     @Override
@@ -308,8 +338,7 @@ public class SemanticAnalyser implements ParserVisitor {
         try {
             descriptor = method.lookupVariable(variableIdentifier);
             return descriptor.getType();
-        } catch (SemanticErrorException ignored) {
-        }
+        } catch (SemanticErrorException ignored) { }
         // lookup variable in class
         try {
             descriptor = table.lookupAttribute(variableIdentifier);
@@ -323,22 +352,21 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
-        return "int";
+        return new LinkedList<String>();
     }
 
     @Override
     public Object visit(ASTCallMethod node, Object data) {
-        // get method id
-        String methodIdentifier = (String) node.jjtGetValue();
         // get argument node children
         Node[] children = node.jjtGetChildren();
         // get method call arguments list
         // for each child node get type
         LinkedList<String> parameterList = new LinkedList<>();
-        for (Node child : children) {
-            String parameterType = (String) child.jjtAccept(this, data);
-            parameterList.add(parameterType);
-        }
+        if (children != null)
+            for (Node child : children) {
+                String parameterType = (String) child.jjtAccept(this, data);
+                parameterList.add(parameterType);
+            }
         return parameterList;
     }
 
@@ -354,7 +382,7 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(AST_this node, Object data) {
-        return null;
+        return node.jjtGetValue();
     }
 
     @Override
@@ -372,6 +400,6 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(AST_new node, Object data) {
-        return null;
+        return node.jjtGetValue();
     }
 }

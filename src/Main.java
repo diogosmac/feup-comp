@@ -25,7 +25,6 @@ public class Main {
 		// analyse
 		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
 		semanticAnalyser.visit(root, null);
-
 	}
 
 	public static void test(SimpleNode node) {

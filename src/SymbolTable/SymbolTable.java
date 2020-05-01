@@ -12,6 +12,7 @@ import java.util.Map;
 public class SymbolTable {
 
     private String className;
+    private String extendedClassName;
     /**
      * identifier -> < data type >
      */
@@ -27,6 +28,7 @@ public class SymbolTable {
 
     public SymbolTable() {
         this.className = "";
+        this.extendedClassName = "";
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
         this.importDescriptors = new HashMap<>();
@@ -171,13 +173,24 @@ public class SymbolTable {
         return className;
     }
 
+    public String getExtendedClassName() {
+        return extendedClassName;
+    }
+
     public void setClassName(String className) {
         this.className = className;
     }
 
+    public void setExtendedClassName(String extendedClassName) {
+        this.extendedClassName = extendedClassName;
+    }
+
     public void dump() {
         // Class name
-        System.out.println("Class Name: " + this.className + "\n");
+        StringBuilder buffer = new StringBuilder("Class Name: " + this.className + "\n");
+        if (!this.extendedClassName.equals(""))
+            buffer.append("Extended Class Name: ").append(this.extendedClassName).append("\n");
+        System.out.println(buffer);
 
         // Import Descriptors
         System.out.println("Import Descriptors");

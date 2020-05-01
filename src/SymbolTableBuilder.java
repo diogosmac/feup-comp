@@ -76,6 +76,9 @@ public class SymbolTableBuilder implements ParserVisitor {
         // get class name
         String className = (String) node.jjtGetValue();
         this.table.setClassName(className);
+        // get extended class name
+        if (node.extId != null)
+            this.table.setExtendedClassName(node.extId);
         // visit children (method declarations)
         return node.childrenAccept(this, data);
     }
