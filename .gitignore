@@ -31,4 +31,5 @@ gradlew
 bin/
 .settings
 *.idea
+out/
 

@@ -1,6 +1,6 @@
 import Exceptions.SemanticErrorException;
-import SymbolTable.ImportDescriptor;
 import SymbolTable.MethodDescriptor;
+import SymbolTable.ImportDescriptor;
 import SymbolTable.SymbolTable;
 import SymbolTable.VariableDescriptor;
 
@@ -30,6 +30,20 @@ public class CodeGenerator implements ParserVisitor{
 
     public void generateCode() {
         this.visit(this.root, null);
+    }
+
+    private boolean addVariable(String variableId, String variableType) {
+        if (!this.variableMap.containsKey(variableId)) {
+            ArrayList<String> paramInfo = new ArrayList<>();
+            paramInfo.add(String.valueOf(this.currentVariableIndex));
+            paramInfo.add(variableType);
+            this.variableMap.put(variableId,paramInfo);
+
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     private void writeInstruction(String instruction) {
@@ -83,7 +97,8 @@ public class CodeGenerator implements ParserVisitor{
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             SimpleNode child = (SimpleNode) node.jjtGetChild(i);
 
-            if (child instanceof ASTinteger)  {
+            if (child instanceof ASTinteger || child instanceof ASTsum || child instanceof ASTsub ||
+                    child instanceof ASTmult || child instanceof ASTdiv)  {
                 //The child is an int literal
                 args.push("int");
             }
@@ -100,16 +115,33 @@ public class CodeGenerator implements ParserVisitor{
                         args.push(variable.getType());
                     }
                     catch (SemanticErrorException e2) {
-                        try {
-                            //look for the child in the class methods
-                            MethodDescriptor variable = symbolTable.lookupMethod((String) child.jjtGetValue(),fetchMethodArgs(child,methodDescriptor));
-                            args.push(variable.getType());
+                        //test for object call instance
+                        if (child instanceof ASTObjectCall) {
+                            SimpleNode identifier = (SimpleNode) child.jjtGetChild(0);
+                            SimpleNode childMethod = (SimpleNode) child.jjtGetChild(1);
+
+                            try {
+                                //look for the child method in the class methods
+                                MethodDescriptor variable = symbolTable.lookupMethod((String) childMethod.jjtGetValue(),fetchMethodArgs(childMethod,methodDescriptor));
+                                args.push(variable.getType());
+                            }
+                            catch (SemanticErrorException e3) {
+                                try {
+                                    //look for the child method in the imports
+                                    ImportDescriptor variable = symbolTable.lookupImport((String) childMethod.jjtGetValue(),fetchMethodArgs(childMethod,methodDescriptor));
+                                    args.push(variable.getType());
+                                }
+                                catch (SemanticErrorException e4) {
+                                    e4.printStackTrace();
+                                    System.out.println("Could not find " + child.jjtGetValue());
+                                    e3.printStackTrace();
+                                    //System.exit(1);
+                                }
+                            }
                         }
-                        catch (SemanticErrorException e3) {
-                            //Error
-                            System.out.println("wtffff");
-                            e3.printStackTrace();
-                            System.exit(1);
+                        else {
+                            //todo remove this
+                            System.out.println("WTFFFFFF");
                         }
                     }
                 }
@@ -160,7 +192,7 @@ public class CodeGenerator implements ParserVisitor{
 
         //Write extending class
         if (node.extId != null) {
-            //Write extendig class
+            //TODO Write extendig class
         }
         else {
             writeInstruction(".super java/lang/Object");
@@ -207,9 +239,18 @@ public class CodeGenerator implements ParserVisitor{
         for (int i = 1; i < node.jjtGetNumChildren(); i++) {
             SimpleNode child = (SimpleNode) node.jjtGetChild(i);
 
-            if (child instanceof ASTMethodParam) {
-                ASTType param = (ASTType) child.jjtGetChild(0);
-                args.push((String) param.jjtGetValue());
+            if (child instanceof ASTMethodParams) {
+                for (int j = 0; j < child.jjtGetNumChildren(); j++) {
+                    ASTMethodParam param = (ASTMethodParam) child.jjtGetChild(j);
+                    ASTType paramType = (ASTType) param.jjtGetChild(0);
+
+                    //push the param type to the args array
+                    args.push((String) paramType.jjtGetValue());
+
+                    //Add the parameter to the variable index table
+                    this.addVariable((String) param.jjtGetValue(),(String) paramType.jjtGetValue());
+                }
+
                 continue;
             }
 
@@ -235,16 +276,86 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+    public Object visit(ASTObjectCall node, Object data) {
+        MethodDescriptor belongingMethodDescriptor = (MethodDescriptor) data;
+
+        if (node.jjtGetChild(0) instanceof AST_this) {
+            //We have a mandatory method call
+            //Get method name and arguments
+            ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
+            LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
+
+            try {
+                MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
+
+                //todo write invoke instruction
+            } catch (SemanticErrorException e) {
+                //Error
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        else if (node.jjtGetChild(0) instanceof AST_new) {
+            //We have a mandatory method call
+
+            //todo get class name and compare
+            //if its equal to the class name then we have a class method call
+            //else we have an import
+            //In the case the import lookup goes wrong -> error
+        }
+        else if (node.jjtGetChild(1) instanceof  ASTGetLength) {
+            //todo deal with this
+        }
+        else {
+            //Look for the identifier
+            String identifier = (String) ((ASTIdentifier) node.jjtGetChild(0)).jjtGetValue();
+            ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
+
+            LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
+
+
+            try {
+                //Test if the Id is a method variable
+                belongingMethodDescriptor.lookupVariable(identifier);
+
+                //todo get invoking method descriptor
+
+                //writeInstruction("invokevirtual " + );
+
+                //todo invoke
+            }
+            catch (SemanticErrorException e1) {
+                try {
+                    //Test if the id is a class field
+                    symbolTable.lookupAttribute(identifier);
+                    //todo invoke
+                }
+                catch (SemanticErrorException e2) {
+                    try {
+                        ImportDescriptor descriptor = symbolTable.lookupImport(identifier + "." + method.jjtGetValue(),args);
+
+                        if (descriptor.getStatic()) {
+                            writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "()" + convertType(descriptor.getType()));
+                        }
+                    }
+                    catch (SemanticErrorException e3) {
+                        System.err.println("Invalid identifier " + identifier);
+                        e3.printStackTrace();
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public Object visit(ASTVarDeclaration node, Object data) {
         if (node.jjtGetParent() instanceof ASTRegularMethod || node.jjtGetParent() instanceof ASTMainMethod){
-            ///Alocate the variable in the variable map
-            /*ArrayList<String> info = new ArrayList<>();
-            info.add(String.valueOf(this.currentVariableIndex));
+            //Alocate the variable in the variable map
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
-            info.add((String) child.jjtGetValue());
-
-            this.variableMap.put((String) node.jjtGetValue(),info);
-            this.currentVariableIndex++;*/
+            this.addVariable((String) node.jjtGetValue(),(String) child.jjtGetValue());
         }
         else {
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
@@ -254,45 +365,79 @@ public class CodeGenerator implements ParserVisitor{
         return null;
     }
 
-    /* TODO: SORRY LEO
     @Override
-    public Object visit(ASTStatement node, Object data) {
-        return node.childrenAccept(this, data);
+    public Object visit(ASTAssignment node, Object data) {
+        //preform children operations (do not visit the identifier
+        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+            node.jjtGetChild(i).jjtAccept(this,data);
+        }
+
+        //Get the variable identifier
+        String identifier = (String) ((SimpleNode) node.jjtGetChild(0)).jjtGetValue();
+
+        //Get variable identifier info
+        ArrayList<String> variableInfo = this.variableMap.get(identifier);
+
+        if (variableInfo != null) {
+            int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+            String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
+
+            //assign the variable assuming the value to be assingned is on top of the stack
+            writeInstruction(type +  "store_" + index);
+        }
+        else {
+            //todo check in the class fields
+        }
+
+
+        return null;
     }
 
     @Override
-    public Object visit(ASTCallMethod node, Object data) {
-        MethodDescriptor methodDescriptor = (MethodDescriptor) data;
+    public Object visit(ASTIdentifier node, Object data) {
+        //Check if the identifier exists
+        String id = (String) node.jjtGetValue();
+        if (this.variableMap.containsKey(id)) {
+            //get the identifier information
+            ArrayList<String> variableInfo = this.variableMap.get(id);
+            int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+            String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
 
-        LinkedList<String> args = fetchMethodArgs(node,methodDescriptor);
-
-        //try a class method
-        try {
-            MethodDescriptor descriptor = symbolTable.lookupMethod((String) node.jjtGetValue(), args);
-
-            //TODO write the instruction
+            writeInstruction(type + "load_" + index);
         }
-        catch (SemanticErrorException semanticErrorException) {
-            //Invalid call, might be an import method
-            ASTStatement parent = (ASTStatement) node.jjtGetParent();
-
-            try {
-                ImportDescriptor descriptor = symbolTable.lookupImport(parent.id + "." + node.jjtGetValue(),args);
-
-                if (descriptor.getStatic()) {
-                    writeInstruction("invokestatic " + data + "/" + node.jjtGetValue() + "()" + convertType(descriptor.getType()));
-                }
-
-            }
-            catch (SemanticErrorException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+        else {
+            //Check fields
+            System.err.println("Unknown identifier " + id);
         }
 
         return null;
     }
-    */
+
+    @Override
+    public Object visit(ASTinteger node, Object data) {
+        writeInstruction("bipush " + node.jjtGetValue());
+
+        return null;
+    }
+
+    @Override
+    public Object visit(AST_new node, Object data) {
+        writeInstruction("new " + node.jjtGetValue());
+
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTsum node, Object data) {
+        //Accept children
+        node.childrenAccept(this,data);
+
+        writeInstruction("iadd");
+
+        return null;
+    }
+
+
 
     /* TODO: SORRY LEO
     @Override
@@ -363,11 +508,6 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
-    public Object visit(ASTAssignment node, Object data) {
-        return null;
-    }
-
-    @Override
     public Object visit(ASTIfElseBlock node, Object data) {
         return null;
     }
@@ -388,11 +528,6 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
-    public Object visit(ASTsum node, Object data) {
-        return null;
-    }
-
-    @Override
     public Object visit(ASTsub node, Object data) {
         return null;
     }
@@ -408,22 +543,12 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
-    public Object visit(ASTIdentifier node, Object data) {
-        return null;
-    }
-
-    @Override
     public Object visit(ASTGetLength node, Object data) {
         return null;
     }
 
     @Override
     public Object visit(ASTCallMethod node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTinteger node, Object data) {
         return null;
     }
 
@@ -438,17 +563,7 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
-    public Object visit(ASTObjectCall node, Object data) {
-        return null;
-    }
-
-    @Override
     public Object visit(ASTnot node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(AST_new node, Object data) {
         return null;
     }
 }
