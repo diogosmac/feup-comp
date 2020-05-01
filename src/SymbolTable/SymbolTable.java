@@ -11,6 +11,7 @@ import java.util.Map;
  */
 public class SymbolTable {
 
+    private String className;
     /**
      * identifier -> < data type >
      */
@@ -25,6 +26,7 @@ public class SymbolTable {
     private HashMap<String, LinkedList<ImportDescriptor>> importDescriptors;
 
     public SymbolTable() {
+        this.className = "";
         this.methodDescriptors = new HashMap<>();
         this.variableDescriptors = new HashMap<>();
         this.importDescriptors = new HashMap<>();
@@ -35,19 +37,6 @@ public class SymbolTable {
             throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
         else
             return this.variableDescriptors.get(variableIdentifier);
-    }
-
-    // TODO DELETE THIS WHEN EVERYTHING IS WORKING
-    public VariableDescriptor lookupVariable(String variableIdentifier, String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
-        // get wanted method descriptor
-        MethodDescriptor method = this.lookupMethod(methodIdentifier, parameterTypes);
-        try {
-            // lookup variable on that method
-            return method.lookupVariable(variableIdentifier);
-        } catch (SemanticErrorException ignored) {
-            // if not found lookup variable on class
-            return this.lookupAttribute(variableIdentifier);
-        }
     }
 
     public MethodDescriptor lookupMethod(String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
@@ -178,7 +167,18 @@ public class SymbolTable {
         }
     }
 
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
     public void dump() {
+        // Class name
+        System.out.println("Class Name: " + this.className + "\n");
+
         // Import Descriptors
         System.out.println("Import Descriptors");
         for (Map.Entry<String, LinkedList<ImportDescriptor>> entry : this.importDescriptors.entrySet()) {

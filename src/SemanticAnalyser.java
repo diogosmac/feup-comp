@@ -1,5 +1,7 @@
 import Exceptions.SemanticErrorException;
 import SymbolTable.MethodDescriptor;
+import SymbolTable.VariableDescriptor;
+import SymbolTable.ImportDescriptor;
 import SymbolTable.SymbolTable;
 
 import java.util.LinkedList;
@@ -132,11 +134,48 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTAssignment node, Object data) {
+        // An Assignment has two child nodes
+        // first child is the assignee (left side)
+        String assigneeType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        // second child is the assigner (right side)
+        String assignerType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+        // check for past semantic errors
+        if (assigneeType == null || assignerType == null)
+            return null;
+        // check if types are the same
+        if (!assigneeType.equals(assignerType))
+            this.printError("Assignment of different types '" + assigneeType + "' and '" + assignerType + "'", node.line, node.column);
         return null;
     }
 
     @Override
     public Object visit(ASTObjectCall node, Object data) {
+        // an object call has two child nodes
+        // first child is the object (caller)
+        String objectType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        // second child is the method (callee)
+        ASTCallMethod callMethod = (ASTCallMethod) node.jjtGetChild(1);
+        String methodIdentifier = (String) callMethod.jjtGetValue();
+        LinkedList<String> parameterList = (LinkedList<String>) callMethod.jjtAccept(this, data);
+        // lookup 'objectType.methodName'
+        //      1. objectType = class name
+        if (objectType.contains(this.table.getClassName())) {
+            try {
+                MethodDescriptor descriptor = this.table.lookupMethod(methodIdentifier, parameterList);
+                return descriptor.getType();
+            } catch (SemanticErrorException e) {
+                printError(e.getMessage(), callMethod.line, callMethod.column);
+            }
+        }
+        //      2. objectType = imported class name
+        else {
+            try {
+                ImportDescriptor descriptor = this.table.lookupImport(objectType + "." + callMethod, parameterList);
+                return descriptor.getType();
+            } catch (SemanticErrorException e) {
+                printError(e.getMessage(), callMethod.line, callMethod.column);
+            }
+        }
         return null;
     }
 
@@ -180,7 +219,7 @@ public class SemanticAnalyser implements ParserVisitor {
         if (!leftChildType.equals("boolean"))
             printError("Operand " + leftChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
         else if(!rightChildType.equals("boolean"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
 
         // '<' operator returns a boolean
         return "boolean";
@@ -265,13 +304,16 @@ public class SemanticAnalyser implements ParserVisitor {
         // get variable id
         String variableIdentifier = (String) node.jjtGetValue();
         // lookup variable in method
+        VariableDescriptor descriptor;
         try {
-            return method.lookupVariable(variableIdentifier);
+            descriptor = method.lookupVariable(variableIdentifier);
+            return descriptor.getType();
         } catch (SemanticErrorException ignored) {
         }
         // lookup variable in class
         try {
-            return table.lookupAttribute(variableIdentifier);
+            descriptor = table.lookupAttribute(variableIdentifier);
+            return descriptor.getType();
         } catch (SemanticErrorException e) {
             this.printError(e.getMessage(), node.line, node.column);
         }
@@ -288,11 +330,16 @@ public class SemanticAnalyser implements ParserVisitor {
     public Object visit(ASTCallMethod node, Object data) {
         // get method id
         String methodIdentifier = (String) node.jjtGetValue();
+        // get argument node children
+        Node[] children = node.jjtGetChildren();
         // get method call arguments list
-
-        // lookup identifier in the symbol table
-        // this.table.lookupMethod(methodIdentifier, );
-        return null;
+        // for each child node get type
+        LinkedList<String> parameterList = new LinkedList<>();
+        for (Node child : children) {
+            String parameterType = (String) child.jjtAccept(this, data);
+            parameterList.add(parameterType);
+        }
+        return parameterList;
     }
 
     @Override
