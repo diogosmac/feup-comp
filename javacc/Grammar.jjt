@@ -385,57 +385,61 @@ void WhileBlock() : {} {
     { jjtThis.value = "while"; }
 }
 
-
-void Expression() #void: { } {
-    And()
-}
-
-void And() #void: { Token t; } {
-    LT() ( LOOKAHEAD(2) t=<AND> LT() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #and(2) )*
-}
-
-void LT() #void: { Token t; } {
-    Sum() ( LOOKAHEAD(2) t=<LT> Sum() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #lt(2) )*
-}
-
-void Sum() #void: { Token t; } {
-    Sub() ( LOOKAHEAD(2) t=<SUM> Sub() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sum(2) )*
-}
-
-void Sub() #void: { Token t; } {
-    Mult() ( LOOKAHEAD(2) t=<SUB> Mult() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sub(2) )*
-}
-
-void Mult() #void: { Token t; } {
-    Div() ( LOOKAHEAD(2) t=<MULT> Div() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #mult(2) )*
-}
-
-void Div() #void: { Token t; } {
-    LowerExpression() ( LOOKAHEAD(2) t=<DIV> LowerExpression() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #div(2) )*
-}
-
-void LowerExpression() #void: { } {
-    LOOKAHEAD(2) ChainCall()
-    |
-    (
-        SimpleExp() |
-        Identifier()
-    ) ComplexExpression()
-}
-
-void StatementExpression() #void: {} {
+void StatementExpression() #void : { } {
     Expression() <SEMI_COLON>
 }
 
-void ComplexExpression() #void : {} {
+void Expression() #void : { } {
+    And()
+}
+
+void And() #void : { Token t; } {
+    LT() ( LOOKAHEAD(2) t=<AND> LT() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #and(2) )*
+}
+
+void LT() #void : { Token t; } {
+    Sum() ( LOOKAHEAD(2) t=<LT> Sum() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #lt(2) )*
+}
+
+void Sum() #void : { Token t; } {
+    Sub() ( LOOKAHEAD(2) t=<SUM> Sub() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sum(2) )*
+}
+
+void Sub() #void : { Token t; } {
+    Mult() ( LOOKAHEAD(2) t=<SUB> Mult() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sub(2) )*
+}
+
+void Mult() #void : { Token t; } {
+    Div() ( LOOKAHEAD(2) t=<MULT> Div() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #mult(2) )*
+}
+
+void Div() #void : { Token t; } {
+    LowerExpression() ( LOOKAHEAD(2) t=<DIV> LowerExpression() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #div(2) )*
+}
+
+void LowerExpression() #void : { } {
+    LOOKAHEAD(2) ChainCall()            |
+    SimpleExp()                         |
+    ArrayIdentifier()
+}
+
+void ArrayIdentifier() #Identifier : { Token t; } {
+    t=<IDENTIFIER> {
+         jjtThis.value = t.image;
+         jjtThis.line = t.beginLine;
+         jjtThis.column = t.beginColumn;
+    } ComplexExpression()
+}
+
+void ComplexExpression() #void : { } {
     ( LOOKAHEAD(2) ArrayExp() )*
 }
 
-void ArrayExp() #void: {} {
+void ArrayExp() #void : { } {
     <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
 }
 
-void ObjectSpecific() #void: { } {
+void ObjectSpecific() #void : { } {
     <DOT> ( GetLength() | CallMethod() )
 }
 
@@ -463,13 +467,11 @@ void CallMethod() : { Token t; } {
         // throw error so 'while' can report it
         throw(e);
     }
-
 }
 
-void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
+void MethodArgs() #void : {} { Expression() ( <COMMA> Expression() )* }
 
-
-void SimpleExp() #void: { Token t; }
+void SimpleExp() #void : { Token t; }
 {
     t=<INTEGER> {
         jjtThis.value = t.image;
@@ -495,9 +497,12 @@ void SimpleExp() #void: { Token t; }
         throw(e);
     }
 }
-void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
-void CreateArray() #_new: { Token t; jjtThis.value="int[]"; } { t=<INT> { jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreatePrimitive() #_new: { Token t; } {
+void CreateObject() #void : { } { <NEW> ( CreateArray() | CreatePrimitive() ) }
+void CreateArray() #_new : { Token t; jjtThis.value="int[]"; } {
+    t=<INT> { jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; }
+    <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
+}
+void CreatePrimitive() #_new : { Token t; } {
     t=<IDENTIFIER> {
         jjtThis.value = t.image;
         jjtThis.line = t.beginLine;
