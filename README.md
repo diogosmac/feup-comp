@@ -56,18 +56,18 @@ To test the program, run ``gradle test``. This will execute the build, and run t
 ## Type Verification
 
  - [X] **Unary/Binary Operation:** verificar se operações são efetuadas com o mesmo tipo (e.g. int + boolean tem de dar erro)
- - [ ] **Array Operations:** não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2)
+ - [X] **Array Operations:** não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2)
  - [ ] **Array Index:** verificar se um array access é de facto feito sobre um array
  - [ ] **Array Index:** verificar se o indice do array access é um inteiro
- - [ ] **Assignments Types:** verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
- - [ ] **Conditional Expression:** verificar se conditional expressions (if e while) resulta num booleano
- - [ ] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
+ - [X] **Assignments Types:** verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
+ - [X] **Conditional Expression:** verificar se conditional expressions (if e while) resulta num booleano
+ - [X] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
  
 ## Function Verification
- - [ ] **Target Verification** verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo'); caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
- - [ ] **Imported Methods:** caso o método não seja da classe declarada, isto é importada, verificar se método foi importado
- - [ ] **Parameter List:** verificar se o **número de argumentos** na invocação é igual ao número de parâmetros da declaração
- - [ ] **Parameter Type List:** verificar se o **tipo dos parâmetros** coincide com o tipo dos argumentos
+ - [X] **Target Verification** verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo'); caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
+ - [X] **Imported Methods:** caso o método não seja da classe declarada, isto é importada, verificar se método foi importado
+ - [X] **Parameter List:** verificar se o **número de argumentos** na invocação é igual ao número de parâmetros da declaração
+ - [X] **Parameter Type List:** verificar se o **tipo dos parâmetros** coincide com o tipo dos argumentos
 
 ## Code Generation
  - [ ] **Class Structure:** estrutura básica de classe (incluindo construtor <init>)

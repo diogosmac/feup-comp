@@ -242,9 +242,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("boolean"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '&&' is not of 'boolean' type", node.line, node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '&&' is not of 'boolean' type", leftChild.line, leftChild.column);
         else if(!rightChildType.equals("boolean"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '&&' is not of 'boolean' type", node.line, node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '&&' is not of 'boolean' type", rightChild.line, rightChild.column);
 
         // '&&' operator returns an int
         return "boolean";
@@ -260,9 +260,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("int"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '<' is not of 'integer' type", leftChild.line, leftChild.column);
         else if(!rightChildType.equals("int"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '<' is not of 'boolean' type", node.line, node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '<' is not of 'integer' type", rightChild.line, rightChild.column);
 
         // '<' operator returns a boolean
         return "boolean";
@@ -278,9 +278,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("int"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '+' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '+' is not of 'integer' type", leftChild.line,leftChild.column);
         else if(!rightChildType.equals("int"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '+' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '+' is not of 'integer' type", rightChild.line,rightChild.column);
 
         // '+' operator returns an int
         return "int";
@@ -296,9 +296,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("int"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '-' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '-' is not of 'integer' type", leftChild.line, leftChild.column);
         else if(!rightChildType.equals("int"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '-' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '-' is not of 'integer' type", rightChild.line, rightChild.column);
 
         // '-' operator returns an int
         return "int";
@@ -314,9 +314,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
         // verify data type
         if (!leftChildType.equals("int"))
-            printError("Operand " + leftChild.jjtGetValue() + " of '*' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + leftChild.jjtGetValue() + " of '*' is not of 'integer' type", leftChild.line, leftChild.column);
         else if(!rightChildType.equals("int"))
-            printError("Operand " + rightChild.jjtGetValue() + " of '*' is not of 'integer' type", node.line,node.column);
+            printError("Operand " + rightChild.jjtGetValue() + " of '*' is not of 'integer' type", rightChild.line, rightChild.column);
 
         // '*' operator returns an int
         return "int";
@@ -406,7 +406,7 @@ public class SemanticAnalyser implements ParserVisitor {
         String childType = (String) node.jjtGetChild(0).jjtAccept(this, data);
         // verify data type
         if (!childType.equals("boolean"))
-            printError("Operand " + child.jjtGetValue() + " of '!' is not of 'boolean' type", node.line, node.column );
+            printError("Operand " + child.jjtGetValue() + " of '!' is not of 'boolean' type", child.line, child.column );
         // '!' operator returns a boolean
         return "boolean";
     }
