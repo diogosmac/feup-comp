@@ -318,10 +318,17 @@ void Statement() #void: {} {
 }
 
 void AssignStatement() #void : { Token t; } {
-
     Identifier() (
-        t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(2)  |
-        ArrayExp() t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.array = true; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(3)
+        t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(2) |
+        ArrayExp()
+        {   // Pop Identifier and ComplexExpression Node from stack
+            Node complexExpression = jjtree.popNode();
+            Node identifier = jjtree.popNode();
+            // Make complex Expression child of identifier and push to stack
+            identifier.jjtAddChild(complexExpression, 0);
+            jjtree.pushNode(identifier);
+        }
+        t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(2)
     )+
     <SEMI_COLON>
 }
