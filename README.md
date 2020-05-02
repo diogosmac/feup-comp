@@ -57,11 +57,11 @@ To test the program, run ``gradle test``. This will execute the build, and run t
 
  - [X] **Unary/Binary Operation:** verificar se operações são efetuadas com o mesmo tipo (e.g. int + boolean tem de dar erro)
  - [X] **Array Operations:** não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2)
- - [ ] **Array Index:** verificar se um array access é de facto feito sobre um array
- - [ ] **Array Index:** verificar se o indice do array access é um inteiro
+ - [X] **Array Index:** verificar se um array access é de facto feito sobre um array
+ - [X] **Array Index:** verificar se o indice do array access é um inteiro
  - [X] **Assignments Types:** verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
  - [X] **Conditional Expression:** verificar se conditional expressions (if e while) resulta num booleano
- - [X] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
+ - [ ] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
  
 ## Function Verification
  - [X] **Target Verification** verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo'); caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
