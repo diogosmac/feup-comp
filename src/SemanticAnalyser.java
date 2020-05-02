@@ -8,14 +8,30 @@ import java.util.LinkedList;
 
 public class SemanticAnalyser implements ParserVisitor {
 
-    private SymbolTable table;
+    /**
+     * Maximum number of semantic errors accepted before terminating
+     * analysing due to too many errors
+     */
+    private static final int MAX_ERRORS = 10;
+
+    /**
+     * Current number os semantic errors while analysing
+     */
+    private static int numErrors = 0;
+
+    private final SymbolTable table;
 
     public SemanticAnalyser(SymbolTable table) {
         this.table = table;
     }
 
     private void printError(String message, int line, int column) {
+        numErrors++;
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
+        if (numErrors >= MAX_ERRORS) {
+            System.out.println("TOO MANY SEMANTIC ERRORS: Stopping Analysis");
+            System.exit(0);
+        }
     }
 
     @Override
@@ -348,19 +364,36 @@ public class SemanticAnalyser implements ParserVisitor {
         String variableIdentifier = (String) node.jjtGetValue();
         // lookup variable in method
         VariableDescriptor descriptor;
+        String variableType = null;
         try {
             descriptor = method.lookupVariable(variableIdentifier);
-            return descriptor.getType();
-        } catch (SemanticErrorException ignored) { }
-        // lookup variable in class
-        try {
-            descriptor = table.lookupAttribute(variableIdentifier);
-            return descriptor.getType();
-        } catch (SemanticErrorException e) {
-            this.printError(e.getMessage(), node.line, node.column);
+            variableType = descriptor.getType();
+        } catch (SemanticErrorException ignored) {
+            // lookup variable in class
+            try {
+                descriptor = table.lookupAttribute(variableIdentifier);
+                variableType = descriptor.getType();
+            } catch (SemanticErrorException e) {
+                this.printError(e.getMessage(), node.line, node.column);
+            }
         }
-        // Semantic error: return null
-        return null;
+        // if identifier node has a child then its an array access
+        if (node.jjtGetNumChildren() == 1) {
+            // check if identifier is of 'int[]' type
+            if (!variableType.equals("int[]")) {
+                this.printError("Variable '" + variableIdentifier + "' is not of array type", node.line, node.column);
+                return null;
+            }
+            String accessType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+            if (!accessType.equals("int")) {
+                this.printError("Invalid array access of type '" + accessType + "' must be of 'integer' value", node.line, node.column);
+                return null;
+            }
+            // return integer
+            return "int";
+        }
+        // return identifier type
+        return variableType;
     }
 
     @Override
