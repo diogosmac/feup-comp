@@ -38,6 +38,7 @@ public class CodeGenerator implements ParserVisitor{
             paramInfo.add(String.valueOf(this.currentVariableIndex));
             paramInfo.add(variableType);
             this.variableMap.put(variableId,paramInfo);
+            this.currentVariableIndex++;
 
             return true;
         }
@@ -84,6 +85,9 @@ public class CodeGenerator implements ParserVisitor{
         switch (type) {
             case "int":
                 return "i";
+
+            case "void":
+                return "";
 
             default:
                 return  "a";
@@ -190,14 +194,25 @@ public class CodeGenerator implements ParserVisitor{
         //write the class name and super class
         writeInstruction(".class public " +  node.classId);
 
+
         //Write extending class
-        if (node.extId != null) {
-            //TODO Write extendig class
-        }
-        else {
-            writeInstruction(".super java/lang/Object");
+        String extendingClassName = symbolTable.getExtendedClassName();
+
+        if (symbolTable.getExtendedClassName().isEmpty()) {
+            extendingClassName = "java/lang/Object";
         }
 
+        //write the superclass
+        writeInstruction(".super " + extendingClassName);
+
+        //Write the constructor
+        writeInstruction(".method public <init>()V");
+        writeInstruction("aload_0");
+        writeInstruction("invokespecial " + extendingClassName + "/<init>()V");
+        writeInstruction("return");
+        writeInstruction(".end method");
+
+        //Accept children
         return node.childrenAccept(this, null);
     }
 
@@ -208,6 +223,8 @@ public class CodeGenerator implements ParserVisitor{
 
         //write the main method
         writeInstruction(".method static public main([Ljava/lang/String;)V");
+        writeInstruction(".limit locals 100"); //Todo calculate actual locals
+        writeInstruction(".limit stack 100");
 
         //get main method descriptor
         LinkedList<String> args = new LinkedList<>();
@@ -261,7 +278,9 @@ public class CodeGenerator implements ParserVisitor{
             //Get method descriptor
             MethodDescriptor descriptor = symbolTable.lookupMethod((String) node.jjtGetValue(),args);
 
-            writeInstruction(".method " + node.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+            writeInstruction(".method public " + node.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+            writeInstruction(".limit locals 100"); //Todo calculate actual locals
+            writeInstruction(".limit stack 100");
 
             node.childrenAccept(this,descriptor);
 
@@ -319,8 +338,11 @@ public class CodeGenerator implements ParserVisitor{
                 belongingMethodDescriptor.lookupVariable(identifier);
 
                 //todo get invoking method descriptor
+                MethodDescriptor descriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
 
-                //writeInstruction("invokevirtual " + );
+                node.childrenAccept(this,data);
+
+                writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
 
                 //todo invoke
             }
@@ -334,8 +356,15 @@ public class CodeGenerator implements ParserVisitor{
                     try {
                         ImportDescriptor descriptor = symbolTable.lookupImport(identifier + "." + method.jjtGetValue(),args);
 
+                        //Accept children exept the identifier
+                        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+                            node.jjtGetChild(i).jjtAccept(this,data);
+                        }
+
+                        //Assume the parameters are in the stack
+
                         if (descriptor.getStatic()) {
-                            writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "()" + convertType(descriptor.getType()));
+                            writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                         }
                     }
                     catch (SemanticErrorException e3) {
@@ -346,6 +375,13 @@ public class CodeGenerator implements ParserVisitor{
                 }
             }
         }
+
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTCallMethod node, Object data) {
+        node.childrenAccept(this,data);
 
         return null;
     }
@@ -382,8 +418,13 @@ public class CodeGenerator implements ParserVisitor{
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
 
-            //assign the variable assuming the value to be assingned is on top of the stack
-            writeInstruction(type +  "store_" + index);
+            //assign the variable assuming the value to be assigned is on top of the stack
+            if (index > 3) {
+                writeInstruction(type + "store " + index);
+            }
+            else {
+                writeInstruction(type +  "store_" + index);
+            }
         }
         else {
             //todo check in the class fields
@@ -403,7 +444,12 @@ public class CodeGenerator implements ParserVisitor{
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
 
-            writeInstruction(type + "load_" + index);
+            if (index > 3) {
+                writeInstruction(type + "load " + index);
+            }
+            else {
+                writeInstruction(type + "load_" + index);
+            }
         }
         else {
             //Check fields
@@ -415,14 +461,23 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTinteger node, Object data) {
-        writeInstruction("bipush " + node.jjtGetValue());
+        int number = Integer.parseInt((String) node.jjtGetValue());
+
+        if (number > 200) {
+            writeInstruction("ldc_w " + number);
+        }
+        else {
+            writeInstruction("bipush " + number);
+        }
 
         return null;
     }
 
     @Override
     public Object visit(AST_new node, Object data) {
-        writeInstruction("new " + node.jjtGetValue());
+        writeInstruction("new " +  node.jjtGetValue());
+        writeInstruction("dup");
+        writeInstruction("invokespecial " +node.jjtGetValue()+"/<init>()V");
 
         return null;
     }
@@ -437,30 +492,34 @@ public class CodeGenerator implements ParserVisitor{
         return null;
     }
 
-
-
-    /* TODO: SORRY LEO
     @Override
-    public Object visit(ASTAssignStatement node, Object data) {
-        //Preform children operations
-        /*node.childrenAccept(this,data);
+    public Object visit(ASTReturn node, Object data) {
+        //visit the child
+        node.childrenAccept(this,data);
 
-        ArrayList<String> variableInfo = this.variableMap.get(data);
+        //get the type of the return
+        SimpleNode child = (SimpleNode) node.jjtGetChild(0);
 
-
-        if (variableInfo != null) {
-            int index = Integer.parseInt(variableInfo.get(0));
-            String type = convertInstructionType(variableInfo.get(1));
-
-            //Assume the value to be assigned is on top of the stack
-            writeInstruction(type + "store_" + index);
+        if (child instanceof ASTinteger) {
+            writeInstruction("ireturn");
         }
-        else { //Probably a field
-            //TODO deal with a field or invalid variable
+        else {
+            //only return variables for now
+            ArrayList<String> varInfo = this.variableMap.get(child.jjtGetValue());
+
+            String type = convertInstructionType(varInfo.get(1));
+
+            writeInstruction(type + "return");
         }
 
         return null;
-    }*/
+    }
+
+
+    @Override
+    public Object visit(ASTReturnType node, Object data) {
+        return null;
+    }
 
     @Override
     public Object visit(ASTProgram node, Object data) {
@@ -474,11 +533,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTImport node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTReturn node, Object data) {
         return null;
     }
 
@@ -499,11 +553,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTType node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTReturnType node, Object data) {
         return null;
     }
 
@@ -544,11 +593,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTCallMethod node, Object data) {
         return null;
     }
 

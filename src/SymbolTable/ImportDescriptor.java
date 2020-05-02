@@ -37,6 +37,10 @@ public class ImportDescriptor extends Descriptor{
         return isMethod;
     }
 
+    public boolean isStatic() {
+        return isStatic;
+    }
+
     public void checkEqualImport(LinkedList<VariableDescriptor> parameters, String returnType) throws SemanticErrorException {
         // check if both parameter lists are the same
         if (this.parameters.equals(parameters))
@@ -48,7 +52,7 @@ public class ImportDescriptor extends Descriptor{
 
     public String dump(String prefix) {
 
-        StringBuilder buf = new StringBuilder(prefix + "Descriptor " + "\n");
+        StringBuilder buf = new StringBuilder(prefix + "Descriptor " + (this.isStatic ? "static" : "") + "\n");
         if (this.isMethod) {
             // get return type
             buf.append(prefix).append("  Return type ").append(this.type).append("\n");

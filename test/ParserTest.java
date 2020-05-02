@@ -63,37 +63,30 @@ public class ParserTest {
     public void testFindMaximum() {
         test("fixtures/public/FindMaximum.jmm", false);
     }
-    todo uncomment
-     */
+
 
     @Test
     public void testHelloWorld() {
         test("fixtures/public/HelloWorld.jmm", false);
     }
 
-    /*
+
     @Test
     public void testLazysort() {
         test("fixtures/public/Lazysort.jmm", false);
     }
-    todo uncomment
-     */
 
-    /*
+
     @Test
     public void testLife() {
         test("fixtures/public/Life.jmm", false);
     }
-    todo uncomment
-     */
 
-    /*
+
     @Test
     public void testMonteCarloPi() {
         test("fixtures/public/MonteCarloPi.jmm", false);
     }
-    //todo uncomment
-     */
 
 
     @Test
@@ -101,18 +94,22 @@ public class ParserTest {
         test("fixtures/public/QuickSort.jmm", false);
     }
 
+     */
+
     @Test
     public void testSimple() {
         test("fixtures/public/Simple.jmm", false);
     }
+
 
     /*
     @Test
     public void testTicTacToe() {
         test("fixtures/public/TicTacToe.jmm", false);
     }
-    //todo uncomment
+
      */
+
 
     @Test
     public void testWhileAndIF() {

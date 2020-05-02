@@ -2,8 +2,6 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=true,TRACK_TOKENS=false,NODE_PREFIX=AST,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 public
 class AST_new extends SimpleNode {
-  public boolean isArray = false;
-  public String primId;
 
   public AST_new(int id) {
     super(id);
@@ -22,18 +20,8 @@ class AST_new extends SimpleNode {
   }
 
   public String toString() {
-    if (isArray) {
-      return "_new: new int[]";
-    }
-    else {
-      return "_new: new " + primId + "()";
-    }
+    return "_new: new " + super.value;
   }
 
-  //If it is an array returns the string "int[]"; Returns the name of the object otherwise
-  @Override
-  public Object jjtGetValue() {
-    return (isArray ? "int[]" : primId);
-  }
 }
 /* JavaCC - OriginalChecksum=3cdc40805964d5e372b41302babaa5a1 (do not edit this line) */

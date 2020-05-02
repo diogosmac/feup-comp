@@ -317,7 +317,8 @@ void Statement() #void: {} {
     )
 }
 
-void AssignStatement() #void: { Token t; } {
+void AssignStatement() #void : { } {
+
     Identifier() (
         <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; } #Assignment(2)  |
         ArrayExp() <ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.array = true; } #Assignment(3)
@@ -493,10 +494,10 @@ void SimpleExp() #void: { Token t; }
     }
 }
 void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
-void CreateArray() #_new: { jjtThis.isArray = true; } { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
+void CreateArray() #_new: { jjtThis.value="int[]"; } { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
 void CreatePrimitive() #_new: { Token t; } {
     t=<IDENTIFIER> {
-        jjtThis.primId = t.image;
+        jjtThis.value = t.image;
         jjtThis.line = t.beginLine;
         jjtThis.column = t.beginColumn;
     } <OPEN_PAR> <CLOSE_PAR>
