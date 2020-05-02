@@ -3,9 +3,9 @@ import SymbolTable.SymbolTable;
 
 public class SymbolTableBuilder implements ParserVisitor {
 
-    private SimpleNode root;
+    private final SimpleNode root;
 
-    private SymbolTable table;
+    private final SymbolTable table;
 
     public SymbolTableBuilder(SimpleNode root) {
         this.root = root;
@@ -73,6 +73,13 @@ public class SymbolTableBuilder implements ParserVisitor {
 
     @Override
     public Object visit(ASTClassDeclaration node, Object data) {
+        // get class name
+        String className = (String) node.jjtGetValue();
+        this.table.setClassName(className);
+        // get extended class name
+        if (node.extId != null)
+            this.table.setExtendedClassName(node.extId);
+        // visit children (method declarations)
         return node.childrenAccept(this, data);
     }
 
@@ -111,7 +118,7 @@ public class SymbolTableBuilder implements ParserVisitor {
         String methodIdentifier = (String) node.jjtGetValue();
         // get method type
         String methodType = (String) node.jjtGetChild(0).jjtAccept(this, data);
-        // put method to method descriptors
+        // put method in method descriptors
         this.table.addMethod(methodIdentifier, methodType);
         // get Method Parameters and Variable Declarations
         // send method name for editing MethodDescriptor
@@ -133,7 +140,7 @@ public class SymbolTableBuilder implements ParserVisitor {
 
     @Override
     public Object visit(ASTMethodParams node, Object data) {
-        return null;
+        return node.childrenAccept(this, data);
     }
 
     @Override

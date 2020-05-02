@@ -2,7 +2,6 @@
 /* JavaCCOptions:MULTI=true,NODE_USES_PARSER=false,VISITOR=true,TRACK_TOKENS=false,NODE_PREFIX=AST,NODE_EXTENDS=,NODE_FACTORY=,SUPPORT_CLASS_VISIBILITY_PUBLIC=true */
 public
 class ASTReturnType extends SimpleNode {
-  public String type;
   public boolean array = false;
 
   public ASTReturnType(int id) {
@@ -22,12 +21,12 @@ class ASTReturnType extends SimpleNode {
   }
 
   public String toString() {
-    return "Returns: " + type + (array ? "[]" : "");
+    return "Returns: " + super.value + (array ? "[]" : "");
   }
 
   @Override
   public Object jjtGetValue() {
-    return type + (array ? "[]" : "");
+    return super.value + (array ? "[]" : "");
   }
 
 }

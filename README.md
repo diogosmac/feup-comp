@@ -1,5 +1,7 @@
 # COMP - Project 1
 
+# Setup Instructions
+
 For this project, you need to [install Gradle](https://gradle.org/install/)
 
 ## Project setup
@@ -39,3 +41,38 @@ Where ``<jar filename>`` is the name of the JAR file that has been copied to the
 ## Test
 
 To test the program, run ``gradle test``. This will execute the build, and run the JUnit tests in the ``test`` folder. If you want to see output printed during the tests, use the flag ``-i`` (i.e., ``gradle test -i``).
+
+# Semantic Analysis Checklist
+
+## Symbol Table :heavy_check_mark:
+
+ - [X] **global:** inclui info de imports e a classe declarada
+ - [X] **classe-specific:** inclui info de extends, fields e methods
+ - [X] **method-specific:** inclui info dos arguments e local variables
+ - [X] **Method Overloading:** métodos com mesmo nome mas assinatura de parâmetros diferente
+ - [X] **Table Lookups:** tem de permitir consulta da tabela por parte da análise semantica (e geração de código)
+ - [ ] **Debug Mode:** tem de permitir ligar e desligar a sua impressão para fins de debug (neste caso para fins de avaliação)
+
+## Type Verification
+
+ - [X] **Unary/Binary Operation:** verificar se operações são efetuadas com o mesmo tipo (e.g. int + boolean tem de dar erro)
+ - [X] **Array Operations:** não é possível utilizar arrays diretamente para operações aritmeticas (e.g. array1 + array2)
+ - [X] **Array Index:** verificar se um array access é de facto feito sobre um array
+ - [X] **Array Index:** verificar se o indice do array access é um inteiro
+ - [X] **Assignments Types:** verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
+ - [X] **Conditional Expression:** verificar se conditional expressions (if e while) resulta num booleano
+ - [ ] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
+ 
+## Function Verification
+ - [X] **Target Verification** verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo'); caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
+ - [X] **Imported Methods:** caso o método não seja da classe declarada, isto é importada, verificar se método foi importado
+ - [X] **Parameter List:** verificar se o **número de argumentos** na invocação é igual ao número de parâmetros da declaração
+ - [X] **Parameter Type List:** verificar se o **tipo dos parâmetros** coincide com o tipo dos argumentos
+
+## Code Generation
+ - [ ] **Class Structure:** estrutura básica de classe (incluindo construtor <init>)
+ - [ ] **Field Structure:** estrutura básica de fields
+ - [ ] **Method Structure:** estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99)
+ - [ ] **assignments:**
+ - [ ] **Arithmetic Operations:** operações aritméticas (com prioridade de operações correta), neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final
+ - [ ] **Method Calls:** invocação de métodos
