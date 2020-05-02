@@ -4,9 +4,12 @@ public class Main {
 
 	public static void main(String[] args) throws ParseException {
 		// validate arguments
-		if (args.length != 1) {
-			System.err.println("Wrong number of arguments, expected: <file.jmm>");
+		if (args.length > 2) {
+			System.err.println("Wrong number of arguments, expected: <file.jmm> [ <debug> ]");
 		}
+		boolean debug = false;
+		if (args.length == 2)
+			debug = Boolean.parseBoolean(args[1]);
 
 		// ***** Syntactical Analysis
 		// get root of Syntax Tree
@@ -19,9 +22,10 @@ public class Main {
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
 		// dump table TODO: DELETE AFTER EVERYTHING IS OK :)
-		System.out.println("\n==== Dumping SymbolTable ====\n");
-		symbolTable.dump();
-
+		if (debug) {
+			System.out.println("\n==== Dumping SymbolTable ====\n");
+			symbolTable.dump();
+		}
 		// analyse
 		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
 		semanticAnalyser.visit(root, null);
