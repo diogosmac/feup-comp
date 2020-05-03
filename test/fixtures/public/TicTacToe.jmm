@@ -84,7 +84,7 @@ class TicTacToe {
       in =  false;
     else if (2 < row) 
       in =  false;
-    else if (2 < column[row])
+    else if (2 < column)
       in = false;
     else in = true;
     return in;
