@@ -311,7 +311,6 @@ public class CodeGenerator implements ParserVisitor{
             } catch (SemanticErrorException e) {
                 //Error
                 e.printStackTrace();
-                System.exit(1);
             }
         }
         else if (node.jjtGetChild(0) instanceof AST_new) {
@@ -370,7 +369,6 @@ public class CodeGenerator implements ParserVisitor{
                     catch (SemanticErrorException e3) {
                         System.err.println("Invalid identifier " + identifier);
                         e3.printStackTrace();
-                        System.exit(1);
                     }
                 }
             }
@@ -493,6 +491,36 @@ public class CodeGenerator implements ParserVisitor{
     }
 
     @Override
+    public Object visit(ASTsub node, Object data) {
+        //Accept children
+        node.childrenAccept(this,data);
+
+        writeInstruction("isub");
+
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTmult node, Object data) {
+        //Accept children
+        node.childrenAccept(this,data);
+
+        writeInstruction("imul");
+
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTdiv node, Object data) {
+        //Accept children
+        node.childrenAccept(this,data);
+
+        writeInstruction("idiv");
+
+        return null;
+    }
+
+    @Override
     public Object visit(ASTReturn node, Object data) {
         //visit the child
         node.childrenAccept(this,data);
@@ -507,9 +535,13 @@ public class CodeGenerator implements ParserVisitor{
             //only return variables for now
             ArrayList<String> varInfo = this.variableMap.get(child.jjtGetValue());
 
-            String type = convertInstructionType(varInfo.get(1));
+            if (varInfo != null) {
+                String type = convertInstructionType(varInfo.get(1));
 
-            writeInstruction(type + "return");
+                writeInstruction(type + "return");
+            }
+
+            //TODO generate other types of returns
         }
 
         return null;
@@ -573,21 +605,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTlt node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTsub node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTmult node, Object data) {
-        return null;
-    }
-
-    @Override
-    public Object visit(ASTdiv node, Object data) {
         return null;
     }
 

@@ -58,7 +58,6 @@ public class ParserTest {
      * --------------------------
      */
 
-    /*
     @Test
     public void testFindMaximum() {
         test("fixtures/public/FindMaximum.jmm", false);
@@ -93,8 +92,6 @@ public class ParserTest {
     public void testQuickSort() {
         test("fixtures/public/QuickSort.jmm", false);
     }
-
-     */
 
     @Test
     public void testSimple() {
