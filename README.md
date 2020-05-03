@@ -38,6 +38,20 @@ java -jar <jar filename> <arguments>
 
 Where ``<jar filename>`` is the name of the JAR file that has been copied to the root folder, and ``<arguments>`` are the arguments to be passed to ``main()``.
 
+#### Debug Mode
+
+In order run the program with the JAR file in Debug Mode and print the Symbol Table to the console, run the following command
+
+```cmd
+java -jar <jar filename> <path to jmm file> [ <debug> ]
+```
+
+That is:
+
+```cmd
+java -jar <jar filename> <path to jmm file> true
+```
+
 ## Test
 
 To test the program, run ``gradle test``. This will execute the build, and run the JUnit tests in the ``test`` folder. If you want to see output printed during the tests, use the flag ``-i`` (i.e., ``gradle test -i``).
@@ -51,7 +65,7 @@ To test the program, run ``gradle test``. This will execute the build, and run t
  - [X] **method-specific:** inclui info dos arguments e local variables
  - [X] **Method Overloading:** métodos com mesmo nome mas assinatura de parâmetros diferente
  - [X] **Table Lookups:** tem de permitir consulta da tabela por parte da análise semantica (e geração de código)
- - [ ] **Debug Mode:** tem de permitir ligar e desligar a sua impressão para fins de debug (neste caso para fins de avaliação)
+ - [X] **Debug Mode:** tem de permitir ligar e desligar a sua impressão para fins de debug (neste caso para fins de avaliação)
 
 ## Type Verification
 
@@ -61,7 +75,7 @@ To test the program, run ``gradle test``. This will execute the build, and run t
  - [X] **Array Index:** verificar se o indice do array access é um inteiro
  - [X] **Assignments Types:** verificar se valor do assignee é igual ao do assigned (a_int = b_boolean não é permitido!)
  - [X] **Conditional Expression:** verificar se conditional expressions (if e while) resulta num booleano
- - [ ] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
+ - [X] **Variable Initialization:** verificar se variáveis são inicializadas, dando um WARNING em vez de ERRO
  
 ## Function Verification
  - [X] **Target Verification** verificar se o "target" do método existe, e se este contém o método (e.g. a.foo, ver se 'a' existe e se tem um método 'foo'); caso seja do tipo da classe declarada (e.g. a usar o this), verificar se é método do extends olhando para o que foi importado (isto se a classe fizer extends de outra classe importada)
@@ -70,9 +84,9 @@ To test the program, run ``gradle test``. This will execute the build, and run t
  - [X] **Parameter Type List:** verificar se o **tipo dos parâmetros** coincide com o tipo dos argumentos
 
 ## Code Generation
- - [ ] **Class Structure:** estrutura básica de classe (incluindo construtor <init>)
- - [ ] **Field Structure:** estrutura básica de fields
- - [ ] **Method Structure:** estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99)
- - [ ] **assignments:**
- - [ ] **Arithmetic Operations:** operações aritméticas (com prioridade de operações correta), neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final
- - [ ] **Method Calls:** invocação de métodos
+ - [X] **Class Structure:** estrutura básica de classe (incluindo construtor <init>)
+ - [X] **Field Structure:** estrutura básica de fields
+ - [X] **Method Structure:** estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99)
+ - [X] **assignments:**
+ - [X] **Arithmetic Operations:** operações aritméticas (com prioridade de operações correta), neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final
+ - [X] **Method Calls:** invocação de métodos
