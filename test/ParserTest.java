@@ -1,9 +1,9 @@
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.File;
 import java.lang.reflect.Method;
 
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 public class ParserTest {
 
@@ -63,25 +63,30 @@ public class ParserTest {
         test("fixtures/public/FindMaximum.jmm", false);
     }
 
+
     @Test
     public void testHelloWorld() {
         test("fixtures/public/HelloWorld.jmm", false);
     }
+
 
     @Test
     public void testLazysort() {
         test("fixtures/public/Lazysort.jmm", false);
     }
 
+
     @Test
     public void testLife() {
         test("fixtures/public/Life.jmm", false);
     }
 
+
     @Test
     public void testMonteCarloPi() {
         test("fixtures/public/MonteCarloPi.jmm", false);
     }
+
 
     @Test
     public void testQuickSort() {
@@ -93,10 +98,15 @@ public class ParserTest {
         test("fixtures/public/Simple.jmm", false);
     }
 
+
+    /*
     @Test
     public void testTicTacToe() {
         test("fixtures/public/TicTacToe.jmm", false);
     }
+
+     */
+
 
     @Test
     public void testWhileAndIF() {
@@ -107,7 +117,7 @@ public class ParserTest {
      * Semantic Tests
      * --------------------------
      */
-    /*
+
     @Test
     public void testarr_index_not_int() {
         test("fixtures/public/fail/semantic/arr_index_not_int.jmm", true);
@@ -161,7 +171,7 @@ public class ParserTest {
     @Test
     public void testmiss_type() {
         test("fixtures/public/fail/semantic/extra/miss_type.jmm", true);
-    } */
+    }
 
     /** --------------------------
      * Syntactical Tests

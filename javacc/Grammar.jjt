@@ -1,7 +1,8 @@
 options
 {
-    LOOKAHEAD=1;
-    MULTI = true;
+    LOOKAHEAD=1;    // define global lookahead
+    MULTI = true;   // create AST classes
+    VISITOR = true; // add visitor pattern "support"
 }
 
 PARSER_BEGIN(Parser)
@@ -24,31 +25,19 @@ public class Parser
     * @param args
     * @throws ParseException
     */
-    public static void main(String[] args) throws ParseException {
+    public SimpleNode parse() throws ParseException {
         System.out.println("Parser for programs in the Java-- language");
 
-        Parser parser;
-        // open file as input stream
-        try {
-            numErrors = 0;
-            parser = new Parser(new java.io.FileInputStream(args[0]));
-        }
-        catch (java.io.FileNotFoundException e) {
-            System.out.println("ERROR: file " + args[0] + " not found.");
-            return;
-        }
+        numErrors = 0;
 
-        SimpleNode root;
-        // create Syntax Tree (returns reference to root node)
-        root = parser.Tree();
+        SimpleNode root = this.Program();
 
         // added
         if (numErrors != 0) {
             throw(new ParseException("Parsing has errors!"));
         }
 
-        // Print tree to console
-        root.dump("");
+		return root;
     }
 
     /**
@@ -164,30 +153,28 @@ TOKEN:
     < #DIGIT:       [ "0"-"9" ]                                         >
 }
 
-
-SimpleNode Tree() : {}
-{
-    Program(1) { return jjtThis; } // Java code inside brackets
-}
-
-
-void Program(int sign): {}
+SimpleNode Program(): {}
 {
     ImportDeclaration()
     ClassDeclaration()
     <EOF>
+    {
+        jjtThis.value = "program";
+        return jjtThis;
+    }
 }
 
 
 void ImportDeclaration() : {} {
     ( Import() )*
+    { jjtThis.value = "importDeclaration"; }
 }
 
 void Import() : { Token t, tMethod; } {
 
     <IMPORT>
     [ <STATIC> { jjtThis.isStatic = true; } ]
-    t=<IDENTIFIER> { jjtThis.importId = t.image; }
+    t=<IDENTIFIER> { jjtThis.importId = t.image; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; }
     [
         (
             <OPEN_PAR>
@@ -197,7 +184,11 @@ void Import() : { Token t, tMethod; } {
                 |
         (
             <DOT> { jjtThis.isMethod = true; }
-            tMethod=<IDENTIFIER> { jjtThis.methodId = tMethod.image; }
+            tMethod=<IDENTIFIER> {
+                jjtThis.methodId = tMethod.image;
+                jjtThis.methodLine = tMethod.beginLine;
+                jjtThis.methodColumn = tMethod.beginColumn;
+            }
             <OPEN_PAR>
                 [
                     Type() ( <COMMA> Type() )*      |
@@ -216,26 +207,40 @@ void ClassDeclaration() : { Token id, ext; } {
 
     <CLASS>
     // class name/identifier
-    id=<IDENTIFIER> { jjtThis.classId = id.image; }
+    id=<IDENTIFIER> { jjtThis.classId = id.image; jjtThis.line = id.beginLine; jjtThis.column = id.beginColumn; }
     // extended class name/identifier
-    [ <EXTENDS> ext=<IDENTIFIER> { jjtThis.extId = ext.image; } ]
+    [ <EXTENDS> ext=<IDENTIFIER> {
+        jjtThis.extId = ext.image;
+        jjtThis.extLine = ext.beginLine;
+        jjtThis.extColumn = ext.beginColumn;
+    } ]
     <OPEN_BLOCK>
         ( VarDeclaration() )*
         ( MethodDeclaration() )*
     <CLOSE_BLOCK>
+    { jjtThis.value = "classDeclaration"; }
 
 }
 
 
-void VarDeclaration() : { Token id; } {
-    Type() id=<IDENTIFIER> <SEMI_COLON> { jjtThis.id = id.image; }
+void VarDeclaration() : { Token t; } {
+    Type() t=<IDENTIFIER> <SEMI_COLON> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
 }
 
 
 void MethodDeclaration() #void: {} { <PUBLIC> ( RegularMethod() | MainMethod() ) }
 
 void RegularMethod() : { Token t; } {
-    Type() t=<IDENTIFIER> { jjtThis.methodId = t.image; } <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
+    Type() t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
+    <OPEN_PAR> [ MethodParams() ] <CLOSE_PAR>
     <OPEN_BLOCK>
         MethodBody()
         Return()
@@ -244,12 +249,17 @@ void RegularMethod() : { Token t; } {
 
 void Return() : {} {
     <RETURN> Expression() <SEMI_COLON>
+    { jjtThis.value = "return"; }
 }
 
 void MethodParams() : {} { MethodParam() ( <COMMA> MethodParam() )* }
 
-void MethodParam() : { Token id; } {
-    Type() id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+void MethodParam() : { Token t; } {
+    Type() t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
 }
 
 void MainMethod() : {} {
@@ -257,51 +267,94 @@ void MainMethod() : {} {
     <OPEN_BLOCK>
         MethodBody()
     <CLOSE_BLOCK>
+    { jjtThis.value = "main"; }
 }
 
-void MainParams() : { Token id; } {
-    <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> id=<IDENTIFIER> { jjtThis.paramId = id.image; }
+void MainParams() : { Token t; } {
+    <STRING> <OPEN_ARRAY> <CLOSE_ARRAY> t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
 }
 
 void MethodBody() #void: {} { ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )* }
 
-void Type() : { Token id; }
-{
-    <INT> { jjtThis.type = "int"; }
-        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
-    <BOOLEAN> { jjtThis.type = "bool"; }                            |
-    id=<IDENTIFIER> { jjtThis.id = id.image; }
-}
+void Type() : { Token t; } {
 
-void ReturnType() : { Token id; } {
-    <INT> { jjtThis.type = "int"; }
-        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]    |
-    <BOOLEAN> { jjtThis.type = "bool"; }                            |
-    <VOID> { jjtThis.type  = "void"; }                              |
-    id=<IDENTIFIER> { jjtThis.id = id.image; }
-}
-
-void Statement() : { Token t; } {
-
-    MultiStatementBlock() { jjtThis.type = "block"; }                   |
-    IfElseBlock() { jjtThis.type = "if"; }                              |
-    WhileBlock() { jjtThis.type = "while"; }                            |
-    t = <IDENTIFIER> { jjtThis.id = t.image; jjtThis.type = "id"; } (
-        ArrayExp() { jjtThis.array = true; }
-        [ AssignStatement() { jjtThis.assign = true; } ]    |
-        AssignStatement() { jjtThis.assign = true; }        |
-        ObjectSpecific()
-    ) <SEMI_COLON>                                                      |
-    StatementExpression() <SEMI_COLON> { jjtThis.type = "statExp"; }
+    <INT> { jjtThis.value = "int"; }
+        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]        |
+    <BOOLEAN> { jjtThis.value = "boolean"; }                            |
+    t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
 
 }
 
-void AssignStatement() : {} {
-    <ASSIGNMENT> Expression()
+void ReturnType() : { Token t; } {
+
+    <INT> { jjtThis.value = "int"; }
+        [ <OPEN_ARRAY> <CLOSE_ARRAY> { jjtThis.array = true; } ]        |
+    <BOOLEAN> { jjtThis.value = "boolean"; }                             |
+    <VOID> { jjtThis.value  = "void"; }                                  |
+    t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
+
 }
 
-void MultiStatementBlock() #void: {} { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
-void IfElseBlock() : {} {
+void Statement() #void: {} {
+    MultiStatementBlock()               |
+    IfElseBlock()                       |
+    WhileBlock()                        |
+    (
+        LOOKAHEAD(2) AssignStatement()      |
+        StatementExpression()
+    )
+}
+
+void AssignStatement() #void : { Token t; } {
+    Identifier() (
+        t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(2) |
+        ArrayExp()
+        {   // Pop Identifier and ComplexExpression Node from stack
+            Node complexExpression = jjtree.popNode();
+            Node identifier = jjtree.popNode();
+            // Make complex Expression child of identifier and push to stack
+            identifier.jjtAddChild(complexExpression, 0);
+            jjtree.pushNode(identifier);
+        }
+        t=<ASSIGNMENT> Expression() { jjtThis.value = "assignment"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #Assignment(2)
+    )+
+    <SEMI_COLON>
+}
+
+void ChainCall() #void : { Token t; } {
+    (
+        t=<THIS> { jjtThis.value = "this"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #_this |
+        Identifier()
+    )
+    ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )+
+    |
+    CreateObject() ( LOOKAHEAD(2) ChainCall() #ObjectCall(2) )*
+    |
+    ObjectSpecific()
+}
+
+void Identifier() : { Token t; } {
+     t=<IDENTIFIER> {
+         jjtThis.value = t.image;
+         jjtThis.line = t.beginLine;
+         jjtThis.column = t.beginColumn;
+     }
+}
+
+void MultiStatementBlock() #void: { } { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLOCK> }
+void IfElseBlock() : { } {
 
     try {
         <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
@@ -310,9 +363,10 @@ void IfElseBlock() : {} {
         reportError(e, "Error parsing If-Else block");
     }
 
+    { jjtThis.value = "if_else"; }
+
 }
-void WhileBlock() : {}
-{
+void WhileBlock() : {} {
     <WHILE>
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
@@ -335,98 +389,105 @@ void WhileBlock() : {}
         } while (t.kind != CLOSE_PAR);
     }
     Statement()
+    { jjtThis.value = "while"; }
 }
 
-/*
-void Assignment() #Statement: { jjtThis.assign = true; } { <ASSIGNMENT> Expression() <SEMI_COLON> }
-void ArrayAssignment() #Statement: { jjtThis.array = true; jjtThis.assign = true; } {
-    <OPEN_ARRAY> Expression() <CLOSE_ARRAY> <ASSIGNMENT> Expression() <SEMI_COLON>
+void StatementExpression() #void : { } {
+    Expression() <SEMI_COLON>
 }
-*/
 
-void Expression() #void: {} {
+void Expression() #void : { } {
     And()
 }
 
-void And() #void: {} {
-    LT() ( LOOKAHEAD(2) <AND> LT() #and(2) )*
+void And() #void : { Token t; } {
+    LT() ( LOOKAHEAD(2) t=<AND> LT() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #and(2) )*
 }
 
-void LT() #void: {} {
-    Sum() ( LOOKAHEAD(2) <LT> Sum() #lt(2) )*
+void LT() #void : { Token t; } {
+    Sum() ( LOOKAHEAD(2) t=<LT> Sum() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #lt(2) )*
 }
 
-void Sum() #void: {} {
-    Sub() ( LOOKAHEAD(2) <SUM> Sub() #sum(2) )*
+void Sum() #void : { Token t; } {
+    Sub() ( LOOKAHEAD(2) t=<SUM> Sub() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sum(2) )*
 }
 
-void Sub() #void: {} {
-    Mult() ( LOOKAHEAD(2) <SUB> Mult() #sub(2) )*
+void Sub() #void : { Token t; } {
+    Mult() ( LOOKAHEAD(2) t=<SUB> Mult() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #sub(2) )*
 }
 
-void Mult() #void: {} {
-    Div() ( LOOKAHEAD(2) <MULT> Div() #mult(2) )*
+void Mult() #void : { Token t; } {
+    Div() ( LOOKAHEAD(2) t=<MULT> Div() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #mult(2) )*
 }
 
-void Div() #void: {} {
-    LowerExpression() ( LOOKAHEAD(2) <DIV> LowerExpression() #div(2) )*
+void Div() #void : { Token t; } {
+    LowerExpression() ( LOOKAHEAD(2) t=<DIV> LowerExpression() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #div(2) )*
 }
 
-void LowerExpression() #void: { Token t; } {
-    ( SimpleExp() | t=<IDENTIFIER> { jjtThis.id = t.image; } #id ) ComplexExp()
+void LowerExpression() #void : { } {
+    LOOKAHEAD(2) ChainCall()            |
+    SimpleExp()                         |
+    ArrayIdentifier()
 }
 
-void StatementExpression() #void: {} {
-    SimpleExp() ComplexExp()
+void ArrayIdentifier() #Identifier : { Token t; } {
+    t=<IDENTIFIER> {
+         jjtThis.value = t.image;
+         jjtThis.line = t.beginLine;
+         jjtThis.column = t.beginColumn;
+    } ComplexExpression()
 }
 
-void ComplexExp() #void: {} {
-    [ LOOKAHEAD(2) ExpLink() ComplexExp() ]
+void ComplexExpression() #void : { } {
+    ( LOOKAHEAD(2) ArrayExp() )*
 }
 
-void ExpLink() #void: {} {
-    ArrayExp() | ObjectSpecific()
-}
-
-void ArrayExp() #void: {} {
+void ArrayExp() #void : { } {
     <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
 }
 
-void ObjectSpecific() #void: {} {
+void ObjectSpecific() #void : { } {
     <DOT> ( GetLength() | CallMethod() )
 }
 
-void GetLength() : {} { <LENGTH> }
-void CallMethod() : { Token id; } {
-    id=<IDENTIFIER> { jjtThis.methodId = id.image; }
+void GetLength() : { Token t; } {
+    t=<LENGTH> { jjtThis.value = "getLen"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; }
+}
+void CallMethod() : { Token t; } {
+    t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    }
     try {
-        <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR>
+        [ <OPEN_PAR> [ MethodArgs() ] <CLOSE_PAR> ]
     } catch (ParseException e) {
         reportError(e, "Error calling method for object");
         // clean parenthesis
-        Token t;
+        Token tok;
         do {
-            t = getToken(1);
-            if (t.kind == EOF)
+            tok = getToken(1);
+            if (tok.kind == EOF)
                 break;
-            t = getNextToken();
-        } while (t.kind != CLOSE_PAR);
+            tok = getNextToken();
+        } while (tok.kind != CLOSE_PAR);
         // throw error so 'while' can report it
         throw(e);
     }
 }
 
-void MethodArgs() #void: {} { Expression() ( <COMMA> Expression() )* }
+void MethodArgs() #void : {} { Expression() ( <COMMA> Expression() )* }
 
-
-void SimpleExp() #void: { Token t; }
+void SimpleExp() #void : { Token t; }
 {
-    t=<INTEGER> { jjtThis.value = t.image; } #integer   |
-    <TRUE> { jjtThis.value = true; } #bool              |
-    <FALSE>   #bool                                     |
-    <THIS>    #_this                                    |
-    CreateObject()                                      |
-    <NOT> Expression() #not                             |
+    t=<INTEGER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    } #integer                                              |
+    t=<TRUE> { jjtThis.value = true; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #bool                  |
+    t=<FALSE> { jjtThis.value = false; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #bool                |
+    t=<NOT> Expression() { jjtThis.value = "not"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #not(1)   |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch (ParseException e) {
@@ -443,6 +504,15 @@ void SimpleExp() #void: { Token t; }
         throw(e);
     }
 }
-void CreateObject() #void: {} { <NEW> ( CreateArray() | CreatePrimitive() ) }
-void CreateArray() #_new: { jjtThis.isArray = true; } { <INT> <OPEN_ARRAY> Expression() <CLOSE_ARRAY> }
-void CreatePrimitive() #_new: { Token t; } { t=<IDENTIFIER> { jjtThis.primId = t.image; } <OPEN_PAR> <CLOSE_PAR> }
+void CreateObject() #void : { } { <NEW> ( CreateArray() | CreatePrimitive() ) }
+void CreateArray() #_new : { Token t; jjtThis.value="int[]"; } {
+    t=<INT> { jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; }
+    <OPEN_ARRAY> Expression() <CLOSE_ARRAY>
+}
+void CreatePrimitive() #_new : { Token t; } {
+    t=<IDENTIFIER> {
+        jjtThis.value = t.image;
+        jjtThis.line = t.beginLine;
+        jjtThis.column = t.beginColumn;
+    } <OPEN_PAR> <CLOSE_PAR>
+}
