@@ -28,7 +28,7 @@ public class Main {
 			symbolTable.dump();
 		}
 		// analyse
-		SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTable);
+		SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTable, tableBuilder.getNumErrors());
 		boolean noErrors = semanticAnalyser.analise(root);
 		if (!noErrors)
 			throw new SemanticErrorException("Semantic Errors found");

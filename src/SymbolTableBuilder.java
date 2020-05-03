@@ -1,7 +1,22 @@
 import Exceptions.SemanticErrorException;
 import SymbolTable.SymbolTable;
+import SymbolTable.ImportDescriptor;
+
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class SymbolTableBuilder implements ParserVisitor {
+
+    /**
+     * Maximum number of semantic errors accepted before terminating
+     * analysing due to too many errors
+     */
+    private static final int MAX_ERRORS = 10;
+
+    /**
+     * Current number os semantic errors while analysing
+     */
+    private int numErrors = 0;
 
     private final SimpleNode root;
 
@@ -10,6 +25,11 @@ public class SymbolTableBuilder implements ParserVisitor {
     public SymbolTableBuilder(SimpleNode root) {
         this.root = root;
         this.table = new SymbolTable();
+        this.numErrors = 0;
+    }
+
+    public int getNumErrors() {
+        return numErrors;
     }
 
     public SymbolTable buildSymbolTable() {
@@ -20,7 +40,12 @@ public class SymbolTableBuilder implements ParserVisitor {
     }
 
     private void printError(String message, int line, int column) {
+        numErrors++;
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
+        if (numErrors >= MAX_ERRORS) {
+            System.out.println("TOO MANY SEMANTIC ERRORS: Stopping Analysis");
+            System.exit(0);
+        }
     }
 
     private void printWarning(String message, int line, int column) {
@@ -110,6 +135,15 @@ public class SymbolTableBuilder implements ParserVisitor {
                 this.table.addMethodVariable(methodIdentifier, variableIdentifier, variableType);
             } catch (SemanticErrorException e) {
                 this.printError(e.getMessage(), node.line, node.column);
+            }
+        }
+
+        // check for imported types
+        if (!variableType.equals("int") && !variableType.equals("int[]") && !variableType.equals("boolean") && !variableType.equals(this.table.getClassName())) {
+            // check import table
+            HashMap<String, LinkedList<ImportDescriptor>> importTable = this.table.getImportDescriptors();
+            if (!importTable.containsKey(variableType)) {
+                this.printError("Type '" + variableType + "' not defined", node.line, node.column);
             }
         }
 

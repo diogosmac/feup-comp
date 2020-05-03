@@ -169,6 +169,18 @@ public class SymbolTable {
         }
     }
 
+    public HashMap<String, LinkedList<ImportDescriptor>> getImportDescriptors() {
+        return importDescriptors;
+    }
+
+    public HashMap<String, LinkedList<MethodDescriptor>> getMethodDescriptors() {
+        return methodDescriptors;
+    }
+
+    public HashMap<String, VariableDescriptor> getVariableDescriptors() {
+        return variableDescriptors;
+    }
+
     public String getClassName() {
         return className;
     }
