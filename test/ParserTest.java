@@ -107,7 +107,7 @@ public class ParserTest {
      * Semantic Tests
      * --------------------------
      */
-    /*
+
     @Test
     public void testarr_index_not_int() {
         test("fixtures/public/fail/semantic/arr_index_not_int.jmm", true);
@@ -161,7 +161,7 @@ public class ParserTest {
     @Test
     public void testmiss_type() {
         test("fixtures/public/fail/semantic/extra/miss_type.jmm", true);
-    } */
+    }
 
     /** --------------------------
      * Syntactical Tests

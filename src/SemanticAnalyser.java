@@ -25,6 +25,15 @@ public class SemanticAnalyser implements ParserVisitor {
         this.table = table;
     }
 
+    public boolean analise(SimpleNode root) {
+        // reset number of current errors
+        numErrors = 0;
+        // visit root node
+        this.visit(root, null);
+        // return false in case of errors
+        return numErrors == 0;
+    }
+
     private void printError(String message, int line, int column) {
         numErrors++;
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
@@ -32,6 +41,39 @@ public class SemanticAnalyser implements ParserVisitor {
             System.out.println("TOO MANY SEMANTIC ERRORS: Stopping Analysis");
             System.exit(0);
         }
+    }
+    private void printWarning(String message, int line, int column) {
+        System.out.println("SEMANTIC WARNING: " + message + " at line: " + line + ", column: " + column + ".");
+    }
+
+    private void setAsInitialised(ASTIdentifier node, Object data) {
+        // get method descriptor
+        MethodDescriptor method = (MethodDescriptor) data;
+        // get variable id
+        String variableIdentifier = (String) node.jjtGetValue();
+        // lookup variable in method
+        VariableDescriptor descriptor = null;
+        try {
+            descriptor = method.lookupVariable(variableIdentifier);
+        } catch (SemanticErrorException ignored) {
+            // lookup variable in class
+            try {
+                descriptor = table.lookupAttribute(variableIdentifier);
+            } catch (SemanticErrorException e) {
+                this.printError(e.getMessage(), node.line, node.column);
+                return;
+            }
+        }
+        // if identifier node has a child then its an array access
+        if (node.jjtGetNumChildren() == 1) {
+            // check if the whole array was initialised
+            if (!descriptor.isInitialised()) {
+                this.printError("Accessing element of uninitialised array '" + variableIdentifier + "'" ,node.line, node.column);
+                return;
+            }
+        }
+        // set variable as initialised
+        descriptor.setInitialised(true);
     }
 
     @Override
@@ -151,10 +193,24 @@ public class SemanticAnalyser implements ParserVisitor {
     @Override
     public Object visit(ASTAssignment node, Object data) {
         // An Assignment has two child nodes
-        // first child is the assignee (left side)
-        String assigneeType = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        // 1. visit the second child (right hand side) to check for uninitialised variables
+        //    and get the type
+        // 2. set the first child (left hand side) as initialised
+        // 3. visit the first child to get the type
+
         // second child is the assigner (right side)
         String assignerType = (String) node.jjtGetChild(1).jjtAccept(this, data);
+        // first child is the assignee (left side)
+        SimpleNode assigneeNode = (SimpleNode) node.jjtGetChild(0);
+        // left side must be a variable
+        if (!(assigneeNode instanceof ASTIdentifier)) {
+            this.printError("Left side of '=' is not a variable", node.line, node.column);
+            return null;
+        } else {
+            this.setAsInitialised((ASTIdentifier) assigneeNode, data);
+        }
+        String assigneeType = (String) assigneeNode.jjtAccept(this, data);
+
         // check for past semantic errors
         if (assigneeType == null || assignerType == null)
             return null;
@@ -363,7 +419,7 @@ public class SemanticAnalyser implements ParserVisitor {
         // get variable id
         String variableIdentifier = (String) node.jjtGetValue();
         // lookup variable in method
-        VariableDescriptor descriptor;
+        VariableDescriptor descriptor = null;
         String variableType = null;
         try {
             descriptor = method.lookupVariable(variableIdentifier);
@@ -375,6 +431,7 @@ public class SemanticAnalyser implements ParserVisitor {
                 variableType = descriptor.getType();
             } catch (SemanticErrorException e) {
                 this.printError(e.getMessage(), node.line, node.column);
+                return null;
             }
         }
         // if identifier node has a child then its an array access
@@ -389,9 +446,12 @@ public class SemanticAnalyser implements ParserVisitor {
                 this.printError("Invalid array access of type '" + accessType + "' must be of 'integer' value", node.line, node.column);
                 return null;
             }
-            // return integer
-            return "int";
+            // change variable type top 'int'
+            variableType = "int";
         }
+        // check if variable was initialized
+        if (!descriptor.isInitialised())
+            this.printWarning("Variable '" + variableIdentifier + "' may not have been initialized", node.line, node.column);
         // return identifier type
         return variableType;
     }

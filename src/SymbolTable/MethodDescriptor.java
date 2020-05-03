@@ -33,8 +33,11 @@ public class MethodDescriptor extends Descriptor {
     }
 
     public void addParameter(String identifier, String dataType) throws SemanticErrorException {
-        if (!this.parameters.containsKey(identifier))
-            this.parameters.put(identifier, new VariableDescriptor(dataType));
+        if (!this.parameters.containsKey(identifier)) {
+            VariableDescriptor parameter = new VariableDescriptor(dataType);
+            parameter.setInitialised(true);
+            this.parameters.put(identifier, parameter);
+        }
         else
             throw new SemanticErrorException("Parameter name '" + identifier + "' already in use");
     }

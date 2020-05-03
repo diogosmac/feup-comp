@@ -1,8 +1,9 @@
+import Exceptions.SemanticErrorException;
 import SymbolTable.SymbolTable;
 
 public class Main {
 
-	public static void main(String[] args) throws ParseException {
+	public static void main(String[] args) throws Exception {
 		// validate arguments
 		if (args.length > 2) {
 			System.err.println("Wrong number of arguments, expected: <file.jmm> [ <debug> ]");
@@ -27,8 +28,10 @@ public class Main {
 			symbolTable.dump();
 		}
 		// analyse
-		ParserVisitor semanticAnalyser = new SemanticAnalyser(symbolTable);
-		semanticAnalyser.visit(root, null);
+		SemanticAnalyser semanticAnalyser = new SemanticAnalyser(symbolTable);
+		boolean noErrors = semanticAnalyser.analise(root);
+		if (!noErrors)
+			throw new SemanticErrorException("Semantic Errors found");
 	}
 
 	public static void test(SimpleNode node) {
