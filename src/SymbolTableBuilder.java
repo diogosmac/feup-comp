@@ -23,6 +23,10 @@ public class SymbolTableBuilder implements ParserVisitor {
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
     }
 
+    private void printWarning(String message, int line, int column) {
+        System.out.println("SEMANTIC WARNING: " + message + " at line: " + line + ", column: " + column + ".");
+    }
+
     @Override
     public Object visit(SimpleNode node, Object data) {
         return node.childrenAccept(this, data);
@@ -66,7 +70,7 @@ public class SymbolTableBuilder implements ParserVisitor {
         try {
             this.table.checkEqualImports(importIdentifier);
         } catch (SemanticErrorException e) {
-            this.printError(e.getMessage(), node.line, node.column);
+            this.printWarning(e.getMessage(), node.line, node.column);
         }
         return null;
     }

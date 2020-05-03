@@ -6,9 +6,10 @@ import java.util.*;
 
 public class MethodDescriptor extends Descriptor {
     /**
+     * LinkedHashMap preserves insertion order
      * identifier -> < data type >
      */
-    private HashMap<String, VariableDescriptor> parameters;
+    private LinkedHashMap<String, VariableDescriptor> parameters;
 
     /**
      * identifier -> < data type >
@@ -17,7 +18,7 @@ public class MethodDescriptor extends Descriptor {
 
     public MethodDescriptor(String type) {
         this.type = type;
-        this.parameters = new HashMap<>();
+        this.parameters = new LinkedHashMap<>();
         this.variableDescriptors = new HashMap<>();
     }
 

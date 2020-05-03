@@ -1,5 +1,7 @@
 package SymbolTable;
 
+import java.util.Objects;
+
 public class VariableDescriptor extends Descriptor {
 
     private boolean initialised;
@@ -19,5 +21,17 @@ public class VariableDescriptor extends Descriptor {
 
     public void setInitialised(boolean initialised) {
         this.initialised = initialised;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        VariableDescriptor that = (VariableDescriptor) o;
+
+        return this.type.equals(that.type);
     }
 }

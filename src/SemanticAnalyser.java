@@ -288,8 +288,8 @@ public class SemanticAnalyser implements ParserVisitor {
         //verify data type
         if(!expressionType.equals("boolean"))
             printError("Conditional expression is not of 'boolean' type", node.line, node.column);
-
-        return null;
+        // visit children statements
+        return node.childrenAccept(this, data);
     }
 
     @Override
@@ -300,8 +300,8 @@ public class SemanticAnalyser implements ParserVisitor {
         //verify data type
         if(!expressionType.equals("boolean"))
             printError("Conditional expression is not of 'boolean' type", node.line, node.column);
-
-        return null;
+        // visit children statements
+        return node.childrenAccept(this, data);
     }
 
     @Override
@@ -488,7 +488,7 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(AST_this node, Object data) {
-        return node.jjtGetValue();
+        return this.table.getClassName();
     }
 
     @Override
