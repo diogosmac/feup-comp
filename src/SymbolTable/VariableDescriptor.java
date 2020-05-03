@@ -1,7 +1,5 @@
 package SymbolTable;
 
-import java.util.Objects;
-
 public class VariableDescriptor extends Descriptor {
 
     private boolean initialised;
