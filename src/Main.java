@@ -32,6 +32,11 @@ public class Main {
 		boolean noErrors = semanticAnalyser.analise(root);
 		if (!noErrors)
 			throw new SemanticErrorException("Semantic Errors found");
+
+		// ***** Code Generation
+		//generate code
+		CodeGenerator codeGenerator = new CodeGenerator(symbolTable,root);
+		codeGenerator.generateCode();
 	}
 
 	public static void test(SimpleNode node) {
@@ -47,7 +52,6 @@ public class Main {
 
 		for (Node c : children)
 			test((SimpleNode) c);
-
 	}
 
 	public static SimpleNode parse(String filename) throws ParseException {

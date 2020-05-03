@@ -1,6 +1,7 @@
 .gradle
 /build/
 /generated/
+/out/
 *.jar
 
 # do not ignore jasmin
