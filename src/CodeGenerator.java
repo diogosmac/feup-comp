@@ -155,6 +155,58 @@ public class CodeGenerator implements ParserVisitor{
         return args;
     }
 
+    private int getLimitLocals(ASTMainMethod node) {
+        // get method name and parameter types
+        String methodName = "main";
+        LinkedList<String> parameterTypes = new LinkedList<>();
+        parameterTypes.add("String[]");
+        int localLimit = 0;
+        try {
+            // lookup method descriptor
+            MethodDescriptor methodDescriptor = this.symbolTable.lookupMethod(methodName, parameterTypes);
+            // calculate local limit (parameters + local variables)
+            localLimit = methodDescriptor.getParameters().size() + methodDescriptor.getVariableDescriptors().size();
+        } catch (SemanticErrorException e) {
+            e.printStackTrace();
+        }
+        return localLimit;
+    }
+
+    private int getLimitLocals(ASTRegularMethod node) {
+        // get method name
+        String methodName = (String) node.jjtGetValue();
+        // get parameter types
+        LinkedList<String> parameterTypes = new LinkedList<>();
+        Node params = node.jjtGetChild(1);
+        // check if method has parameters
+        if (params instanceof ASTMethodParams) {
+            // get parameters
+            ASTMethodParams methodParams = (ASTMethodParams) params;
+            Node[] children = methodParams.jjtGetChildren();
+            // get parameter types
+            for (Node child : children)  {
+                ASTType typeNode = (ASTType) child.jjtGetChild(0);
+                parameterTypes.add((String) typeNode.jjtGetValue());
+            }
+        }
+
+        int localLimit = 0;
+        try {
+            // lookup method descriptor
+            MethodDescriptor methodDescriptor = this.symbolTable.lookupMethod(methodName, parameterTypes);
+            // calculate local limit (parameters + local variables + object (this))
+            localLimit = methodDescriptor.getParameters().size() + methodDescriptor.getVariableDescriptors().size() + 1;
+        } catch (SemanticErrorException e) {
+            e.printStackTrace();
+        }
+        return localLimit;
+    }
+
+    private int getLimitStack(String methodName) {
+
+        return 0;
+    }
+
     @Override
     public Object visit(SimpleNode node, Object data) {
         //The root node
@@ -206,7 +258,7 @@ public class CodeGenerator implements ParserVisitor{
 
         //write the main method
         writeInstruction(".method static public main([Ljava/lang/String;)V");
-        writeInstruction(".limit locals 100"); //Todo calculate actual locals
+        writeInstruction(".limit locals " + this.getLimitLocals(node));
         writeInstruction(".limit stack 100");
 
         //get main method descriptor
@@ -263,7 +315,7 @@ public class CodeGenerator implements ParserVisitor{
             MethodDescriptor descriptor = symbolTable.lookupMethod((String) node.jjtGetValue(),args);
 
             writeInstruction(".method public " + node.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
-            writeInstruction(".limit locals 100"); //Todo calculate actual locals
+            writeInstruction(".limit locals " + this.getLimitLocals(node));
             writeInstruction(".limit stack 100");
 
             node.childrenAccept(this,descriptor);
