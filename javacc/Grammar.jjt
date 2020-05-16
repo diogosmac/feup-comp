@@ -357,7 +357,10 @@ void MultiStatementBlock() #void: { } { <OPEN_BLOCK> ( Statement() )* <CLOSE_BLO
 void IfElseBlock() : { } {
 
     try {
-        <IF> <OPEN_PAR> Expression() <CLOSE_PAR> Statement() <ELSE> Statement()
+        <IF> <OPEN_PAR> Expression() <CLOSE_PAR>
+            Statement() { jjtThis.value = "if"; } #IfBlock(1)
+        <ELSE>
+             Statement() { jjtThis.value = "else"; } #ElseBlock(1)
     }
     catch(ParseException e) {
         reportError(e, "Error parsing If-Else block");
@@ -366,6 +369,7 @@ void IfElseBlock() : { } {
     { jjtThis.value = "if_else"; }
 
 }
+
 void WhileBlock() : {} {
     <WHILE>
     try {

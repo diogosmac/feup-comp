@@ -253,6 +253,16 @@ public class SymbolTableBuilder implements ParserVisitor {
     }
 
     @Override
+    public Object visit(ASTIfBlock node, Object data) {
+        return null;
+    }
+
+    @Override
+    public Object visit(ASTElseBlock node, Object data) {
+        return null;
+    }
+
+    @Override
     public Object visit(ASTWhileBlock node, Object data) {
         return null;
     }

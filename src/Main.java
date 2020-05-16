@@ -22,7 +22,7 @@ public class Main {
 		// build symbol table
 		SymbolTableBuilder tableBuilder = new SymbolTableBuilder(root);
 		SymbolTable symbolTable = tableBuilder.buildSymbolTable();
-		// dump table TODO: DELETE AFTER EVERYTHING IS OK :)
+		// dump table in debug mode
 		if (debug) {
 			System.out.println("\n==== Dumping SymbolTable ====\n");
 			symbolTable.dump();
