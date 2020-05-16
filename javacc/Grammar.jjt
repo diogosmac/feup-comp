@@ -358,9 +358,9 @@ void IfElseBlock() : { } {
 
     try {
         <IF> <OPEN_PAR> Expression() <CLOSE_PAR>
-            Statement() { jjtThis.value = "if"; } #IfBlock(1)
+            ( Statement() { jjtThis.value = "if"; } ) #IfBlock
         <ELSE>
-             Statement() { jjtThis.value = "else"; } #ElseBlock(1)
+            ( Statement() { jjtThis.value = "else"; } ) #ElseBlock
     }
     catch(ParseException e) {
         reportError(e, "Error parsing If-Else block");
