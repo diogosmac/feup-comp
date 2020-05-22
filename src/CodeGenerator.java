@@ -113,13 +113,21 @@ public class CodeGenerator implements ParserVisitor{
                 try {
                     //look for the child in the method variables;
                     VariableDescriptor variable = methodDescriptor.lookupVariable((String) child.jjtGetValue());
-                    args.push(variable.getType());
+                    // watch out for int[] access: turns to int
+                    if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
+                        args.push("int");
+                    else
+                        args.push(variable.getType());
                 }
                 catch (SemanticErrorException e1) {
                     try {
                         //look for the child in the class attributes
                         VariableDescriptor variable = symbolTable.lookupAttribute((String) child.jjtGetValue());
-                        args.push(variable.getType());
+                        // watch out for int[] access: turns to int
+                        if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
+                            args.push("int");
+                        else
+                            args.push(variable.getType());
                     }
                     catch (SemanticErrorException e2) {
                         //test for object call instance
