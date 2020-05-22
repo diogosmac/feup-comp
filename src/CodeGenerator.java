@@ -491,6 +491,8 @@ public class CodeGenerator implements ParserVisitor{
             if (node.jjtGetNumChildren() == 1) {
                 // visit child
                 node.jjtGetChild(0).jjtAccept(this, data);
+                // Load int from array
+                writeInstruction("iaload");
             }
         }
         else {
