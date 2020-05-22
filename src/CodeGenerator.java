@@ -495,9 +495,22 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(AST_new node, Object data) {
-        writeInstruction("new " +  node.jjtGetValue());
-        writeInstruction("dup");
-        writeInstruction("invokespecial " +node.jjtGetValue()+"/<init>()V");
+        // when using the 'new' keyword, we can be creating an
+        // object instance or an array
+        String type = (String) node.jjtGetValue();
+        // new int[n]
+        if (type.equals("int[]")) {
+            // visit child for size of array
+            node.childrenAccept(this, data);
+            // create array instance
+            writeInstruction("newarray int");
+        }
+        // new Object()
+        else {
+            writeInstruction("new " + type);
+            writeInstruction("dup");
+            writeInstruction("invokespecial " + type + "/<init>()V");
+        }
 
         return null;
     }
