@@ -307,7 +307,12 @@ public class CodeGenerator implements ParserVisitor{
             try {
                 MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
 
-                //todo write invoke instruction
+                writeInstruction("aload_0"); //Load the this pointer into the stack
+
+                node.childrenAccept(this,data); //load any arguments into the stack
+
+                writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+
             } catch (SemanticErrorException e) {
                 //Error
                 e.printStackTrace();
@@ -330,26 +335,25 @@ public class CodeGenerator implements ParserVisitor{
             ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
 
             LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
-
-
+            
             try {
                 //Test if the Id is a method variable
                 belongingMethodDescriptor.lookupVariable(identifier);
 
-                //todo get invoking method descriptor
                 MethodDescriptor descriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
 
-                node.childrenAccept(this,data);
+                node.childrenAccept(this,data); //load the arguments and identifier
 
                 writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
-
-                //todo invoke
             }
             catch (SemanticErrorException e1) {
                 try {
                     //Test if the id is a class field
-                    symbolTable.lookupAttribute(identifier);
-                    //todo invoke
+                    VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
+
+                    node.childrenAccept(this,data); //load arguments and identifier
+
+                    writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(fieldDescriptor.getType()));
                 }
                 catch (SemanticErrorException e2) {
                     try {
@@ -401,7 +405,7 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTAssignment node, Object data) {
-        //preform children operations (do not visit the identifier
+        //preform children operations (do not visit the identifier)
         for (int i = 1; i < node.jjtGetNumChildren(); i++) {
             node.jjtGetChild(i).jjtAccept(this,data);
         }
@@ -425,7 +429,16 @@ public class CodeGenerator implements ParserVisitor{
             }
         }
         else {
-            //todo check in the class fields
+            try {
+                VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
+
+                writeInstruction("aload_0"); //put the this pointer in the stack
+                writeInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
+            }
+            catch (SemanticErrorException e) {
+                System.err.println("Unknown identifier " + identifier);
+                e.printStackTrace();
+            }
         }
 
 
@@ -451,7 +464,16 @@ public class CodeGenerator implements ParserVisitor{
         }
         else {
             //Check fields
-            System.err.println("Unknown identifier " + id);
+            try {
+                VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(id);
+
+                writeInstruction("aload_0"); //load the this pointer
+                writeInstruction("getfield " + symbolTable.getClassName() + "/" + id + " " + convertType(fieldDescriptor.getType()));
+            }
+            catch (SemanticErrorException e) {
+                System.err.println("Unknown identifier " + id);
+                e.printStackTrace();
+            }
         }
 
         return null;
