@@ -66,6 +66,9 @@ public class CodeGenerator implements ParserVisitor{
             case "int":
                 return "I";
 
+            case "int[]":
+                return "[I";
+
             default:
                 return null;
         }
@@ -366,7 +369,7 @@ public class CodeGenerator implements ParserVisitor{
 
                         //Assume the parameters are in the stack
 
-                        if (descriptor.getStatic()) {
+                        if (descriptor.isStatic()) {
                             writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                         }
                     }
