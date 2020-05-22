@@ -281,9 +281,9 @@ public class SemanticAnalyser implements ParserVisitor {
 
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
-
+        // IfElseBlock has 3 children
+        // Conditional Expression, IfBlock and ElseBlock
         String expressionType = (String) node.jjtGetChild(0).jjtAccept(this, data);
-
         // check for past semantic errors
         if (expressionType == null)
             return null;
@@ -291,6 +291,16 @@ public class SemanticAnalyser implements ParserVisitor {
         if(!expressionType.equals("boolean"))
             printError("Conditional expression is not of 'boolean' type", node.line, node.column);
         // visit children statements
+        return node.childrenAccept(this, data);
+    }
+
+    @Override
+    public Object visit(ASTIfBlock node, Object data) {
+        return node.childrenAccept(this, data);
+    }
+
+    @Override
+    public Object visit(ASTElseBlock node, Object data) {
         return node.childrenAccept(this, data);
     }
 
@@ -471,7 +481,7 @@ public class SemanticAnalyser implements ParserVisitor {
         }
         // check if variable was initialized
         if (!descriptor.isInitialised())
-            this.printWarning("Variable '" + variableIdentifier + "' may not have been initialized", node.line, node.column);
+            this.printError("Variable '" + variableIdentifier + "' may not have been initialized", node.line, node.column);
         // return identifier type
         return variableType;
     }
