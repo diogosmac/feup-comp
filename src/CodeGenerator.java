@@ -19,6 +19,7 @@ public class CodeGenerator implements ParserVisitor{
 
     private HashMap<String, ArrayList<String>> variableMap;
     private int currentVariableIndex;
+    private int if_counter = 0;
 
     public CodeGenerator(SymbolTable table, SimpleNode root) {
         this.symbolTable = table;
@@ -612,17 +613,72 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
+
+        SimpleNode condition = (SimpleNode) node.jjtGetChild(0);
+
+        for (int i = 0; i < condition.jjtGetNumChildren(); i++) {
+            SimpleNode child = (SimpleNode) condition.jjtGetChild(i);
+            String identifier = (String) child.jjtGetValue();
+            ArrayList<String> variableInfo = this.variableMap.get(identifier);
+
+            if (variableInfo != null) {
+                int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+                String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
+
+                //assign the variable assuming the value to be assigned is on top of the stack
+                if (index > 3) {
+                    writeInstruction(type + "load " + index);
+                }
+                else {
+                    writeInstruction(type +  "load_" + index);
+                }
+            }
+        }
+
+        if(condition instanceof ASTlt){
+            writeInstruction("if_icmpge else_" + if_counter);
+        } else if (condition instanceof ASTnot){
+
+            if ((condition.jjtGetChild(0)) instanceof ASTlt) {
+                writeInstruction("if_icmplt else_" + if_counter);
+            } else {
+                writeInstruction("ifne else_" + if_counter);
+            }
+        }
+
+        node.childrenAccept(this, data);
+
         return null;
     }
 
     @Override
     public Object visit(ASTIfBlock node, Object data) {
+
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            node.jjtGetChild(i).jjtAccept(this, data);
+        }
+
+       writeInstruction("goto endif_" + if_counter);
+
         return null;
+
     }
 
     @Override
     public Object visit(ASTElseBlock node, Object data) {
+
+       writeInstruction("else_" + if_counter + ":");
+
+        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            node.jjtGetChild(i).jjtAccept(this, data);
+        }
+
+       writeInstruction("endif_" + if_counter + ":");
+
+        if_counter++;
+
         return null;
+
     }
 
     @Override
