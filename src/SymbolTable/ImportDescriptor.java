@@ -78,8 +78,4 @@ public class ImportDescriptor extends Descriptor{
         }
         return returnTypes;
     }
-
-    public boolean getStatic(){
-        return this.isStatic;
-    }
 }

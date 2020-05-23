@@ -67,6 +67,9 @@ public class CodeGenerator implements ParserVisitor{
             case "int":
                 return "I";
 
+            case "int[]":
+                return "[I";
+
             default:
                 return null;
         }
@@ -111,13 +114,21 @@ public class CodeGenerator implements ParserVisitor{
                 try {
                     //look for the child in the method variables;
                     VariableDescriptor variable = methodDescriptor.lookupVariable((String) child.jjtGetValue());
-                    args.push(variable.getType());
+                    // watch out for int[] access: turns to int
+                    if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
+                        args.push("int");
+                    else
+                        args.push(variable.getType());
                 }
                 catch (SemanticErrorException e1) {
                     try {
                         //look for the child in the class attributes
                         VariableDescriptor variable = symbolTable.lookupAttribute((String) child.jjtGetValue());
-                        args.push(variable.getType());
+                        // watch out for int[] access: turns to int
+                        if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
+                            args.push("int");
+                        else
+                            args.push(variable.getType());
                     }
                     catch (SemanticErrorException e2) {
                         //test for object call instance
@@ -328,7 +339,10 @@ public class CodeGenerator implements ParserVisitor{
             //In the case the import lookup goes wrong -> error
         }
         else if (node.jjtGetChild(1) instanceof  ASTGetLength) {
-            //todo deal with this
+            // push array to stack
+            node.jjtGetChild(0).jjtAccept(this, data);
+            // visit ASTGetLength for its instruction
+            node.jjtGetChild(1).jjtAccept(this, data);
         }
         else {
             //Look for the identifier
@@ -336,7 +350,7 @@ public class CodeGenerator implements ParserVisitor{
             ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
 
             LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
-            
+
             try {
                 //Test if the Id is a method variable
                 belongingMethodDescriptor.lookupVariable(identifier);
@@ -367,7 +381,7 @@ public class CodeGenerator implements ParserVisitor{
 
                         //Assume the parameters are in the stack
 
-                        if (descriptor.getStatic()) {
+                        if (descriptor.isStatic()) {
                             writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                         }
                     }
@@ -406,20 +420,31 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTAssignment node, Object data) {
+        SimpleNode assignee = (SimpleNode) node.jjtGetChild(0);
+        String type = null;
+        // if variable has a child then it is of type int[]
+        if (assignee.jjtGetNumChildren() == 1) {
+            // visit child
+            node.jjtGetChild(0).jjtAccept(this, data);
+            // update type to integer address
+            type = "ia";
+        }
+
         //preform children operations (do not visit the identifier)
         for (int i = 1; i < node.jjtGetNumChildren(); i++) {
             node.jjtGetChild(i).jjtAccept(this,data);
         }
 
         //Get the variable identifier
-        String identifier = (String) ((SimpleNode) node.jjtGetChild(0)).jjtGetValue();
+        String identifier = (String) assignee.jjtGetValue();
 
         //Get variable identifier info
         ArrayList<String> variableInfo = this.variableMap.get(identifier);
 
         if (variableInfo != null) {
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
-            String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
+            if (type == null)
+                type = convertInstructionType(variableInfo.get(1)); //the type of the variable
 
             //assign the variable assuming the value to be assigned is on top of the stack
             if (index > 3) {
@@ -453,14 +478,22 @@ public class CodeGenerator implements ParserVisitor{
         if (this.variableMap.containsKey(id)) {
             //get the identifier information
             ArrayList<String> variableInfo = this.variableMap.get(id);
+            System.out.println(variableInfo);
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
-
+            // load variable
             if (index > 3) {
                 writeInstruction(type + "load " + index);
             }
             else {
                 writeInstruction(type + "load_" + index);
+            }
+            // if variable has a child then it is of type int[]
+            if (node.jjtGetNumChildren() == 1) {
+                // visit child
+                node.jjtGetChild(0).jjtAccept(this, data);
+                // Load int from array
+                writeInstruction("iaload");
             }
         }
         else {
@@ -496,9 +529,22 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(AST_new node, Object data) {
-        writeInstruction("new " +  node.jjtGetValue());
-        writeInstruction("dup");
-        writeInstruction("invokespecial " +node.jjtGetValue()+"/<init>()V");
+        // when using the 'new' keyword, we can be creating an
+        // object instance or an array
+        String type = (String) node.jjtGetValue();
+        // new int[n]
+        if (type.equals("int[]")) {
+            // visit child for size of array
+            node.childrenAccept(this, data);
+            // create array instance
+            writeInstruction("newarray int");
+        }
+        // new Object()
+        else {
+            writeInstruction("new " + type);
+            writeInstruction("dup");
+            writeInstruction("invokespecial " + type + "/<init>()V");
+        }
 
         return null;
     }
@@ -698,6 +744,7 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
+        writeInstruction("arraylength");
         return null;
     }
 
