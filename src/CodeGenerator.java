@@ -98,71 +98,12 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
-    private LinkedList<String> fetchMethodArgs(SimpleNode node, MethodDescriptor methodDescriptor) {
+    private LinkedList<String> fetchMethodArgs(ASTCallMethod node, MethodDescriptor methodDescriptor) {
         LinkedList<String> args = new LinkedList<>();
-
-        //Fetch the arguments
-        for (int i = 0; i < node.jjtGetNumChildren(); i++) {
-            SimpleNode child = (SimpleNode) node.jjtGetChild(i);
-
-            if (child instanceof ASTinteger || child instanceof ASTsum || child instanceof ASTsub ||
-                    child instanceof ASTmult || child instanceof ASTdiv)  {
-                //The child is an int literal
-                args.push("int");
-            }
-            else {
-                try {
-                    //look for the child in the method variables;
-                    VariableDescriptor variable = methodDescriptor.lookupVariable((String) child.jjtGetValue());
-                    // watch out for int[] access: turns to int
-                    if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
-                        args.push("int");
-                    else
-                        args.push(variable.getType());
-                }
-                catch (SemanticErrorException e1) {
-                    try {
-                        //look for the child in the class attributes
-                        VariableDescriptor variable = symbolTable.lookupAttribute((String) child.jjtGetValue());
-                        // watch out for int[] access: turns to int
-                        if (child.jjtGetNumChildren() != 0 && variable.getType().equals("int[]"))
-                            args.push("int");
-                        else
-                            args.push(variable.getType());
-                    }
-                    catch (SemanticErrorException e2) {
-                        //test for object call instance
-                        if (child instanceof ASTObjectCall) {
-                            SimpleNode identifier = (SimpleNode) child.jjtGetChild(0);
-                            SimpleNode childMethod = (SimpleNode) child.jjtGetChild(1);
-
-                            try {
-                                //look for the child method in the class methods
-                                MethodDescriptor variable = symbolTable.lookupMethod((String) childMethod.jjtGetValue(),fetchMethodArgs(childMethod,methodDescriptor));
-                                args.push(variable.getType());
-                            }
-                            catch (SemanticErrorException e3) {
-                                try {
-                                    //look for the child method in the imports
-                                    ImportDescriptor variable = symbolTable.lookupImport((String) childMethod.jjtGetValue(),fetchMethodArgs(childMethod,methodDescriptor));
-                                    args.push(variable.getType());
-                                }
-                                catch (SemanticErrorException e4) {
-                                    e4.printStackTrace();
-                                    System.out.println("Could not find " + child.jjtGetValue());
-                                    e3.printStackTrace();
-                                    //System.exit(1);
-                                }
-                            }
-                        }
-                        else {
-                            //todo remove this
-                            System.out.println("WTFFFFFF");
-                        }
-                    }
-                }
-            }
-        }
+        // create semantic analyzer
+        SemanticAnalyser analyser = new SemanticAnalyser(this.symbolTable, 0);
+        // use semantic analyser logic to fetch method call arguments
+        args = (LinkedList<String>) analyser.visit(node, methodDescriptor);
 
         return args;
     }
@@ -308,87 +249,141 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTObjectCall node, Object data) {
+        // get belonging method descriptor
         MethodDescriptor belongingMethodDescriptor = (MethodDescriptor) data;
+        // an object call has two child nodes
+        // first child is the object (caller)
+        SimpleNode identifier = (SimpleNode) node.jjtGetChild(0);
+        String objectType = (String) identifier.jjtGetValue();
+        // second child is the method (callee)
+        // this can be a method or array.length
+        SimpleNode method = (SimpleNode) node.jjtGetChild(1);
+        String methodIdentifier = (String) method.jjtGetValue();
+        LinkedList<String> args = new LinkedList<>();
+        if (method instanceof ASTCallMethod)
+            args = fetchMethodArgs((ASTCallMethod) method, belongingMethodDescriptor);
 
-        if (node.jjtGetChild(0) instanceof AST_this) {
-            //We have a mandatory method call
-            //Get method name and arguments
-            ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
-            LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
-
-            try {
-                MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
-
-                writeInstruction("aload_0"); //Load the this pointer into the stack
-
-                node.childrenAccept(this,data); //load any arguments into the stack
-
-                writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
-
-            } catch (SemanticErrorException e) {
-                //Error
-                e.printStackTrace();
+        // 1 - this.method()
+        if (identifier instanceof AST_this) {
+            // extended class method call
+            if (!this.symbolTable.getExtendedClassName().equals("")) {
+                try {
+                    // fetch invoking method descriptor
+                    String importIdentifier = this.symbolTable.getExtendedClassName() + "." + methodIdentifier;
+                    ImportDescriptor invokingMethodDescriptor = this.symbolTable.lookupImport(importIdentifier, args);
+                    // Load the this pointer into the stack
+                    writeInstruction("aload_0");
+                    // load any arguments into the stack
+                    node.childrenAccept(this, data);
+                    // invoke method
+                    writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                } catch (SemanticErrorException ignored) { }
+            }
+            // this class method call
+            else {
+                try {
+                    // fetch invoking method descriptor
+                    MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod(objectType, args);
+                    // Load the this pointer into the stack
+                    writeInstruction("aload_0");
+                    // load any arguments into the stack
+                    node.childrenAccept(this, data);
+                    // invoke method
+                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                } catch (SemanticErrorException e) {
+                    //Error
+                    e.printStackTrace();
+                }
             }
         }
-        else if (node.jjtGetChild(0) instanceof AST_new) {
-            //We have a mandatory method call
-
-            //todo get class name and compare
-            //if its equal to the class name then we have a class method call
-            //else we have an import
-            //In the case the import lookup goes wrong -> error
+        // 2 - new Object().method();
+        else if (identifier instanceof AST_new) {
+            // We have a mandatory method call
+            // if its equal to the class name then we have a class method call
+            if (objectType.equals(this.symbolTable.getClassName())) {
+                try {
+                    // fetch invoking method descriptor
+                    MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod(objectType, args);
+                    // load new and any arguments into the stack
+                    node.childrenAccept(this,data);
+                    // invoke method
+                    // TODO: Check if this is really class name
+                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                } catch (SemanticErrorException e) {
+                    e.printStackTrace();
+                }
+            }
+            // if its equal to int[] then we have something like: new int[N].length
+            else  if (objectType.equals("int[]")) {
+                // load new and any arguments into the stack
+                node.childrenAccept(this,data);
+            }
+            // else we have an import
+            else {
+                try {
+                    // fetch invoking method descriptor
+                    String importIdentifier = objectType + "." + methodIdentifier;
+                    ImportDescriptor invokingMethodDescriptor = symbolTable.lookupImport(importIdentifier, args);
+                    // load new and any arguments into the stack
+                    node.childrenAccept(this,data);
+                    // invoke method
+                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                } catch (SemanticErrorException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        else if (node.jjtGetChild(1) instanceof  ASTGetLength) {
+        // 3 - array.length
+        else if (method instanceof ASTGetLength) {
             // push array to stack
             node.jjtGetChild(0).jjtAccept(this, data);
             // visit ASTGetLength for its instruction
             node.jjtGetChild(1).jjtAccept(this, data);
         }
+        // 4 - object.method()
         else {
-            //Look for the identifier
-            String identifier = (String) ((ASTIdentifier) node.jjtGetChild(0)).jjtGetValue();
-            ASTCallMethod method = (ASTCallMethod) node.jjtGetChild(1);
-
-            LinkedList<String> args = fetchMethodArgs(method,belongingMethodDescriptor);
-
+            // 4.1 - identifier is static import: static Object.method()
             try {
-                //Test if the Id is a method variable
-                belongingMethodDescriptor.lookupVariable(identifier);
-
-                MethodDescriptor descriptor = symbolTable.lookupMethod((String) method.jjtGetValue(),args);
-
-                node.childrenAccept(this,data); //load the arguments and identifier
-
-                writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
-            }
-            catch (SemanticErrorException e1) {
-                try {
-                    //Test if the id is a class field
-                    VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
-
-                    node.childrenAccept(this,data); //load arguments and identifier
-
-                    writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(fieldDescriptor.getType()));
+                String importIdentifier = objectType + "." + methodIdentifier;
+                ImportDescriptor descriptor = symbolTable.lookupImport(importIdentifier, args);
+                //Accept children except the identifier
+                for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+                    node.jjtGetChild(i).jjtAccept(this,data);
                 }
-                catch (SemanticErrorException e2) {
-                    try {
-                        ImportDescriptor descriptor = symbolTable.lookupImport(identifier + "." + method.jjtGetValue(),args);
-
-                        //Accept children exept the identifier
-                        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
-                            node.jjtGetChild(i).jjtAccept(this,data);
-                        }
-
-                        //Assume the parameters are in the stack
-
-                        if (descriptor.isStatic()) {
-                            writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
-                        }
-                    }
-                    catch (SemanticErrorException e3) {
-                        System.err.println("Invalid identifier " + identifier);
-                        e3.printStackTrace();
-                    }
+                //Assume the parameters are in the stack
+                writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                return null;
+            }
+            catch (SemanticErrorException ignored) {
+            }
+            // 4.2 - identifier is a local variable
+            // get class name
+            SemanticAnalyser analyser = new SemanticAnalyser(this.symbolTable, 0);
+            objectType = (String) node.jjtGetChild(0).jjtAccept(analyser, data);
+            // 4.2.1 - variable is a local class instance
+            if (objectType.equals(symbolTable.getClassName())) {
+                try {
+                    // lookup method
+                    MethodDescriptor descriptor = symbolTable.lookupMethod(methodIdentifier, args);
+                    //load the arguments and identifier
+                    node.childrenAccept(this, data);
+                    // write instructions
+                    writeInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                } catch (SemanticErrorException ignored) {
+                }
+            }
+            // 4.2.2 - variable is an imported class instance
+            else {
+                try {
+                    // lookup imported class method
+                    String importIdentifier = objectType + "." + methodIdentifier;
+                    ImportDescriptor descriptor = symbolTable.lookupImport(importIdentifier, args);
+                    //load the arguments and identifier
+                    node.childrenAccept(this, data);
+                    // write instructions
+                    writeInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                } catch (SemanticErrorException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -478,7 +473,6 @@ public class CodeGenerator implements ParserVisitor{
         if (this.variableMap.containsKey(id)) {
             //get the identifier information
             ArrayList<String> variableInfo = this.variableMap.get(id);
-            System.out.println(variableInfo);
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
             // load variable
