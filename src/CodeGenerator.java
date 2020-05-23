@@ -1,6 +1,6 @@
 import Exceptions.SemanticErrorException;
-import SymbolTable.MethodDescriptor;
 import SymbolTable.ImportDescriptor;
+import SymbolTable.MethodDescriptor;
 import SymbolTable.SymbolTable;
 import SymbolTable.VariableDescriptor;
 
@@ -16,6 +16,7 @@ public class CodeGenerator implements ParserVisitor{
     private final SymbolTable symbolTable;
     private FileWriter outFileWriter;
     private final SimpleNode root;
+    private StringBuilder instructionBuffer;
 
     private HashMap<String, ArrayList<String>> variableMap;
     private int currentVariableIndex;
@@ -27,6 +28,25 @@ public class CodeGenerator implements ParserVisitor{
 
         //Create the output directory if it does not exist
         new File("out/").mkdirs();
+
+        //Create the .j file
+        File outFile = new File("out/" + symbolTable.getClassName()+ ".j");
+        try {
+            if (!outFile.createNewFile()) {
+                //clear the file
+                PrintWriter pw = new PrintWriter(outFile.getPath());
+                pw.close();
+            }
+
+            //create the writer
+            this.outFileWriter = new FileWriter(outFile.getPath());
+
+            //create the instruction Buffer
+            this.instructionBuffer = new StringBuilder();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void generateCode() {
@@ -48,14 +68,37 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Adds an instruction to the buffer so it can be dumped later
+     * @param instruction
+     */
+    private void bufferInstruction(String instruction) {
+        this.instructionBuffer.append("   ").append(instruction).append("\n");
+    }
+
+    /**
+     * Writes an instruction directly in the output file
+     * @param instruction
+     */
     private void writeInstruction(String instruction) {
-        if (this.outFileWriter != null) {
-            try {
-                this.outFileWriter.write( instruction +"\n");
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(0);
-            }
+        try {
+            this.outFileWriter.write(instruction + "\n");
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Dumps buffered instructions to the output file and clears the buffer (by creating a new one)
+     */
+    private void dumpInstructions() {
+        try {
+            this.outFileWriter.write(this.instructionBuffer.toString());
+            this.instructionBuffer = new StringBuilder();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -124,26 +167,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTClassDeclaration node, Object data) {
-        //Create the .j file
-        File outFile = new File("out/" + node.classId + ".j");
-        try {
-            if (outFile.createNewFile()) {
-                this.outFileWriter = new FileWriter(outFile.getPath());
-            }
-            else {
-                //clear the file
-                PrintWriter pw = new PrintWriter(outFile.getPath());
-                pw.close();
-
-                //create the writer
-                this.outFileWriter = new FileWriter(outFile.getPath());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(0);
-            //TODO maybe not exit immediately
-        }
-
         //write the class name and super class
         writeInstruction(".class public " +  node.classId);
 
@@ -160,9 +183,10 @@ public class CodeGenerator implements ParserVisitor{
 
         //Write the constructor
         writeInstruction(".method public <init>()V");
-        writeInstruction("aload_0");
-        writeInstruction("invokespecial " + extendingClassName + "/<init>()V");
-        writeInstruction("return");
+        bufferInstruction("aload_0");
+        bufferInstruction("invokespecial " + extendingClassName + "/<init>()V");
+        bufferInstruction("return");
+        dumpInstructions();
         writeInstruction(".end method");
 
         //Accept children
@@ -192,7 +216,8 @@ public class CodeGenerator implements ParserVisitor{
             System.exit(0);
         }
 
-        writeInstruction("return");
+        bufferInstruction("return");
+        dumpInstructions(); //Write all method instructions to the file
         writeInstruction(".end method");
 
         return null;
@@ -237,6 +262,7 @@ public class CodeGenerator implements ParserVisitor{
 
             node.childrenAccept(this,descriptor);
 
+            dumpInstructions(); //Write all children instructions to the file
             writeInstruction(".end method");
         }
         catch (SemanticErrorException e) {
@@ -272,11 +298,11 @@ public class CodeGenerator implements ParserVisitor{
                     String importIdentifier = this.symbolTable.getExtendedClassName() + "." + methodIdentifier;
                     ImportDescriptor invokingMethodDescriptor = this.symbolTable.lookupImport(importIdentifier, args);
                     // Load the this pointer into the stack
-                    writeInstruction("aload_0");
+                    bufferInstruction("aload_0");
                     // load any arguments into the stack
                     node.childrenAccept(this, data);
                     // invoke method
-                    writeInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    bufferInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException ignored) { }
             }
             // this class method call
@@ -285,11 +311,11 @@ public class CodeGenerator implements ParserVisitor{
                     // fetch invoking method descriptor
                     MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod(objectType, args);
                     // Load the this pointer into the stack
-                    writeInstruction("aload_0");
+                    bufferInstruction("aload_0");
                     // load any arguments into the stack
                     node.childrenAccept(this, data);
                     // invoke method
-                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    bufferInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException e) {
                     //Error
                     e.printStackTrace();
@@ -308,7 +334,7 @@ public class CodeGenerator implements ParserVisitor{
                     node.childrenAccept(this,data);
                     // invoke method
                     // TODO: Check if this is really class name
-                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    bufferInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException e) {
                     e.printStackTrace();
                 }
@@ -327,7 +353,7 @@ public class CodeGenerator implements ParserVisitor{
                     // load new and any arguments into the stack
                     node.childrenAccept(this,data);
                     // invoke method
-                    writeInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    bufferInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException e) {
                     e.printStackTrace();
                 }
@@ -351,7 +377,7 @@ public class CodeGenerator implements ParserVisitor{
                     node.jjtGetChild(i).jjtAccept(this,data);
                 }
                 //Assume the parameters are in the stack
-                writeInstruction("invokestatic " + identifier + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                bufferInstruction("invokestatic " + identifier.jjtGetValue() + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                 return null;
             }
             catch (SemanticErrorException ignored) {
@@ -368,7 +394,7 @@ public class CodeGenerator implements ParserVisitor{
                     //load the arguments and identifier
                     node.childrenAccept(this, data);
                     // write instructions
-                    writeInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                    bufferInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                 } catch (SemanticErrorException ignored) {
                 }
             }
@@ -381,7 +407,7 @@ public class CodeGenerator implements ParserVisitor{
                     //load the arguments and identifier
                     node.childrenAccept(this, data);
                     // write instructions
-                    writeInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
+                    bufferInstruction("invokevirtual " + objectType + "/" + method.jjtGetValue() + "(" + convertParams(args) + ")" + convertType(descriptor.getType()));
                 } catch (SemanticErrorException e) {
                     e.printStackTrace();
                 }
@@ -407,7 +433,7 @@ public class CodeGenerator implements ParserVisitor{
         }
         else {
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
-            writeInstruction(".field private " + node.jjtGetValue() +  " " + convertType((String) child.jjtGetValue()));
+            bufferInstruction(".field private " + node.jjtGetValue() +  " " + convertType((String) child.jjtGetValue()));
         }
 
         return null;
@@ -443,18 +469,18 @@ public class CodeGenerator implements ParserVisitor{
 
             //assign the variable assuming the value to be assigned is on top of the stack
             if (index > 3) {
-                writeInstruction(type + "store " + index);
+                bufferInstruction(type + "store " + index);
             }
             else {
-                writeInstruction(type +  "store_" + index);
+                bufferInstruction(type +  "store_" + index);
             }
         }
         else {
             try {
                 VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
 
-                writeInstruction("aload_0"); //put the this pointer in the stack
-                writeInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
+                bufferInstruction("aload_0"); //put the this pointer in the stack
+                bufferInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
             }
             catch (SemanticErrorException e) {
                 System.err.println("Unknown identifier " + identifier);
@@ -477,17 +503,17 @@ public class CodeGenerator implements ParserVisitor{
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
             // load variable
             if (index > 3) {
-                writeInstruction(type + "load " + index);
+                bufferInstruction(type + "load " + index);
             }
             else {
-                writeInstruction(type + "load_" + index);
+                bufferInstruction(type + "load_" + index);
             }
             // if variable has a child then it is of type int[]
             if (node.jjtGetNumChildren() == 1) {
                 // visit child
                 node.jjtGetChild(0).jjtAccept(this, data);
                 // Load int from array
-                writeInstruction("iaload");
+                bufferInstruction("iaload");
             }
         }
         else {
@@ -495,8 +521,8 @@ public class CodeGenerator implements ParserVisitor{
             try {
                 VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(id);
 
-                writeInstruction("aload_0"); //load the this pointer
-                writeInstruction("getfield " + symbolTable.getClassName() + "/" + id + " " + convertType(fieldDescriptor.getType()));
+                bufferInstruction("aload_0"); //load the this pointer
+                bufferInstruction("getfield " + symbolTable.getClassName() + "/" + id + " " + convertType(fieldDescriptor.getType()));
             }
             catch (SemanticErrorException e) {
                 System.err.println("Unknown identifier " + id);
@@ -512,10 +538,10 @@ public class CodeGenerator implements ParserVisitor{
         int number = Integer.parseInt((String) node.jjtGetValue());
 
         if (number > 200) {
-            writeInstruction("ldc_w " + number);
+            bufferInstruction("ldc_w " + number);
         }
         else {
-            writeInstruction("bipush " + number);
+            bufferInstruction("bipush " + number);
         }
 
         return null;
@@ -531,13 +557,13 @@ public class CodeGenerator implements ParserVisitor{
             // visit child for size of array
             node.childrenAccept(this, data);
             // create array instance
-            writeInstruction("newarray int");
+            bufferInstruction("newarray int");
         }
         // new Object()
         else {
-            writeInstruction("new " + type);
-            writeInstruction("dup");
-            writeInstruction("invokespecial " + type + "/<init>()V");
+            bufferInstruction("new " + type);
+            bufferInstruction("dup");
+            bufferInstruction("invokespecial " + type + "/<init>()V");
         }
 
         return null;
@@ -548,7 +574,7 @@ public class CodeGenerator implements ParserVisitor{
         //Accept children
         node.childrenAccept(this,data);
 
-        writeInstruction("iadd");
+        bufferInstruction("iadd");
 
         return null;
     }
@@ -558,7 +584,7 @@ public class CodeGenerator implements ParserVisitor{
         //Accept children
         node.childrenAccept(this,data);
 
-        writeInstruction("isub");
+        bufferInstruction("isub");
 
         return null;
     }
@@ -568,7 +594,7 @@ public class CodeGenerator implements ParserVisitor{
         //Accept children
         node.childrenAccept(this,data);
 
-        writeInstruction("imul");
+        bufferInstruction("imul");
 
         return null;
     }
@@ -578,7 +604,7 @@ public class CodeGenerator implements ParserVisitor{
         //Accept children
         node.childrenAccept(this,data);
 
-        writeInstruction("idiv");
+        bufferInstruction("idiv");
 
         return null;
     }
@@ -592,7 +618,7 @@ public class CodeGenerator implements ParserVisitor{
         SimpleNode child = (SimpleNode) node.jjtGetChild(0);
 
         if (child instanceof ASTinteger) {
-            writeInstruction("ireturn");
+            bufferInstruction("ireturn");
         }
         else {
             //only return variables for now
@@ -601,7 +627,7 @@ public class CodeGenerator implements ParserVisitor{
             if (varInfo != null) {
                 String type = convertInstructionType(varInfo.get(1));
 
-                writeInstruction(type + "return");
+                bufferInstruction(type + "return");
             }
 
             //TODO generate other types of returns
@@ -667,22 +693,22 @@ public class CodeGenerator implements ParserVisitor{
 
                 //assign the variable assuming the value to be assigned is on top of the stack
                 if (index > 3) {
-                    writeInstruction(type + "load " + index);
+                    bufferInstruction(type + "load " + index);
                 }
                 else {
-                    writeInstruction(type +  "load_" + index);
+                    bufferInstruction(type +  "load_" + index);
                 }
             }
         }
 
         if(condition instanceof ASTlt){
-            writeInstruction("if_icmpge else_" + if_counter);
+            bufferInstruction("if_icmpge else_" + if_counter);
         } else if (condition instanceof ASTnot){
 
             if ((condition.jjtGetChild(0)) instanceof ASTlt) {
-                writeInstruction("if_icmplt else_" + if_counter);
+                bufferInstruction("if_icmplt else_" + if_counter);
             } else {
-                writeInstruction("ifne else_" + if_counter);
+                bufferInstruction("ifne else_" + if_counter);
             }
         }
 
@@ -698,7 +724,7 @@ public class CodeGenerator implements ParserVisitor{
             node.jjtGetChild(i).jjtAccept(this, data);
         }
 
-       writeInstruction("goto endif_" + if_counter);
+       bufferInstruction("goto endif_" + if_counter);
 
         return null;
 
@@ -707,13 +733,13 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTElseBlock node, Object data) {
 
-       writeInstruction("else_" + if_counter + ":");
+       bufferInstruction("else_" + if_counter + ":");
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             node.jjtGetChild(i).jjtAccept(this, data);
         }
 
-       writeInstruction("endif_" + if_counter + ":");
+       bufferInstruction("endif_" + if_counter + ":");
 
         if_counter++;
 
@@ -738,7 +764,7 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTGetLength node, Object data) {
-        writeInstruction("arraylength");
+        bufferInstruction("arraylength");
         return null;
     }
 
