@@ -20,6 +20,7 @@ public class CodeGenerator implements ParserVisitor{
     private HashMap<String, ArrayList<String>> variableMap;
     private int currentVariableIndex;
     private int if_counter = 0;
+    private int logic_operation_counter = 0;
 
     public CodeGenerator(SymbolTable table, SimpleNode root) {
         this.symbolTable = table;
@@ -675,7 +676,7 @@ public class CodeGenerator implements ParserVisitor{
             }
         }
 
-        if(condition instanceof ASTlt){
+        if(condition instanceof ASTlt) {
             writeInstruction("if_icmpge else_" + if_counter);
         } else if (condition instanceof ASTnot){
 
@@ -728,11 +729,33 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTand node, Object data) {
+        // visit first child children
+        node.jjtGetChild(0).jjtAccept(this, data);
+        writeInstruction("ifeq false_and_" + logic_operation_counter);
+        // visit second child children
+        node.jjtGetChild(1).jjtAccept(this, data);
+        writeInstruction("ifeq false_and_" + logic_operation_counter);
+        writeInstruction("iconst_1");
+        writeInstruction("goto true_and_" + logic_operation_counter);
+        // compare
+        writeInstruction("false_and_" + logic_operation_counter + ": iconst_0");
+        writeInstruction("true_and_" + logic_operation_counter + ":");
+        logic_operation_counter++;
         return null;
     }
 
     @Override
     public Object visit(ASTlt node, Object data) {
+        // visit 2 children
+        node.childrenAccept(this, data);
+        // compare
+        writeInstruction("if_icmplt true_lt_" + logic_operation_counter);
+        writeInstruction("iconst_0");
+        writeInstruction("goto false_lt_" + logic_operation_counter);
+        writeInstruction("true_lt_" + logic_operation_counter + ": iconst_1");
+        writeInstruction("false_lt_" + logic_operation_counter + ":");
+        logic_operation_counter++;
+
         return null;
     }
 
@@ -744,6 +767,13 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTbool node, Object data) {
+        String booleanValue = (String) node.jjtGetValue();
+        // get boolean value
+        if (booleanValue.equals("true"))
+            writeInstruction("iconst_1");
+        else
+            writeInstruction("iconst_0");
+
         return null;
     }
 
@@ -754,6 +784,15 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTnot node, Object data) {
+        // visit child
+        node.childrenAccept(this, data);
+        // compare
+        writeInstruction("ifne not_eq_" + logic_operation_counter);
+        writeInstruction("iconst_1");
+        writeInstruction("goto eq_" + logic_operation_counter);
+        writeInstruction("not_eq_" + logic_operation_counter + ": iconst_0");
+        writeInstruction("eq_" + logic_operation_counter +  ":");
+        logic_operation_counter++;
         return null;
     }
 }
