@@ -21,6 +21,7 @@ public class CodeGenerator implements ParserVisitor{
     private HashMap<String, ArrayList<String>> variableMap;
     private int currentVariableIndex;
     private int if_counter = 0;
+    private int while_counter = 0;
     private int logic_operation_counter = 0;
 
     public CodeGenerator(SymbolTable table, SimpleNode root) {
@@ -680,20 +681,14 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
-
-       /* SimpleNode condition = (SimpleNode) node.jjtGetChild(0).jjtAccept();
-
-        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
-            SimpleNode child = (SimpleNode) node.childrenAccept(this, data);
-        }*/
-
         node.childrenAccept(this, data);
-
         return null;
     }
 
     @Override
     public Object visit(ASTIfBlock node, Object data) {
+
+        bufferInstruction("ifeq else_" + if_counter);
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             node.jjtGetChild(i).jjtAccept(this, data);
@@ -708,53 +703,73 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTElseBlock node, Object data) {
 
-       bufferInstruction("else_" + if_counter + ":");
+        bufferInstruction("else_" + if_counter + ":");
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             node.jjtGetChild(i).jjtAccept(this, data);
         }
 
-       bufferInstruction("endif_" + if_counter + ":");
+        bufferInstruction("endif_" + if_counter + ":");
 
         if_counter++;
-
         return null;
 
     }
 
     @Override
     public Object visit(ASTWhileBlock node, Object data) {
+
+        bufferInstruction("while_" + while_counter + ":");
+        node.jjtGetChild(0).jjtAccept(this, data);      // accept condition
+        bufferInstruction("ifeq end_while_" + while_counter);
+        for (int i = 1; i < node.jjtGetNumChildren(); i++) {    // accept statements
+            node.jjtGetChild(i).jjtAccept(this, data);
+        }
+        bufferInstruction("goto while_" + while_counter);
+        bufferInstruction("end_while_" + while_counter + ":");
+
+        while_counter++;
         return null;
+
     }
 
     @Override
     public Object visit(ASTand node, Object data) {
+
+        String trueLabel = "true_and_" + logic_operation_counter;
+        String falseLabel = "false_and_" + logic_operation_counter;
+        logic_operation_counter++;
+
         // visit first child children
         node.jjtGetChild(0).jjtAccept(this, data);
-        bufferInstruction("ifeq false_and_" + logic_operation_counter);
+        bufferInstruction("ifeq " + falseLabel);
         // visit second child children
         node.jjtGetChild(1).jjtAccept(this, data);
-        bufferInstruction("ifeq false_and_" + logic_operation_counter);
+        bufferInstruction("ifeq " + falseLabel);
         bufferInstruction("iconst_1");
-        bufferInstruction("goto true_and_" + logic_operation_counter);
+        bufferInstruction("goto " + trueLabel);
         // compare
-        bufferInstruction("false_and_" + logic_operation_counter + ": iconst_0");
-        bufferInstruction("true_and_" + logic_operation_counter + ":");
-        logic_operation_counter++;
+        bufferInstruction(falseLabel + ": iconst_0");
+        bufferInstruction(trueLabel + ":");
         return null;
     }
 
     @Override
     public Object visit(ASTlt node, Object data) {
+
+        String trueLabel = "true_lt_" + logic_operation_counter;
+        String falseLabel = "false_lt_" + logic_operation_counter;
+        logic_operation_counter++;
+
         // visit 2 children
         node.childrenAccept(this, data);
+
         // compare
-        bufferInstruction("if_icmplt true_lt_" + logic_operation_counter);
+        bufferInstruction("if_icmplt " + trueLabel);
         bufferInstruction("iconst_0");
-        bufferInstruction("goto false_lt_" + logic_operation_counter);
-        bufferInstruction("true_lt_" + logic_operation_counter + ": iconst_1");
-        bufferInstruction("false_lt_" + logic_operation_counter + ":");
-        logic_operation_counter++;
+        bufferInstruction("goto " + falseLabel);
+        bufferInstruction(trueLabel + ": iconst_1");
+        bufferInstruction(falseLabel + ":");
 
         return null;
     }
@@ -783,15 +798,22 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTnot node, Object data) {
+
+        String trueLabel = "not_eq_" + logic_operation_counter;
+        String falseLabel = "eq_" + logic_operation_counter;
+        logic_operation_counter++;
+
         // visit child
         node.childrenAccept(this, data);
         // compare
-        bufferInstruction("ifne not_eq_" + logic_operation_counter);
+        bufferInstruction("ifne " + trueLabel);
         bufferInstruction("iconst_1");
-        bufferInstruction("goto eq_" + logic_operation_counter);
-        bufferInstruction("not_eq_" + logic_operation_counter + ": iconst_0");
-        bufferInstruction("eq_" + logic_operation_counter +  ":");
-        logic_operation_counter++;
+        bufferInstruction("goto " + falseLabel);
+        bufferInstruction(trueLabel + ": iconst_0");
+        bufferInstruction(falseLabel + ":");
+
         return null;
+
     }
+
 }
