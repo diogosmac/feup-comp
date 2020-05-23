@@ -1,6 +1,28 @@
 import static ioPlus.printHelloWorld(void) void;
+import static io.printArray(int[]) void;
+import static io.print(int) void;
+import Math;
+import Math.calculate(int, int, int[]) int;
+import static Math.cenas() boolean;
+
 class HelloWorld {
 	public static void main(String[] args) {
+        int[] a;
+        Math m;
+        int b;
+	    a = new int[10];
+	    b = new int[10].length;
+	    b = new Math().calculate(1, 1, a);
+        m = new Math();
+	    io.printArray(a);
+	    io.print(m.calculate(a.length, a[0], a));
         ioPlus.printHelloWorld();
+
+        if (!Math.cenas() && true && false) {
+
+        }
+        else {
+
+        }
 	}
 }

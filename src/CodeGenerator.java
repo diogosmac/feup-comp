@@ -793,13 +793,15 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTbool node, Object data) {
+        /* TODO
+        ERROR: java.lang.reflect.InvocationTargetException
         String booleanValue = (String) node.jjtGetValue();
         // get boolean value
         if (booleanValue.equals("true"))
             writeInstruction("iconst_1");
         else
             writeInstruction("iconst_0");
-
+        */
         return null;
     }
 
