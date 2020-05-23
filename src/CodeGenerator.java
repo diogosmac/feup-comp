@@ -681,37 +681,11 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
 
-        SimpleNode condition = (SimpleNode) node.jjtGetChild(0);
+       /* SimpleNode condition = (SimpleNode) node.jjtGetChild(0).jjtAccept();
 
-        for (int i = 0; i < condition.jjtGetNumChildren(); i++) {
-            SimpleNode child = (SimpleNode) condition.jjtGetChild(i);
-            String identifier = (String) child.jjtGetValue();
-            ArrayList<String> variableInfo = this.variableMap.get(identifier);
-
-            if (variableInfo != null) {
-                int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
-                String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
-
-                //assign the variable assuming the value to be assigned is on top of the stack
-                if (index > 3) {
-                    bufferInstruction(type + "load " + index);
-                }
-                else {
-                    bufferInstruction(type +  "load_" + index);
-                }
-            }
-        }
-
-        if(condition instanceof ASTlt){
-            bufferInstruction("if_icmpge else_" + if_counter);
-        } else if (condition instanceof ASTnot){
-
-            if ((condition.jjtGetChild(0)) instanceof ASTlt) {
-                bufferInstruction("if_icmplt else_" + if_counter);
-            } else {
-                bufferInstruction("ifne else_" + if_counter);
-            }
-        }
+        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+            SimpleNode child = (SimpleNode) node.childrenAccept(this, data);
+        }*/
 
         node.childrenAccept(this, data);
 
@@ -757,15 +731,15 @@ public class CodeGenerator implements ParserVisitor{
     public Object visit(ASTand node, Object data) {
         // visit first child children
         node.jjtGetChild(0).jjtAccept(this, data);
-        writeInstruction("ifeq false_and_" + logic_operation_counter);
+        bufferInstruction("ifeq false_and_" + logic_operation_counter);
         // visit second child children
         node.jjtGetChild(1).jjtAccept(this, data);
-        writeInstruction("ifeq false_and_" + logic_operation_counter);
-        writeInstruction("iconst_1");
-        writeInstruction("goto true_and_" + logic_operation_counter);
+        bufferInstruction("ifeq false_and_" + logic_operation_counter);
+        bufferInstruction("iconst_1");
+        bufferInstruction("goto true_and_" + logic_operation_counter);
         // compare
-        writeInstruction("false_and_" + logic_operation_counter + ": iconst_0");
-        writeInstruction("true_and_" + logic_operation_counter + ":");
+        bufferInstruction("false_and_" + logic_operation_counter + ": iconst_0");
+        bufferInstruction("true_and_" + logic_operation_counter + ":");
         logic_operation_counter++;
         return null;
     }
@@ -775,11 +749,11 @@ public class CodeGenerator implements ParserVisitor{
         // visit 2 children
         node.childrenAccept(this, data);
         // compare
-        writeInstruction("if_icmplt true_lt_" + logic_operation_counter);
-        writeInstruction("iconst_0");
-        writeInstruction("goto false_lt_" + logic_operation_counter);
-        writeInstruction("true_lt_" + logic_operation_counter + ": iconst_1");
-        writeInstruction("false_lt_" + logic_operation_counter + ":");
+        bufferInstruction("if_icmplt true_lt_" + logic_operation_counter);
+        bufferInstruction("iconst_0");
+        bufferInstruction("goto false_lt_" + logic_operation_counter);
+        bufferInstruction("true_lt_" + logic_operation_counter + ": iconst_1");
+        bufferInstruction("false_lt_" + logic_operation_counter + ":");
         logic_operation_counter++;
 
         return null;
@@ -796,9 +770,9 @@ public class CodeGenerator implements ParserVisitor{
         // get boolean value
         String booleanValue = node.jjtGetValue().toString();
         if (booleanValue.equals("true"))
-            writeInstruction("iconst_1");
+            bufferInstruction("iconst_1");
         else
-            writeInstruction("iconst_0");
+            bufferInstruction("iconst_0");
         return null;
     }
 
@@ -812,11 +786,11 @@ public class CodeGenerator implements ParserVisitor{
         // visit child
         node.childrenAccept(this, data);
         // compare
-        writeInstruction("ifne not_eq_" + logic_operation_counter);
-        writeInstruction("iconst_1");
-        writeInstruction("goto eq_" + logic_operation_counter);
-        writeInstruction("not_eq_" + logic_operation_counter + ": iconst_0");
-        writeInstruction("eq_" + logic_operation_counter +  ":");
+        bufferInstruction("ifne not_eq_" + logic_operation_counter);
+        bufferInstruction("iconst_1");
+        bufferInstruction("goto eq_" + logic_operation_counter);
+        bufferInstruction("not_eq_" + logic_operation_counter + ": iconst_0");
+        bufferInstruction("eq_" + logic_operation_counter +  ":");
         logic_operation_counter++;
         return null;
     }
