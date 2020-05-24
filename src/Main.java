@@ -8,7 +8,7 @@ public class Main {
 		if (args.length > 2) {
 			System.err.println("Wrong number of arguments, expected: <file.jmm> [ <debug> ]");
 		}
-		boolean debug = false;
+		boolean debug = true;
 		if (args.length == 2)
 			debug = Boolean.parseBoolean(args[1]);
 

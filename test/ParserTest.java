@@ -81,12 +81,10 @@ public class ParserTest {
         test("fixtures/public/Life.jmm", false);
     }
 
-
     @Test
     public void testMonteCarloPi() {
         test("fixtures/public/MonteCarloPi.jmm", false);
     }
-
 
     @Test
     public void testQuickSort() {
@@ -158,13 +156,11 @@ public class ParserTest {
         test("fixtures/public/fail/semantic/var_undef.jmm", true);
     }
 
-    /*
-    TODO: No exception thrown, just output a warning
+
     @Test
     public void testvarNotInit() {
         test("fixtures/public/fail/semantic/varNotInit.jmm", true);
     }
-    */
 
     @Test
     public void testmiss_type() {
@@ -204,5 +200,25 @@ public class ParserTest {
     @Test
     public void testNestedLoop() {
         test("fixtures/public/fail/syntactical/NestedLoop.jmm", true);
+    }
+
+    /** --------------------------
+     * Custom Tests
+     * --------------------------
+     */
+
+    @Test
+    public void testLeapYear() {
+        test("fixtures/public/LeapYear.jmm",false);
+    }
+
+    @Test
+    public void testFactorial() {
+        test("fixtures/public/Factorial.jmm",false);
+    }
+
+    @Test
+    public void testFibonacci() {
+        test("fixtures/public/Fibonacci.jmm",false);
     }
 }

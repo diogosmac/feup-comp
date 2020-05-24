@@ -32,3 +32,6 @@ bin/
 .settings
 *.idea
 
+#class files used for testing
+*.class
+

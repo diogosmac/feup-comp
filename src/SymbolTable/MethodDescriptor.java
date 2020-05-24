@@ -100,4 +100,8 @@ public class MethodDescriptor extends Descriptor {
         }
         return returnTypes;
     }
+
+    public HashMap<String, VariableDescriptor> getVariableDescriptors() {
+        return variableDescriptors;
+    }
 }
