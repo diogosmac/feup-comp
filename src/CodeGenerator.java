@@ -523,8 +523,14 @@ public class CodeGenerator implements ParserVisitor{
             if (node.jjtGetNumChildren() == 1) {
                 // visit child
                 node.jjtGetChild(0).jjtAccept(this, data);
-                // Load int from array
-                bufferInstruction("iaload");
+                // Load int from array only if it is not being assigned (lhs)
+                // get node parent, if parent is of type ASTAssignment check if
+                // node is the first child
+                SimpleNode parent = (SimpleNode) node.jjtGetParent();
+                SimpleNode firstChild = (SimpleNode) parent.jjtGetChild(0);
+                if (!(parent instanceof ASTAssignment && firstChild.equals(node))) {
+                    bufferInstruction("iaload");
+                }
             }
         }
         else {
