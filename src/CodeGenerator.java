@@ -860,7 +860,10 @@ public class CodeGenerator implements ParserVisitor{
         this.decrementStack(1);
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            // visit child statements
             node.jjtGetChild(i).jjtAccept(this, data);
+            // clear stack
+            this.clearStack();
         }
 
        bufferInstruction("goto endif_" + if_counter);
@@ -875,7 +878,10 @@ public class CodeGenerator implements ParserVisitor{
         bufferInstruction("else_" + if_counter + ":");
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
+            // visit child statements
             node.jjtGetChild(i).jjtAccept(this, data);
+            // clear stack
+            this.clearStack();
         }
 
         bufferInstruction("endif_" + if_counter + ":");
