@@ -246,7 +246,7 @@ public class CodeGenerator implements ParserVisitor{
                     ASTType paramType = (ASTType) param.jjtGetChild(0);
 
                     //push the param type to the args array
-                    args.push((String) paramType.jjtGetValue());
+                    args.add((String) paramType.jjtGetValue());
 
                     //Add the parameter to the variable index table
                     this.addVariable((String) param.jjtGetValue(),(String) paramType.jjtGetValue());
@@ -456,7 +456,7 @@ public class CodeGenerator implements ParserVisitor{
 
         if (variableInfo != null) {
             //Local variable assignment
-            if (assignee.jjtGetNumChildren() == 1) {
+            if (assignee.jjtGetNumChildren() == 1) { //array
                 node.jjtGetChild(0).jjtAccept(this, data); //get the array reference and position
                 for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
                     node.jjtGetChild(i).jjtAccept(this,data);
@@ -484,16 +484,28 @@ public class CodeGenerator implements ParserVisitor{
         }
         else {
             try {
-                VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
+                VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier); //the identifier is a field
 
-                bufferInstruction("aload_0"); //put the this pointer in the stack
+                //load the this pointer
+                bufferInstruction("aload_0");
 
-                //preform children operations (do not visit the identifier)
-                for (int i = 1; i < node.jjtGetNumChildren(); i++) {
-                    node.jjtGetChild(i).jjtAccept(this,data);
+                if (assignee.jjtGetNumChildren() == 1) { //array
+                    node.jjtGetChild(0).jjtAccept(this, data); //get the array reference and position
+                    for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
+                        node.jjtGetChild(i).jjtAccept(this,data);
+                    }
+
+                    //store in the array
+                    bufferInstruction("iastore");
                 }
+                else {
+                    for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in field
+                        node.jjtGetChild(i).jjtAccept(this,data);
+                    }
 
-                bufferInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
+                    //store in the field
+                    bufferInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
+                }
             }
             catch (SemanticErrorException e) {
                 System.err.println("Unknown identifier " + identifier);
