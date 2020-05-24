@@ -6,23 +6,23 @@ import Math.calculate(int, int, int[]) int;
 import static Math.cenas() boolean;
 
 class HelloWorld {
+    public boolean cenas() {
+        return (2 < 1) && (2 < 2);
+    }
+
 	public static void main(String[] args) {
-        int[] a;
-        Math m;
-        int b;
-	    a = new int[10];
-	    b = new int[10].length;
-	    b = new Math().calculate(1, 1, a);
-        m = new Math();
-	    io.printArray(a);
-	    io.print(m.calculate(a.length, a[0], a));
+	    boolean cenas;
+	    HelloWorld world;
+	    world = new HelloWorld();
+	    cenas = world.cenas();
+
+	    if (cenas) {
+	        io.print(1);
+	    }
+	    else {
+	        io.print(2);
+	    }
+
         ioPlus.printHelloWorld();
-
-        if (!Math.cenas() && true && false) {
-
-        }
-        else {
-
-        }
 	}
 }

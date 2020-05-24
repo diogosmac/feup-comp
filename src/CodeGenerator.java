@@ -110,6 +110,7 @@ public class CodeGenerator implements ParserVisitor{
                 return "V";
 
             case "int":
+            case "boolean":
                 return "I";
 
             case "int[]":
@@ -132,6 +133,7 @@ public class CodeGenerator implements ParserVisitor{
 
     private String convertInstructionType(String type) {
         switch (type) {
+            case "boolean":
             case "int":
                 return "i";
 
@@ -313,13 +315,13 @@ public class CodeGenerator implements ParserVisitor{
             else {
                 try {
                     // fetch invoking method descriptor
-                    MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod(objectType, args);
+                    MethodDescriptor invokingMethodDescriptor = symbolTable.lookupMethod(methodIdentifier, args);
                     // Load the this pointer into the stack
                     bufferInstruction("aload_0");
                     // load any arguments into the stack
                     node.childrenAccept(this, data);
                     // invoke method
-                    bufferInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    bufferInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException e) {
                     //Error
                     e.printStackTrace();
@@ -337,7 +339,6 @@ public class CodeGenerator implements ParserVisitor{
                     // load new and any arguments into the stack
                     node.childrenAccept(this,data);
                     // invoke method
-                    // TODO: Check if this is really class name
                     bufferInstruction("invokevirtual " + objectType + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
                 } catch (SemanticErrorException e) {
                     e.printStackTrace();
@@ -624,37 +625,9 @@ public class CodeGenerator implements ParserVisitor{
         //visit the child
         node.childrenAccept(this,data);
 
-        //get the type of the return
-        SimpleNode child = (SimpleNode) node.jjtGetChild(0);
+        String returnType = ((MethodDescriptor) data).getType();
 
-        if (child instanceof ASTinteger || child instanceof ASTbool) {
-            bufferInstruction("ireturn");
-        }
-        else {
-            //only return variables for now
-            ArrayList<String> varInfo = this.variableMap.get(child.jjtGetValue());
-
-            if (varInfo != null) {
-                String type = convertInstructionType(varInfo.get(1));
-
-                bufferInstruction(type + "return");
-            }
-            else {
-                //try in the class fields
-                try {
-                    VariableDescriptor var = symbolTable.lookupAttribute((String) child.jjtGetValue());
-
-                    String type = convertInstructionType(var.getType());
-
-                    bufferInstruction(type + "return");
-                }
-                catch (SemanticErrorException e) {
-                    e.printStackTrace();
-                }
-            }
-            //TODO generate other types of returns
-        }
-
+        bufferInstruction(convertInstructionType(returnType) + "return");
         return null;
     }
 
