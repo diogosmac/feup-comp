@@ -22,7 +22,6 @@ public class Parser
 
     /**
     * Main method
-    * @param args
     * @throws ParseException
     */
     public SimpleNode parse() throws ParseException {
@@ -400,12 +399,26 @@ void StatementExpression() #void : { } {
     Expression() <SEMI_COLON>
 }
 
+//void Expression() #void : { } {
+//    Not()
+//}
+
 void Expression() #void : { } {
     And()
 }
 
 void And() #void : { Token t; } {
-    LT() ( LOOKAHEAD(2) t=<AND> LT() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #and(2) )*
+    Not() ( LOOKAHEAD(2) t=<AND> Not() { jjtThis.value = "boolean"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #and(2) )*
+}
+
+void Not() #void : { Token t; } {
+    (
+      t=<NOT> Not()
+      {
+        jjtThis.value = "not"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn;
+      } #not(1)
+    )  |
+    LT()
 }
 
 void LT() #void : { Token t; } {
@@ -428,7 +441,7 @@ void Div() #void : { Token t; } {
     LowerExpression() ( LOOKAHEAD(2) t=<DIV> LowerExpression() { jjtThis.value = "int"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #div(2) )*
 }
 
-void LowerExpression() #void : { } {
+void LowerExpression() #void : { Token t; } {
     LOOKAHEAD(2) ChainCall()            |
     SimpleExp()                         |
     ArrayIdentifier()
@@ -491,7 +504,7 @@ void SimpleExp() #void : { Token t; }
     } #integer                                              |
     t=<TRUE> { jjtThis.value = true; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #bool                  |
     t=<FALSE> { jjtThis.value = false; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #bool                |
-    t=<NOT> Expression() { jjtThis.value = "not"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #not(1)   |
+//    t=<NOT> Expression() { jjtThis.value = "not"; jjtThis.line = t.beginLine; jjtThis.column = t.beginColumn; } #not(1)   |
     try {
         <OPEN_PAR> Expression() <CLOSE_PAR>
     } catch (ParseException e) {

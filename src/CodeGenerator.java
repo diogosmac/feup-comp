@@ -130,8 +130,10 @@ public class CodeGenerator implements ParserVisitor{
                 return "V";
 
             case "int":
-            case "boolean":
                 return "I";
+
+            case "boolean":
+                return "Z";
 
             case "int[]":
                 return "[I";
@@ -576,13 +578,13 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTVarDeclaration node, Object data) {
         if (node.jjtGetParent() instanceof ASTRegularMethod || node.jjtGetParent() instanceof ASTMainMethod){
-            //Alocate the variable in the variable map
+            // Allocate the variable in the variable map
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
             this.addVariable((String) node.jjtGetValue(),(String) child.jjtGetValue());
         }
         else {
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
-            writeInstruction(".field private " + node.jjtGetValue() +  " " + convertType((String) child.jjtGetValue()));
+            writeInstruction(".field private '" + node.jjtGetValue() +  "' " + convertType((String) child.jjtGetValue()));
         }
 
         return null;
@@ -682,22 +684,7 @@ public class CodeGenerator implements ParserVisitor{
                 bufferInstruction(type + "load_" + index);
             }
             this.incrementStack();
-            // if variable has a child then it is of type int[]
-            if (node.jjtGetNumChildren() == 1) {
-                // visit child
-                node.jjtGetChild(0).jjtAccept(this, data);
-                // Load int from array only if it is not being assigned (lhs)
-                // get node parent, if parent is of type ASTAssignment check if
-                // node is the first child
-                SimpleNode parent = (SimpleNode) node.jjtGetParent();
-                SimpleNode firstChild = (SimpleNode) parent.jjtGetChild(0);
-                if (!(parent instanceof ASTAssignment && firstChild.equals(node))) {
-                    bufferInstruction("iaload");
-                    // arrayref, index
-                    // value
-                    this.decrementStack(1);
-                }
-            }
+
         }
         else {
             //Check fields
@@ -708,10 +695,28 @@ public class CodeGenerator implements ParserVisitor{
                 this.incrementStack();
                 bufferInstruction("getfield " + symbolTable.getClassName() + "/" + id + " " + convertType(fieldDescriptor.getType()));
                 this.decrementStack(0);
+
             }
             catch (SemanticErrorException e) {
                 System.err.println("Unknown identifier " + id);
                 e.printStackTrace();
+            }
+        }
+
+        // if variable has a child then it is of type int[]
+        if (node.jjtGetNumChildren() == 1) {
+            // visit child
+            node.jjtGetChild(0).jjtAccept(this, data);
+            // Load int from array only if it is not being assigned (lhs)
+            // get node parent, if parent is of type ASTAssignment check if
+            // node is the first child
+            SimpleNode parent = (SimpleNode) node.jjtGetParent();
+            SimpleNode firstChild = (SimpleNode) parent.jjtGetChild(0);
+            if (!(parent instanceof ASTAssignment && firstChild.equals(node))) {
+                bufferInstruction("iaload");
+                // arrayref, index
+                // value
+                this.decrementStack(1);
             }
         }
 
@@ -862,14 +867,31 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTIfElseBlock node, Object data) {
-        node.childrenAccept(this, data);
+
+        String elseLabel = "else_" + if_counter;
+        String endIfLabel = "endif_" + if_counter;
+        if_counter++;
+
+        node.jjtGetChild(0).jjtAccept(this, data);
+
+        bufferInstruction("ifeq " + elseLabel);
+        this.decrementStack(1);
+
+        node.jjtGetChild(1).jjtAccept(this, data);
+
+        bufferInstruction("goto " + endIfLabel);
+        bufferInstruction(elseLabel + ":");
+
+        node.jjtGetChild(2).jjtAccept(this, data);
+
+        bufferInstruction(endIfLabel + ":");
+
         return null;
+
     }
 
     @Override
     public Object visit(ASTIfBlock node, Object data) {
-        bufferInstruction("ifeq else_" + if_counter);
-        this.decrementStack(1);
 
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             // visit child statements
@@ -877,8 +899,6 @@ public class CodeGenerator implements ParserVisitor{
             // clear stack
             this.clearStack();
         }
-
-       bufferInstruction("goto endif_" + if_counter);
 
         return null;
 
@@ -887,8 +907,6 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTElseBlock node, Object data) {
 
-        bufferInstruction("else_" + if_counter + ":");
-
         for (int i = 0; i < node.jjtGetNumChildren(); i++) {
             // visit child statements
             node.jjtGetChild(i).jjtAccept(this, data);
@@ -896,9 +914,6 @@ public class CodeGenerator implements ParserVisitor{
             this.clearStack();
         }
 
-        bufferInstruction("endif_" + if_counter + ":");
-
-        if_counter++;
         return null;
 
     }
