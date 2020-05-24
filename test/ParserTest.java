@@ -201,4 +201,24 @@ public class ParserTest {
     public void testNestedLoop() {
         test("fixtures/public/fail/syntactical/NestedLoop.jmm", true);
     }
+
+    /** --------------------------
+     * Custom Tests
+     * --------------------------
+     */
+
+    @Test
+    public void testLeapYear() {
+        test("fixtures/public/LeapYear.jmm",false);
+    }
+
+    @Test
+    public void testFactorial() {
+        test("fixtures/public/Factorial.jmm",false);
+    }
+
+    @Test
+    public void testFibonacci() {
+        test("fixtures/public/Fibonacci.jmm",false);
+    }
 }
