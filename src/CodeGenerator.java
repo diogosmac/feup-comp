@@ -589,10 +589,7 @@ public class CodeGenerator implements ParserVisitor{
         if (variableInfo != null) {
             //Local variable assignment
             if (assignee.jjtGetNumChildren() == 1) { //array
-                node.jjtGetChild(0).jjtAccept(this, data); //get the array reference and position
-                for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
-                    node.jjtGetChild(i).jjtAccept(this,data);
-                }
+                node.childrenAccept(this,data);
                 // update type to integer address
                 bufferInstruction("iastore");
                 this.decrementStack(3);
@@ -703,19 +700,6 @@ public class CodeGenerator implements ParserVisitor{
             catch (SemanticErrorException e) {
                 System.err.println("Unknown identifier " + id);
                 e.printStackTrace();
-            }
-        }
-
-        if (node.jjtGetNumChildren() == 1) {
-            // visit child
-            node.jjtGetChild(0).jjtAccept(this, data);
-            // Load int from array only if it is not being assigned (lhs)
-            // get node parent, if parent is of type ASTAssignment check if
-            // node is the first child
-            SimpleNode parent = (SimpleNode) node.jjtGetParent();
-            SimpleNode firstChild = (SimpleNode) parent.jjtGetChild(0);
-            if (!(parent instanceof ASTAssignment && firstChild.equals(node))) {
-                bufferInstruction("iaload");
             }
         }
 
