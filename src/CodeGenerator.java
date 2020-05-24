@@ -391,6 +391,12 @@ public class CodeGenerator implements ParserVisitor{
                     node.childrenAccept(this, data);
                     // invoke method
                     bufferInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    // decrement stack (this + args)
+                    this.decrementStack(1 + args.size());
+                    // increment return value
+                    if (!invokingMethodDescriptor.getType().equals("void")) {
+                        this.incrementStack();
+                    }
                 } catch (SemanticErrorException ignored) { }
             }
             // this class method call
@@ -405,6 +411,12 @@ public class CodeGenerator implements ParserVisitor{
                     node.childrenAccept(this, data);
                     // invoke method
                     bufferInstruction("invokevirtual " + symbolTable.getClassName() + "/" + methodIdentifier + "(" + convertParams(args) + ")" + convertType(invokingMethodDescriptor.getType()));
+                    // decrement stack (this + args)
+                    this.decrementStack(1 + args.size());
+                    // increment return value
+                    if (!invokingMethodDescriptor.getType().equals("void")) {
+                        this.incrementStack();
+                    }
                 } catch (SemanticErrorException e) {
                     //Error
                     e.printStackTrace();
@@ -803,6 +815,7 @@ public class CodeGenerator implements ParserVisitor{
 
         bufferInstruction(convertInstructionType(returnType) + "return");
         // return cleans the stack
+        this.currentStack = 0;
         return null;
     }
 
@@ -855,7 +868,6 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTIfBlock node, Object data) {
-
         bufferInstruction("ifeq else_" + if_counter);
         this.decrementStack(1);
 
@@ -893,10 +905,13 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTWhileBlock node, Object data) {
+        String whileLabel = "while_" +  while_counter;
+        String endWhileLabel = "end_while_" + while_counter;
+        while_counter++;
 
-        bufferInstruction("while_" + while_counter + ":");
+        bufferInstruction(whileLabel + ":");
         node.jjtGetChild(0).jjtAccept(this, data);      // accept condition
-        bufferInstruction("ifeq end_while_" + while_counter);
+        bufferInstruction("ifeq " + endWhileLabel);
         this.decrementStack(1);
         // clear stack
         this.clearStack();
@@ -906,12 +921,10 @@ public class CodeGenerator implements ParserVisitor{
             // clear stack
             this.clearStack();
         }
-        bufferInstruction("goto while_" + while_counter);
-        bufferInstruction("end_while_" + while_counter + ":");
+        bufferInstruction("goto " + whileLabel);
+        bufferInstruction(endWhileLabel + ":");
 
-        while_counter++;
         return null;
-
     }
 
     @Override
