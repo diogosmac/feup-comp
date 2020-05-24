@@ -11,17 +11,12 @@ class HelloWorld {
     }
 
 	public static void main(String[] args) {
-	    boolean cenas;
-	    HelloWorld world;
-	    world = new HelloWorld();
-	    cenas = world.cenas();
+	    int[] a;
 
-	    if (cenas) {
-	        io.print(1);
-	    }
-	    else {
-	        io.print(2);
-	    }
+	    a = new int[5];
+	    a[3] = 2;
+
+	    io.print(a[3]);
 
         ioPlus.printHelloWorld();
 	}
