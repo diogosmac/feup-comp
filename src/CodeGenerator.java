@@ -183,6 +183,9 @@ public class CodeGenerator implements ParserVisitor{
         //write the superclass
         writeInstruction(".super " + extendingClassName);
 
+        //Accept children
+        node.childrenAccept(this, null);
+
         //Write the constructor
         writeInstruction(".method public <init>()V");
         bufferInstruction("aload_0");
@@ -191,8 +194,7 @@ public class CodeGenerator implements ParserVisitor{
         dumpInstructions();
         writeInstruction(".end method");
 
-        //Accept children
-        return node.childrenAccept(this, null);
+        return null;
     }
 
     @Override
@@ -435,7 +437,7 @@ public class CodeGenerator implements ParserVisitor{
         }
         else {
             SimpleNode child = (SimpleNode) node.jjtGetChild(0);
-            bufferInstruction(".field private " + node.jjtGetValue() +  " " + convertType((String) child.jjtGetValue()));
+            writeInstruction(".field private " + node.jjtGetValue() +  " " + convertType((String) child.jjtGetValue()));
         }
 
         return null;
@@ -453,11 +455,6 @@ public class CodeGenerator implements ParserVisitor{
             type = "ia";
         }
 
-        //preform children operations (do not visit the identifier)
-        for (int i = 1; i < node.jjtGetNumChildren(); i++) {
-            node.jjtGetChild(i).jjtAccept(this,data);
-        }
-
         //Get the variable identifier
         String identifier = (String) assignee.jjtGetValue();
 
@@ -465,6 +462,11 @@ public class CodeGenerator implements ParserVisitor{
         ArrayList<String> variableInfo = this.variableMap.get(identifier);
 
         if (variableInfo != null) {
+            //preform children operations (do not visit the identifier)
+            for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+                node.jjtGetChild(i).jjtAccept(this,data);
+            }
+
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             if (type == null)
                 type = convertInstructionType(variableInfo.get(1)); //the type of the variable
@@ -482,6 +484,12 @@ public class CodeGenerator implements ParserVisitor{
                 VariableDescriptor fieldDescriptor = symbolTable.lookupAttribute(identifier);
 
                 bufferInstruction("aload_0"); //put the this pointer in the stack
+
+                //preform children operations (do not visit the identifier)
+                for (int i = 1; i < node.jjtGetNumChildren(); i++) {
+                    node.jjtGetChild(i).jjtAccept(this,data);
+                }
+
                 bufferInstruction("putfield "+ symbolTable.getClassName() + "/" + identifier + " " + convertType(fieldDescriptor.getType()));
             }
             catch (SemanticErrorException e) {
@@ -619,7 +627,7 @@ public class CodeGenerator implements ParserVisitor{
         //get the type of the return
         SimpleNode child = (SimpleNode) node.jjtGetChild(0);
 
-        if (child instanceof ASTinteger) {
+        if (child instanceof ASTinteger || child instanceof ASTbool) {
             bufferInstruction("ireturn");
         }
         else {
@@ -631,7 +639,19 @@ public class CodeGenerator implements ParserVisitor{
 
                 bufferInstruction(type + "return");
             }
+            else {
+                //try in the class fields
+                try {
+                    VariableDescriptor var = symbolTable.lookupAttribute((String) child.jjtGetValue());
 
+                    String type = convertInstructionType(var.getType());
+
+                    bufferInstruction(type + "return");
+                }
+                catch (SemanticErrorException e) {
+                    e.printStackTrace();
+                }
+            }
             //TODO generate other types of returns
         }
 
@@ -749,7 +769,8 @@ public class CodeGenerator implements ParserVisitor{
         bufferInstruction("iconst_1");
         bufferInstruction("goto " + trueLabel);
         // compare
-        bufferInstruction(falseLabel + ": iconst_0");
+        bufferInstruction(falseLabel + ":");
+        bufferInstruction("iconst_0");
         bufferInstruction(trueLabel + ":");
         return null;
     }
@@ -768,7 +789,8 @@ public class CodeGenerator implements ParserVisitor{
         bufferInstruction("if_icmplt " + trueLabel);
         bufferInstruction("iconst_0");
         bufferInstruction("goto " + falseLabel);
-        bufferInstruction(trueLabel + ": iconst_1");
+        bufferInstruction(trueLabel + ":");
+        bufferInstruction("iconst_1");
         bufferInstruction(falseLabel + ":");
 
         return null;
@@ -809,7 +831,8 @@ public class CodeGenerator implements ParserVisitor{
         bufferInstruction("ifne " + trueLabel);
         bufferInstruction("iconst_1");
         bufferInstruction("goto " + falseLabel);
-        bufferInstruction(trueLabel + ": iconst_0");
+        bufferInstruction(trueLabel + ":");
+        bufferInstruction("iconst_0");
         bufferInstruction(falseLabel + ":");
 
         return null;
