@@ -56,7 +56,7 @@ java -jar <jar filename> <path to jmm file> true
 
 To test the program, run ``gradle test``. This will execute the build, and run the JUnit tests in the ``test`` folder. If you want to see output printed during the tests, use the flag ``-i`` (i.e., ``gradle test -i``).
 
-# Semantic Analysis Checklist
+# Semantic Analysis Checklist (Checkpoint 2)
 
 ## Symbol Table :heavy_check_mark:
 
@@ -84,9 +84,28 @@ To test the program, run ``gradle test``. This will execute the build, and run t
  - [X] **Parameter Type List:** verificar se o **tipo dos parâmetros** coincide com o tipo dos argumentos
 
 ## Code Generation
- - [X] **Class Structure:** estrutura básica de classe (incluindo construtor <init>)
+ - [X] **Class Structure:** estrutura básica de classe (incluindo construtor `<init>`)
  - [X] **Field Structure:** estrutura básica de fields
  - [X] **Method Structure:** estrutura básica de métodos (podem desconsiderar os limites neste checkpoint: limit_stack 99, limit_locals 99)
  - [X] **assignments:**
  - [X] **Arithmetic Operations:** operações aritméticas (com prioridade de operações correta), neste checkpoint não é necessário a seleção das operações mais eficientes mas isto será considerado no CP3 e versão final
  - [X] **Method Calls:** invocação de métodos
+
+# Code Generation (Checkpoint 3)
+
+ - [X] **Conditionals:** Generate JVM code accepted by jasmin for conditional instructions(`if` and `if-else`)
+ - [X] **Loops:** Generate JVM code accepted by jasmin for loops (`while`)
+ - [X] **Arrays:** Generate JVM code accepted by jasmin to deal with arrays
+    - [X] Array initialization (`newarray int`)
+    - [X] Array Store (`astore`)
+    - [X] Array Access (`aload`)
+    - [X] Array Position Store (`iastore`)
+    - [X] Array Position Access (`iaload`)
+ - [X] **Limits:** `.limit stack` and `.limit locals` are calculated
+ - [X] **Pass all tests**
+ - [X] **Custom tests**
+    - [X] Fibonacci
+    - [X] Leap Years
+    - [X] Factorial (Recursion and Iteration)
+
+
