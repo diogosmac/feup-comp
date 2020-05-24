@@ -399,10 +399,6 @@ void StatementExpression() #void : { } {
     Expression() <SEMI_COLON>
 }
 
-//void Expression() #void : { } {
-//    Not()
-//}
-
 void Expression() #void : { } {
     And()
 }
