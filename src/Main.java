@@ -1,8 +1,31 @@
 import Exceptions.SemanticErrorException;
 import SymbolTable.SymbolTable;
 
+/**
+ * <h1>J-- Compiler</h1>
+ *
+ * <p>The J-- Compiler is a compiler implemented in java using JavaCC
+ * for a mini-java type language called J--. This class is responsible
+ * for calling all other class methods which take care of the key
+ * parts of compiler execution: </p>
+ * <ol>
+ *     <li>Parsing and Syntax Analysis</li>
+ *     <li>Semantic Analysis and Symbol Table Building</li>
+ *     <li>Code Generation</li>
+ * </ol>
+ *
+ * @see Parser
+ * @see SemanticAnalyser
+ * @see SymbolTableBuilder
+ * @see CodeGenerator
+ */
 public class Main {
 
+	/**
+	 * J-- Compiler main method
+	 * @param args command line arguments
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception {
 		// validate arguments
 		if (args.length > 2) {
@@ -39,22 +62,13 @@ public class Main {
 		codeGenerator.generateCode();
 	}
 
-	public static void test(SimpleNode node) {
-		System.out.println(node.jjtGetValue());
-
-		if (node.jjtGetValue() == null) {
-			System.out.println(node.toString());
-		}
-
-		Node[] children = node.jjtGetChildren();
-
-		if (children == null) return;
-
-		for (Node c : children)
-			test((SimpleNode) c);
-	}
-
-	public static SimpleNode parse(String filename) throws ParseException {
+	/**
+	 * Parses the file whose name is passed as argument
+	 * @param filename name of the .jmm file
+	 * @return Root node of the built Abstract Syntax Tree (AST)
+	 * @throws ParseException
+	 */
+	private static SimpleNode parse(String filename) throws ParseException {
 		Parser parser;
 		// open file as input stream
 		try {
@@ -64,7 +78,7 @@ public class Main {
 			System.out.println("ERROR: file " + filename + " not found.");
 			return null;
 		}
-
+		// parse and return root node
 		return parser.parse();
 	}
 }
