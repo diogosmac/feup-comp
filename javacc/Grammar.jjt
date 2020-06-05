@@ -42,7 +42,7 @@ public class Parser
     /**
      * Report syntax error and increment error counter
      */
-    static void reportError(ParseException e, String statement) throws ParseException {
+    private static void reportError(ParseException e, String statement) throws ParseException {
         // Print Warning
         System.out.println("Syntax error on " + statement + " statement.");
         // Print parsing error
