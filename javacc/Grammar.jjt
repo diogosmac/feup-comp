@@ -6,7 +6,12 @@ options
 }
 
 PARSER_BEGIN(Parser)
-
+/**
+ * <h1>Parser</h1>
+ * <p>The main goal of this class is to
+ * parse a J-- class and generate an AST
+ * with the given tokens.</p>
+ */
 public class Parser
 {
     /**
