@@ -7,25 +7,42 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * Symbol Table in JMM
+ * <h1>Symbol Table</h1>
+ * <p>This class represents a symbol table. It contains
+ * information about the imported resources, class attributes
+ * and methods.</p>
+ * <p>This is a vital part of semantic analysis and lookups
+ * during code generation</p>
  */
 public class SymbolTable {
 
+    /**
+     * Name of the compiled class
+     */
     private String className;
+    /**
+     * Name of the extended class (if any)
+     */
     private String extendedClassName;
     /**
+     * Attribute list
      * identifier -> < data type >
      */
     private HashMap<String, VariableDescriptor> variableDescriptors;
     /**
+     * Declared Methods
      * identifier -> < return data type, list of params, list of local variables >
      */
     private HashMap<String, LinkedList<MethodDescriptor>> methodDescriptors;
     /**
+     * Imported resources
      * identifier -> < isMethod, isStatic, return data type, list of params >
      */
     private HashMap<String, LinkedList<ImportDescriptor>> importDescriptors;
 
+    /**
+     * Constructor
+     */
     public SymbolTable() {
         this.className = "";
         this.extendedClassName = "";
@@ -34,6 +51,14 @@ public class SymbolTable {
         this.importDescriptors = new HashMap<>();
     }
 
+    /**
+     * Lookup class attribute with the name passed as
+     * argument. A SemanticErrorException is thrown if
+     * not found.
+     * @param variableIdentifier identifier
+     * @return Variable Descriptor if found
+     * @throws SemanticErrorException if not found
+     */
     public VariableDescriptor lookupAttribute(String variableIdentifier) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(variableIdentifier))
             throw new SemanticErrorException("Variable '" + variableIdentifier + "' not defined");
@@ -41,6 +66,15 @@ public class SymbolTable {
             return this.variableDescriptors.get(variableIdentifier);
     }
 
+    /**
+     * Lookup class method with the identifier and parameters
+     * type list passed as argument. A SemanticErrorException
+     * is thrown if not found.
+     * @param methodIdentifier identifier
+     * @param parameterTypes List of parameter types
+     * @return Method Descriptor if found
+     * @throws SemanticErrorException if not found
+     */
     public MethodDescriptor lookupMethod(String methodIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
         // build error message
         StringBuilder message = new StringBuilder(methodIdentifier + "(");
@@ -63,6 +97,15 @@ public class SymbolTable {
         throw new SemanticErrorException("Method '" + message + "' not defined");
     }
 
+    /**
+     * Lookup class method with the identifier and parameters
+     * type list passed as argument. A SemanticErrorException
+     * is thrown if not found.
+     * @param importIdentifier import identifier
+     * @param parameterTypes List of parameter types
+     * @return Import Descriptor if found
+     * @throws SemanticErrorException if not found
+     */
     public ImportDescriptor lookupImport(String importIdentifier, LinkedList<String> parameterTypes) throws SemanticErrorException {
         // build error message
         StringBuilder message = new StringBuilder(importIdentifier + "(");
@@ -85,6 +128,13 @@ public class SymbolTable {
         throw new SemanticErrorException("Method '" + message + "' not defined");
     }
 
+    /**
+     * Adds an attribute to the attribute list. A SemanticErrorException
+     * is thrown if the identifier is already being used.
+     * @param identifier attribute identifier
+     * @param dataType attribute data type
+     * @throws SemanticErrorException if the identifier is already in use
+     */
     public void addVariable(String identifier, String dataType) throws SemanticErrorException {
         if (!this.variableDescriptors.containsKey(identifier))
             this.variableDescriptors.put(identifier, new VariableDescriptor(dataType));
@@ -92,6 +142,11 @@ public class SymbolTable {
             throw new SemanticErrorException("Variable '" + identifier + "' already defined");
     }
 
+    /**
+     * Adds a method to the method list.
+     * @param identifier method identifier
+     * @param dataType method return data type
+     */
     public void addMethod(String identifier, String dataType) {
         // no methods with the name 'identifier'
         if (!this.methodDescriptors.containsKey(identifier))
@@ -100,6 +155,15 @@ public class SymbolTable {
         this.methodDescriptors.get(identifier).add(new MethodDescriptor(dataType));
     }
 
+    /**
+     * Adds an method parameter to the method's parameter list.
+     * A SemanticErrorException is thrown if the parameter
+     * identifier is already being used.
+     * @param methodIdentifier method identifier
+     * @param parameterIdentifier parameter identifier
+     * @param dataType parameter data type
+     * @throws SemanticErrorException if the parameter identifier is already in use
+     */
     public void addMethodParameter(String methodIdentifier, String parameterIdentifier, String dataType) throws SemanticErrorException {
         try {
             this.methodDescriptors.get(methodIdentifier).getLast().addParameter(parameterIdentifier, dataType);
@@ -108,6 +172,15 @@ public class SymbolTable {
         }
     }
 
+    /**
+     * Adds an method variable to the method's variable list.
+     * A SemanticErrorException is thrown if the variable
+     * identifier is already being used
+     * @param methodIdentifier method identifier
+     * @param variableIdentifier variable identifier
+     * @param dataType variable data type
+     * @throws SemanticErrorException if the identifier is already in use
+     */
     public void addMethodVariable(String methodIdentifier, String variableIdentifier, String dataType) throws SemanticErrorException {
         try {
             this.methodDescriptors.get(methodIdentifier).getLast().addVariable(variableIdentifier, dataType);
@@ -116,6 +189,14 @@ public class SymbolTable {
         }
     }
 
+    /**
+     * This method receives a method identifier and compares all methods
+     * with the same identifier to make sure method overloading is
+     * supported.
+     *
+     * @param identifier method identifier
+     * @throws SemanticErrorException if any error occurs
+     */
     public void checkEqualMethods(String identifier) throws SemanticErrorException {
         // get method descriptor list
         LinkedList<MethodDescriptor> methods = this.methodDescriptors.get(identifier);
@@ -133,6 +214,12 @@ public class SymbolTable {
         }
     }
 
+    /**
+     * Adds an import to the import list.
+     * @param importIdentifier import identifier
+     * @param isStatic true if import is static
+     * @param isMethod true if import is a method
+     */
     public void addImport(String importIdentifier, boolean isStatic, boolean isMethod) {
         // no imports with the name 'identifier'
         if (!this.importDescriptors.containsKey(importIdentifier))
@@ -141,14 +228,32 @@ public class SymbolTable {
         this.importDescriptors.get(importIdentifier).add(new ImportDescriptor(isStatic, isMethod));
     }
 
+    /**
+     * Adds an import parameter to the import's parameter list.
+     * @param importIdentifier method identifier
+     * @param dataType parameter data type
+     */
     public void addImportParameter(String importIdentifier, String dataType) {
         this.importDescriptors.get(importIdentifier).getLast().addParameter(dataType);
     }
 
+    /**
+     * Sets the import's return type
+     * @param importIdentifier method identifier
+     * @param dataType import's return type
+     */
     public void setImportReturnType(String importIdentifier, String dataType) {
         this.importDescriptors.get(importIdentifier).getLast().setReturnType(dataType);
     }
 
+    /**
+     * This method receives an import identifier and compares all imports
+     * with the same identifier to make sure method overloading is
+     * supported.
+     *
+     * @param identifier import identifier
+     * @throws SemanticErrorException if any error occurs
+     */
     public void checkEqualImports(String identifier) throws SemanticErrorException {
         // get import descriptor list
         LinkedList<ImportDescriptor> imports = this.importDescriptors.get(identifier);
@@ -169,34 +274,66 @@ public class SymbolTable {
         }
     }
 
+    /**
+     * Getter method for import descriptors
+     * @return import descriptor list
+     */
     public HashMap<String, LinkedList<ImportDescriptor>> getImportDescriptors() {
         return importDescriptors;
     }
 
+    /**
+     * Getter method for method descriptors
+     * @return method descriptor list
+     */
     public HashMap<String, LinkedList<MethodDescriptor>> getMethodDescriptors() {
         return methodDescriptors;
     }
 
+    /**
+     * Getter method for parameter descriptors
+     * @return parameter descriptor list
+     */
     public HashMap<String, VariableDescriptor> getVariableDescriptors() {
         return variableDescriptors;
     }
 
+    /**
+     * Getter method for class name
+     * @return class name
+     */
     public String getClassName() {
         return className;
     }
 
+    /**
+     * Getter method for extended class name
+     * @return extended class name
+     */
     public String getExtendedClassName() {
         return extendedClassName;
     }
 
+    /**
+     * Setter method for class name
+     * @param className class name to set
+     */
     public void setClassName(String className) {
         this.className = className;
     }
 
+    /**
+     * Setter method for extended class name
+     * @param extendedClassName extended class name to set
+     */
     public void setExtendedClassName(String extendedClassName) {
         this.extendedClassName = extendedClassName;
     }
 
+    /**
+     * Prints to console the information regarding the
+     * symbol table.
+     */
     public void dump() {
         // Class name
         StringBuilder buffer = new StringBuilder("Class Name: " + this.className + "\n");

@@ -6,7 +6,12 @@ options
 }
 
 PARSER_BEGIN(Parser)
-
+/**
+ * <h1>Parser</h1>
+ * <p>The main goal of this class is to
+ * parse a J-- class and generate an AST
+ * with the given tokens.</p>
+ */
 public class Parser
 {
     /**
@@ -42,7 +47,7 @@ public class Parser
     /**
      * Report syntax error and increment error counter
      */
-    static void reportError(ParseException e, String statement) throws ParseException {
+    private static void reportError(ParseException e, String statement) throws ParseException {
         // Print Warning
         System.out.println("Syntax error on " + statement + " statement.");
         // Print parsing error

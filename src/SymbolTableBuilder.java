@@ -5,6 +5,18 @@ import SymbolTable.ImportDescriptor;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * <h1>Symbol Table Builder</h1>
+ * <p>The main goal of this class is to generate a symbol
+ * table with the information present in the parsed AST.</p>
+ * <p>This class makes use of the ParserVisitor and uses
+ * the visitor pattern supported by JavaCC to visit all
+ * nodes of the AST.</p>
+ * <p>This makes it easy to analyse each node type in a
+ * specific way, analysing a node based on which type
+ * of node we are currently visiting.</p>
+ * @see ParserVisitor
+ */
 public class SymbolTableBuilder implements ParserVisitor {
 
     /**
@@ -18,20 +30,38 @@ public class SymbolTableBuilder implements ParserVisitor {
      */
     private int numErrors = 0;
 
+    /**
+     * AST root node
+     */
     private final SimpleNode root;
 
+    /**
+     * Symbol Table
+     */
     private final SymbolTable table;
 
+    /**
+     * Constructor
+     * @param root AST root node
+     */
     public SymbolTableBuilder(SimpleNode root) {
         this.root = root;
         this.table = new SymbolTable();
         this.numErrors = 0;
     }
 
+    /**
+     * Getter method for numErrors
+     * @return numErrors
+     */
     public int getNumErrors() {
         return numErrors;
     }
 
+    /**
+     * Initiator method for symbol table building
+     * @return built symbol table
+     */
     public SymbolTable buildSymbolTable() {
         // start visiting nodes from the root
         this.visit(root, null);
@@ -39,6 +69,12 @@ public class SymbolTableBuilder implements ParserVisitor {
         return this.table;
     }
 
+    /**
+     * Print to terminal an error message
+     * @param message error message
+     * @param line line the error occurred
+     * @param column column the error occurred
+     */
     private void printError(String message, int line, int column) {
         numErrors++;
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
@@ -48,6 +84,12 @@ public class SymbolTableBuilder implements ParserVisitor {
         }
     }
 
+    /**
+     * Print to terminal a warning message
+     * @param message error message
+     * @param line line the error occurred
+     * @param column column the error occurred
+     */
     private void printWarning(String message, int line, int column) {
         System.out.println("SEMANTIC WARNING: " + message + " at line: " + line + ", column: " + column + ".");
     }
