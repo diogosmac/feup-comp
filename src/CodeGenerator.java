@@ -14,11 +14,14 @@ import java.util.LinkedList;
 
 /**
  * <h1>Code Generator</h1>
+ * <p>The main goal of this class is to generate JVM instructions
+ * for a J-- class given an AST and a symbol table.</p>
  * <p>This class makes use of the ParserVisitor and uses
  * the visitor pattern supported by JavaCC to visit all
  * nodes of the AST.</p>
  * <p>This makes it easy to treat each node type in a
- * specific way.</p>
+ * specific way. generating instructions based on which
+ * type of node we are currently visiting.</p>
  * @see ParserVisitor
  */
 public class CodeGenerator implements ParserVisitor{
