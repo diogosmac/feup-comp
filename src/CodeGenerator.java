@@ -12,21 +12,66 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * <h1>Code Generator</h1>
+ * <p>This class makes use of the ParserVisitor and uses
+ * the visitor pattern supported by JavaCC to visit all
+ * nodes of the AST.</p>
+ * <p>This makes it easy to treat each node type in a
+ * specific way.</p>
+ * @see ParserVisitor
+ */
 public class CodeGenerator implements ParserVisitor{
+    /**
+     * Symbol Table
+     */
     private final SymbolTable symbolTable;
+    /**
+     * Output .j file
+     */
     private FileWriter outFileWriter;
+    /**
+     * AST root node
+     */
     private final SimpleNode root;
+    /**
+     * Buffer to write down instructions for each method
+     */
     private StringBuilder instructionBuffer;
-
+    /**
+     * Variable Map
+     */
     private HashMap<String, ArrayList<String>> variableMap;
+    /**
+     * Variable index counter for instructions
+     */
     private int currentVariableIndex;
+    /**
+     * IF_ELSE block counters for jump labels
+     */
     private int if_counter = 0;
+    /**
+     * WHILE block counters for jump labels
+     */
     private int while_counter = 0;
+    /**
+     * logic operations counters for jump labels
+     */
     private int logic_operation_counter = 0;
-
+    /**
+     * Value of the stack for each method
+     */
     private int maxStack = 0;
+    /**
+     * Current size of stack while parsing
+     */
     private int currentStack = 0;
 
+    /**
+     * Default Constructor
+     * @param table symbol table
+     * @param root AST root node
+     */
     public CodeGenerator(SymbolTable table, SimpleNode root) {
         this.symbolTable = table;
         this.root = root;
@@ -54,10 +99,19 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Initiator method for code generator
+     */
     public void generateCode() {
         this.visit(this.root, null);
     }
 
+    /**
+     * Add variable to variable map
+     * @param variableId variable identifier
+     * @param variableType variable type
+     * @return true if variable was stored correctly
+     */
     private boolean addVariable(String variableId, String variableType) {
         if (!this.variableMap.containsKey(variableId)) {
             ArrayList<String> paramInfo = new ArrayList<>();
@@ -73,16 +127,30 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Increment current stack and update max
+     * stack
+     */
     public void incrementStack() {
         currentStack++;
         if (currentStack > maxStack)
             maxStack = currentStack;
     }
 
+    /**
+     * Decrement current stack
+     * @param value number of 'pops' on the stack
+     *              after performing an operation
+     */
     public void decrementStack(int value) {
         currentStack -= value;
     }
 
+    /**
+     * Called after each statement. Clears the stack
+     * to size 0 while writing pops to the instruction
+     * buffer.
+     */
     public void clearStack() {
         while (this.currentStack != 0) {
             bufferInstruction("pop");
@@ -124,6 +192,11 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Return the accordingly JVM type
+     * @param type value type (i.e int, boolean, void...)
+     * @return JVM type according to specified type
+     */
     private String convertType(String type) {
         switch (type) {
             case "void":
@@ -143,6 +216,12 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Convert List of String parameter types to JVM
+     * instruction fashion
+     * @param args method arguments in List of Strings
+     * @return string with params in JVM instruction fashion
+     */
     private String convertParams(LinkedList<String> args) {
         String result = "";
 
@@ -153,6 +232,11 @@ public class CodeGenerator implements ParserVisitor{
         return result;
     }
 
+    /**
+     * Convert regular types to JVM instruction fashion
+     * @param type value type
+     * @return JVM instruction type
+     */
     private String convertInstructionType(String type) {
         switch (type) {
             case "boolean":
@@ -167,6 +251,12 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Return method's list of arguments
+     * @param node CallMethodNode
+     * @param methodDescriptor method descriptor
+     * @return List of Arguments in List of Strings
+     */
     private LinkedList<String> fetchMethodArgs(ASTCallMethod node, MethodDescriptor methodDescriptor) {
         LinkedList<String> args = new LinkedList<>();
         // create semantic analyzer
@@ -177,6 +267,11 @@ public class CodeGenerator implements ParserVisitor{
         return args;
     }
 
+    /**
+     * Calculate limit locals for main method
+     * @param node main method node
+     * @return limit locals value
+     */
     private int getLimitLocals(ASTMainMethod node) {
         // get method name and parameter types
         String methodName = "main";
@@ -194,6 +289,11 @@ public class CodeGenerator implements ParserVisitor{
         return localLimit;
     }
 
+    /**
+     * Calculate limit locals for a regular method
+     * @param node regular method node
+     * @return limit locals value
+     */
     private int getLimitLocals(ASTRegularMethod node) {
         // get method name
         String methodName = (String) node.jjtGetValue();
@@ -222,11 +322,6 @@ public class CodeGenerator implements ParserVisitor{
             e.printStackTrace();
         }
         return localLimit;
-    }
-
-    private int getLimitStack(String methodName) {
-
-        return 0;
     }
 
     @Override
