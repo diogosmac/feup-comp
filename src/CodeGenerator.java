@@ -842,8 +842,11 @@ public class CodeGenerator implements ParserVisitor{
         if (number > 200) {
             bufferInstruction("ldc_w " + number);
         }
-        else {
+        else if (number > 6) {
             bufferInstruction("bipush " + number);
+        }
+        else {
+            bufferInstruction("iconst_" + number);
         }
 
         // push integer value to stack
