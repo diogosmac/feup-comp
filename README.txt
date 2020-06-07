@@ -82,8 +82,9 @@ We were able to finish almost all the suggestions for this compiler, being:
 7.  Generate JVM code accepted by jasmin for arithmetic expressions;
 8.  Generate JVM code accepted by jasmin for conditional instructions (if and if-else);
 9.  Generate JVM code accepted by jasmin for loops;
-10. Generate JVM code accepted by jasmin to deal with arrays.
+10. Generate JVM code accepted by jasmin to deal with arrays;
 11. Complete the compiler and test it using a set of Java-- classes;
+12. Proceed with the optimizations related to the code generation, related to the optimizations related to the “-o” option.
 
 
 **TASK DISTRIBUTION:
@@ -100,7 +101,7 @@ Every member contributed equally to every stage of the development.
 
 **CONS:
 
-* None of the optimizations were implemented, which is something that can be improved in the future.
+* The optimization related to the register allocation (“-r”) was not implemented, which is something that can be improved in the future.
 
 **CONCLUSIONS
 
