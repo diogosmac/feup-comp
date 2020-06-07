@@ -839,14 +839,17 @@ public class CodeGenerator implements ParserVisitor{
     public Object visit(ASTinteger node, Object data) {
         int number = Integer.parseInt((String) node.jjtGetValue());
 
-        if (number > 200) {
-            bufferInstruction("ldc_w " + number);
+        if (number < 6) {
+            bufferInstruction("iconst_" + number);
         }
-        else if (number > 6) {
+        else if (number < 256) {
             bufferInstruction("bipush " + number);
         }
+        else if (number < 65536) { //65536 = 2^16 -> number of bits in a short
+            bufferInstruction("sipush " + number);
+        }
         else {
-            bufferInstruction("iconst_" + number);
+            bufferInstruction("ldc_w " + number);
         }
 
         // push integer value to stack
