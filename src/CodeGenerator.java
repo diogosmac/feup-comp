@@ -737,7 +737,6 @@ public class CodeGenerator implements ParserVisitor{
                         paramInfo.add(variableInfo.get(0));
                         paramInfo.add(variableInfo.get(1));
                         paramInfo.add((String) ((ASTinteger) node.jjtGetChild(1)).jjtGetValue());
-                        this.variableMap.remove(identifier);
                         this.variableMap.put(identifier,paramInfo);
 
                         return null;
