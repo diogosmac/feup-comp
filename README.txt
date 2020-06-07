@@ -3,12 +3,12 @@
 
 **GROUP: 3F
 
-Diogo José de Sousa Machado, 201706832, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
-Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
-Leonardo Fernandes Moura, 201706907, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
-Maria João Sera Viana, 201604751, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
+Diogo José de Sousa Machado, 201706832, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
+Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
+Leonardo Fernandes Moura, 201706907, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
+Maria João Sera Viana, 201604751, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
 
-GLOBAL Grade of the project: <0 to 20>
+GLOBAL Grade of the project: <17.5 to 20>
 
 
 ** SUMMARY:
@@ -93,11 +93,17 @@ Every member contributed equally to every stage of the development.
 
 **PROS: 
 
-The usage of some built in javacc features (parser visitor), which makes our project scalable easily
-Functional and easy to understand AST
-Runs all test files
+* The usage of some built in javacc/jjtree features (parser visitor), which makes our project scalable easily.
+* Functional and easy to understand AST with the help of javacc/jjtree feature option (multi).
+* Runs all test files.
 
 
 **CONS:
 
-None of the optimizations were implemented, which is something that can be improved in the future.
+* None of the optimizations were implemented, which is something that can be improved in the future.
+
+**CONCLUSIONS
+
+Having completed this project our group has concluded that building a good Syntax Tree is one of the most important steps when building a compiler.
+Also having spent half the project's time in correcting and perfecting our parser in order to build a consistent and easy to understand Syntax Tree made us aware of that. In return the other phases (Semantic Analysis and Code Generation) were much simpler with a good AST.
+In fact in all 3 checkpoints of this project we found ourselves looking back at our parser in order to fix some inconsistencies.
