@@ -43,6 +43,11 @@ public class CodeGenerator implements ParserVisitor{
     private StringBuilder instructionBuffer;
     /**
      * Variable Map
+     * The arrayList stores the following information:
+     * [0] - The index of the variable
+     * [1] - The type of the variable
+     * [2] - The number of assignments of the variable
+     * [3] (if exists)
      */
     private HashMap<String, ArrayList<String>> variableMap;
     /**
@@ -120,6 +125,7 @@ public class CodeGenerator implements ParserVisitor{
             ArrayList<String> paramInfo = new ArrayList<>();
             paramInfo.add(String.valueOf(this.currentVariableIndex));
             paramInfo.add(variableType);
+            paramInfo.add("0");
             this.variableMap.put(variableId,paramInfo);
             this.currentVariableIndex++;
 
@@ -842,10 +848,10 @@ public class CodeGenerator implements ParserVisitor{
         if (number < 6) {
             bufferInstruction("iconst_" + number);
         }
-        else if (number < 256) {
+        else if (number < 128) {
             bufferInstruction("bipush " + number);
         }
-        else if (number < 65536) { //65536 = 2^16 -> number of bits in a short
+        else if (number < 32768) { //65536 = 2^15 -> number of bits in a signed short
             bufferInstruction("sipush " + number);
         }
         else {
