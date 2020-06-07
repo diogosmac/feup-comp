@@ -45,7 +45,19 @@ The compiler implements the following semantic rules:
 
 **OVERVIEW: (refer the approach used in your tool, the main algorithms, the third-party tools and/or packages, etc.)
 
-**TASK DISTRIBUTION: (Identify the set of tasks done by each member of the project. You can divide this by checkpoint it if helps)
 
-**PROS: (Identify the most positive aspects of your tool)
-**CONS: (Identify the most negative aspects of your tool)
+
+**TASK DISTRIBUTION:
+
+Every member contributed equally to every stage of the development.
+
+
+**PROS: 
+
+Functional and easy to understand AST
+Runs all test files
+
+
+**CONS:
+
+The register allocation optimization was not implemented
