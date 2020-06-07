@@ -1075,9 +1075,9 @@ public class CodeGenerator implements ParserVisitor{
         logic_operation_counter++;
 
         // (x < 0): iload x > iflt
-        // get left hand child
-        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(1);
-        if (leftChild instanceof ASTinteger && leftChild.jjtGetValue().equals("0")) {
+        // get right hand child
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+        if (rightChild instanceof ASTinteger && rightChild.jjtGetValue().equals("0")) {
             // visit first child
             node.jjtGetChild(0).jjtAccept(this, data);
             // compare

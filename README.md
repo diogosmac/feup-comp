@@ -111,8 +111,8 @@ To test the program, run ``gradle test``. This will execute the build, and run t
 # Final Delivery
 
  - [ ] **Instruction Selection:** Choose the most optimized instruction (constant loading, variable increments and `<` comparison)
- - [ ] **Comments and Documentation:** Document classes and methods, comment key code parts
- - [ ] **Tests:** Build more tests showing off compiler features
+ - [X] **Comments and Documentation:** Document classes and methods, comment key code parts
+ - [X] **Tests:** Build more tests showing off compiler features
  - [ ] **README.txt:** Group information, contributions, compiling and execution instructions
  - [ ] **Complete Form:** Eventually
  - [ ] **`-r=<num>`:** Where `<num>` equals the maximum number of available registers
