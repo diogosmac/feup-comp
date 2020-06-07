@@ -3,12 +3,12 @@
 
 **GROUP: 3F
 
-Diogo José de Sousa Machado, 201706832, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
-Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
-Leonardo Fernandes Moura, 201706907, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
-Maria João Sera Viana, 201604751, GRADE: <17.5 to 20 value>, CONTRIBUTION: <25 % to 100 %>
+Diogo José de Sousa Machado, 201706832, GRADE: 17.5, CONTRIBUTION: 25%
+Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: 17.5, CONTRIBUTION: 25%
+Leonardo Fernandes Moura, 201706907, GRADE: 17.5, CONTRIBUTION: 25%
+Maria João Sera Viana, 201604751, GRADE: 17.5, CONTRIBUTION: 25%
 
-GLOBAL Grade of the project: <17.5 to 20>
+GLOBAL Grade of the project: 17.5
 
 
 ** SUMMARY:
@@ -60,7 +60,7 @@ Besides the mentioned semantic rules, in this stage our compiler also builds a s
 
 **INTERMEDIATE REPRESENTATIONS (IRs):
 
-The intermediate representation is being delivered by the Syntax Tree (Abstract Syntax Tree) that has in mind the preservations of the operations order based on their priorities. This helps in the overall project but most importantly in the code generation phase.
+The intermediate representation is being delivered by the Syntax Tree (Abstract Syntax Tree) that has in mind the conservation of the operations order based on their priorities. This helps in the overall project but most importantly in the code generation phase.
 
 
 **CODE GENERATION: 
@@ -72,16 +72,16 @@ If there are no errors during the semantic and syntactic analysis, the code for 
 
 We were able to finish almost all the suggestions for this compiler, being:
 
-1. Develop a parser for Java-- using JavaCC and taking as starting point the Java-- grammar furnished;
-2. Include error treatment and recovery mechanisms;
-3. Proceed with the specification of the AST;
-4. Include the necessary symbol tables;
-5. Semantic Analysis;
-6. Generate JVM code accepted by jasmin corresponding to the invocation of functions in
-Java--;
-7. Generate JVM code accepted by jasmin for arithmetic expressions;
-8. Generate JVM code accepted by jasmin for conditional instructions (if and if-else);
-9. Generate JVM code accepted by jasmin for loops;
+1.  Develop a parser for Java-- using JavaCC and taking as starting point the Java-- grammar furnished;
+2.  Include error treatment and recovery mechanisms;
+3.  Proceed with the specification of the AST;
+4.  Include the necessary symbol tables;
+5.  Semantic Analysis;
+6.  Generate JVM code accepted by jasmin corresponding to the invocation of functions in
+    Java--;
+7.  Generate JVM code accepted by jasmin for arithmetic expressions;
+8.  Generate JVM code accepted by jasmin for conditional instructions (if and if-else);
+9.  Generate JVM code accepted by jasmin for loops;
 10. Generate JVM code accepted by jasmin to deal with arrays.
 11. Complete the compiler and test it using a set of Java-- classes;
 
