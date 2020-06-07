@@ -1,7 +1,8 @@
 **PROJECT TITLE: Compiler of the Java-- language to Java Bytecodes
 
+
 **GROUP: 3F
-(Names, numbers, self assessment, and contribution of the members of the group to the project according to:)
+
 Diogo José de Sousa Machado, 201706832, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
 Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
 Leonardo Fernandes Moura, 201706907, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 100 %>
@@ -9,42 +10,62 @@ Maria João Sera Viana, 201604751, GRADE: <0 to 20 value>, CONTRIBUTION: <0 to 1
 
 GLOBAL Grade of the project: <0 to 20>
 
-** SUMMARY: 
+
+** SUMMARY:
 
 This project was developed for the Compilers course unit. It aims to implement compiler (jmm) that translates programs in Java-- into java bytecodes. It generates files files of the classes with JVM instructions accepted by jasmin (the tool that translates those classes into java bytecodes. 
-The compiler includes syntactical analysis, semantical analysis and code generation.
+The compiler includes syntactic analysis (including Syntax Tree building), semantic analysis (including symbol table building) and code generation (with best instruction selection).
 
-** EXECUTE: 
+
+** EXECUTE:
 
 To compile the program: gradle build
-To execute the program: java -jar <jar filename> text/fixtures/public/<file.jmm>
+To execute the program: java -jar <jar filename> text/fixtures/public/<file.jmm> [ <DEBUG_MODE> ]
+    * <DEBUG_MODE> - 'true' or 'false'
+        * true - dumps generated Syntax Tree and Symbol Table to the terminal
+        * false (default) - does nothing
 
-**DEALING WITH SYNTACTIC ERRORS: (Describe how the syntactic error recovery of your tool does work. Does it exit after the first error?)
+
+**DEALING WITH SYNTACTIC ERRORS:
 
 The compiler does not abort execution immediately after the first error. It displays the first 10 errors found, before aborting the execution, so that the developer proceeds with their correction.
 
-**SEMANTIC ANALYSIS: 
+
+**SEMANTIC ANALYSIS:
 
 The compiler implements the following semantic rules:
 
+***Type Verification
 * Unary/Binary Operation: it verifies if operations are done with the same type;
-* Array Operations: it is not possible to use arrays directly to arithmetic operations;
+* Array Operations: it is not possible to use arrays directly in arithmetic operations;
 * Array Index: it verifies if an array access is done in an actual array;
 * Array Index: it verifies if the index of the acmes array is an integer;
-* Assignments Types: it verifies if the assignee value is equal to the assigned value;
+* Assignments Types: it verifies if the assignee type is equal to the assigner type;
 * Conditional Expression: it verifies if conditional expressions return a boolean value;
 * Variable Initialization: it verifies if variables are initialized, giving a warning instead of an error;
-* Target Verification: it verifies if the target of a method exists, and if it contains the method. If it is a declared class, it verifies if it is a extends method, considering the imports;
+
+***Function Verification
+* Target Verification: it verifies if the target of a method exists, and if it contains the method. If it is a declared class, it verifies if it is an extended class method, considering the imports;
 * Imported Methods: if the method is not from the declared class, it verifies if the method was imported;
 * Parameter List: it verifies if the number of the invoked arguments is equal to the number of parameters of the declaration;
 * Parameter Type List: it verifies if the type of the parameters matches the type of arguments.
 
+Besides the mentioned semantic rules, in this stage our compiler also builds a symbol table with the following features:
+* Global Information: information regarding our class and import statements;
+* Class Specific Information: information about possible extended class, fields and methods;
+* Method Specific Information: information about parameters and local variables;
+* Method Overloading: Our compiler supports method overloading, i.e. method with the same name and return type, but different parameter signature;
+* Table Lookups: The symbol tables allows to lookup any import, method, variable and attribute at any time during the semantic analysis and code generation steps;
+* Debug Mode: (Off by default) If active it prints the symbol table to the terminal
+
 **INTERMEDIATE REPRESENTATIONS (IRs):
+
 The intermediate representation is being delivered by the Syntax Tree (Abstract Syntax Tree) that has in mind the preservations of the operations order based on their priorities. This helps in the overall project but most importantly in the code generation phase.
+
 
 **CODE GENERATION: 
 
-If there are no errors during the semantic and syntatic analysis, the code for the specified file is generated, generating for each AST node the corresponding jvm code.
+If there are no errors during the semantic and syntactic analysis, the code for the specified file is generated, generating for each AST node the corresponding jvm code.
 
 
 **OVERVIEW:
@@ -78,4 +99,5 @@ Runs all test files
 
 
 **CONS:
+
 None of the optimizations were implemented, which is something that can be improved in the future.

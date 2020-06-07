@@ -31,7 +31,7 @@ public class Main {
 		if (args.length > 2) {
 			System.err.println("Wrong number of arguments, expected: <file.jmm> [ <debug> ]");
 		}
-		boolean debug = true;
+		boolean debug = false;
 		if (args.length == 2)
 			debug = Boolean.parseBoolean(args[1]);
 
@@ -39,7 +39,10 @@ public class Main {
 		// get root of Syntax Tree
 		SimpleNode root = parse(args[0]);
 		// Print tree to console
-		root.dump("");
+		if (debug) {
+			System.out.println("\n==== Dumping Syntax Tree ====\n");
+			root.dump("");
+		}
 
 		// ***** Semantic Analysis
 		// build symbol table
