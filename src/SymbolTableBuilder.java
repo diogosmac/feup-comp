@@ -275,9 +275,7 @@ public class SymbolTableBuilder implements ParserVisitor {
     }
 
     @Override
-    public Object visit(ASTAssignment node, Object data) {
-        return null;
-    }
+    public Object visit(ASTAssignment node, Object data) { return null; }
 
     @Override
     public Object visit(ASTObjectCall node, Object data) {

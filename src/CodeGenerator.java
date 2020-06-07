@@ -46,8 +46,7 @@ public class CodeGenerator implements ParserVisitor{
      * The arrayList stores the following information:
      * [0] - The index of the variable
      * [1] - The type of the variable
-     * [2] - The number of assignments of the variable
-     * [3] (if exists)
+     * [3] (if exists) value of the variable
      */
     private HashMap<String, ArrayList<String>> variableMap;
     /**
@@ -125,7 +124,6 @@ public class CodeGenerator implements ParserVisitor{
             ArrayList<String> paramInfo = new ArrayList<>();
             paramInfo.add(String.valueOf(this.currentVariableIndex));
             paramInfo.add(variableType);
-            paramInfo.add("0");
             this.variableMap.put(variableId,paramInfo);
             this.currentVariableIndex++;
 
@@ -331,6 +329,21 @@ public class CodeGenerator implements ParserVisitor{
             e.printStackTrace();
         }
         return localLimit;
+    }
+
+    private void loadInteger(int number) {
+        if (number < 6) {
+            bufferInstruction("iconst_" + number);
+        }
+        else if (number < 128) {
+            bufferInstruction("bipush " + number);
+        }
+        else if (number < 32768) { //65536 = 2^15 -> number of bits in a signed short
+            bufferInstruction("sipush " + number);
+        }
+        else {
+            bufferInstruction("ldc_w " + number);
+        }
     }
 
     @Override
@@ -713,22 +726,42 @@ public class CodeGenerator implements ParserVisitor{
                 this.decrementStack(3);
             }
             else {
-                // x = x + 1: iinc x 1; instead of laod x > iconst 1 > istore
                 SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
-                if (rightChild instanceof ASTsum) {
-                    // get two operands
-                    SimpleNode leftOperand = (SimpleNode) rightChild.jjtGetChild(0);
-                    SimpleNode rightOperand = (SimpleNode) rightChild.jjtGetChild(1);
-                    // check if one of the two operands is equal to 'identifier' and the
-                    // other is equal to 1
-                    boolean firstCondition = rightOperand.jjtGetValue().equals("1") && leftOperand.jjtGetValue().equals(identifier);
-                    boolean secondCondition = rightOperand.jjtGetValue().equals(identifier) && leftOperand.jjtGetValue().equals("1");
-                    if (firstCondition || secondCondition) {
-                        int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
-                        bufferInstruction("iinc " + index + " 1");
+
+                try {
+                    VariableDescriptor descriptor = ((MethodDescriptor) data).lookupVariable(identifier);
+
+                    if (node.jjtGetNumChildren() == 2 && node.jjtGetChild(1) instanceof ASTinteger && descriptor.isConstant()) {
+                        //Assign the integer to the variable map
+                        ArrayList<String> paramInfo = new ArrayList<>();
+                        paramInfo.add(variableInfo.get(0));
+                        paramInfo.add(variableInfo.get(1));
+                        paramInfo.add((String) ((ASTinteger) node.jjtGetChild(1)).jjtGetValue());
+                        this.variableMap.remove(identifier);
+                        this.variableMap.put(identifier,paramInfo);
+
                         return null;
                     }
+                    // x = x + 1: iinc x 1; instead of laod x > iconst 1 > istore
+                    else if (rightChild instanceof ASTsum ) {
+                        // get two operands
+                        SimpleNode leftOperand = (SimpleNode) rightChild.jjtGetChild(0);
+                        SimpleNode rightOperand = (SimpleNode) rightChild.jjtGetChild(1);
+                        // check if one of the two operands is equal to 'identifier' and the
+                        // other is equal to 1
+                        boolean firstCondition = rightOperand.jjtGetValue().equals("1") && leftOperand.jjtGetValue().equals(identifier);
+                        boolean secondCondition = rightOperand.jjtGetValue().equals(identifier) && leftOperand.jjtGetValue().equals("1");
+                        if (firstCondition || secondCondition) {
+                            int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+                            bufferInstruction("iinc " + index + " 1");
+                            return null;
+                        }
+                    }
+
+                } catch (SemanticErrorException e) {
+                    //this should never happen
                 }
+
                 //visit children but not the identifier
                 for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
                     node.jjtGetChild(i).jjtAccept(this, data);
@@ -794,13 +827,22 @@ public class CodeGenerator implements ParserVisitor{
             ArrayList<String> variableInfo = this.variableMap.get(id);
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
-            // load variable
-            if (index > 3) {
-                bufferInstruction(type + "load " + index);
+
+            if (variableInfo.size() == 3) { //The variable is a constant
+                String value = variableInfo.get(2);
+
+                loadInteger(Integer.parseInt(value));
             }
             else {
-                bufferInstruction(type + "load_" + index);
+                // load variable
+                if (index > 3) {
+                    bufferInstruction(type + "load " + index);
+                }
+                else {
+                    bufferInstruction(type + "load_" + index);
+                }
             }
+
             this.incrementStack();
 
         }
@@ -845,18 +887,7 @@ public class CodeGenerator implements ParserVisitor{
     public Object visit(ASTinteger node, Object data) {
         int number = Integer.parseInt((String) node.jjtGetValue());
 
-        if (number < 6) {
-            bufferInstruction("iconst_" + number);
-        }
-        else if (number < 128) {
-            bufferInstruction("bipush " + number);
-        }
-        else if (number < 32768) { //65536 = 2^15 -> number of bits in a signed short
-            bufferInstruction("sipush " + number);
-        }
-        else {
-            bufferInstruction("ldc_w " + number);
-        }
+        loadInteger(number);
 
         // push integer value to stack
         this.incrementStack();

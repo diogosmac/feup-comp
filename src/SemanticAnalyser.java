@@ -116,6 +116,22 @@ public class SemanticAnalyser implements ParserVisitor {
         descriptor.setInitialised(true);
     }
 
+    private void setNotConstant(ASTIdentifier node, Object data) {
+        // get method descriptor
+        MethodDescriptor method = (MethodDescriptor) data;
+        // get variable id
+        String variableIdentifier = (String) node.jjtGetValue();
+        // lookup variable in method
+        try {
+            VariableDescriptor descriptor = method.lookupVariable(variableIdentifier);
+
+            descriptor.setNotConstant();
+
+        } catch (SemanticErrorException e) {
+            //it is not a class variable: do nothing
+        }
+    }
+
     @Override
     public Object visit(SimpleNode node, Object data) {
         return node.childrenAccept(this, data);
@@ -257,6 +273,12 @@ public class SemanticAnalyser implements ParserVisitor {
         // check if types are the same
         if (!assigneeType.equals(assignerType))
             this.printError("Assignment of different types '" + assigneeType + "' and '" + assignerType + "'", node.line, node.column);
+
+        //check if assignment makes the variable not be constant anymore
+        if (!(node.jjtGetNumChildren() == 2 && node.jjtGetChild(0) instanceof ASTIdentifier && node.jjtGetChild(1) instanceof ASTinteger)) {
+            this.setNotConstant((ASTIdentifier) assigneeNode, data);
+        }
+
         return null;
     }
 

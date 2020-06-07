@@ -11,10 +11,12 @@ public class VariableDescriptor extends Descriptor {
      * True if the variable
      */
     private boolean initialised;
+    private boolean constant;
 
     public VariableDescriptor(String dataType) {
         this.initialised = false;
         this.type = dataType;
+        this.constant = true;
     }
 
     /**
@@ -42,6 +44,14 @@ public class VariableDescriptor extends Descriptor {
      */
     public void setInitialised(boolean initialised) {
         this.initialised = initialised;
+    }
+
+    public void setNotConstant() {
+        this.constant = false;
+    }
+
+    public boolean isConstant() {
+        return this.constant;
     }
 
     @Override
