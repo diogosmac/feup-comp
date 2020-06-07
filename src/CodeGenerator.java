@@ -1074,12 +1074,25 @@ public class CodeGenerator implements ParserVisitor{
         String falseLabel = "false_lt_" + logic_operation_counter;
         logic_operation_counter++;
 
-        // visit 2 children
-        node.childrenAccept(this, data);
+        // (x < 0): iload x > iflt
+        // get left hand child
+        SimpleNode leftChild = (SimpleNode) node.jjtGetChild(1);
+        if (leftChild instanceof ASTinteger && leftChild.jjtGetValue().equals("0")) {
+            // visit first child
+            node.jjtGetChild(0).jjtAccept(this, data);
+            // compare
+            bufferInstruction("iflt " + trueLabel);
+            this.decrementStack(1);
+        }
+        // (x < 1): iload x > iconst_0 > if_icmplt
+        else {
+            // visit 2 children
+            node.childrenAccept(this, data);
+            // compare
+            bufferInstruction("if_icmplt " + trueLabel);
+            this.decrementStack(2);
+        }
 
-        // compare
-        bufferInstruction("if_icmplt " + trueLabel);
-        this.decrementStack(2);
         bufferInstruction("iconst_0");
         bufferInstruction("goto " + falseLabel);
         bufferInstruction(trueLabel + ":");
