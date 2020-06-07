@@ -707,9 +707,25 @@ public class CodeGenerator implements ParserVisitor{
                 this.decrementStack(3);
             }
             else {
+                // x = x + 1: iinc x 1; instead of laod x > iconst 1 > istore
+                SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+                if (rightChild instanceof ASTsum) {
+                    // get two operands
+                    SimpleNode leftOperand = (SimpleNode) rightChild.jjtGetChild(0);
+                    SimpleNode rightOperand = (SimpleNode) rightChild.jjtGetChild(1);
+                    // check if one of the two operands is equal to 'identifier' and the
+                    // other is equal to 1
+                    boolean firstCondition = rightOperand.jjtGetValue().equals("1") && leftOperand.jjtGetValue().equals(identifier);
+                    boolean secondCondition = rightOperand.jjtGetValue().equals(identifier) && leftOperand.jjtGetValue().equals("1");
+                    if (firstCondition || secondCondition) {
+                        int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+                        bufferInstruction("iinc " + index + " 1");
+                        return null;
+                    }
+                }
                 //visit children but not the identifier
                 for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
-                    node.jjtGetChild(i).jjtAccept(this,data);
+                    node.jjtGetChild(i).jjtAccept(this, data);
                 }
 
                 int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
@@ -718,12 +734,10 @@ public class CodeGenerator implements ParserVisitor{
                 //assign the variable assuming the value to be assigned is on top of the stack
                 if (index > 3) {
                     bufferInstruction(type + "store " + index);
-                }
-                else {
-                    bufferInstruction(type +  "store_" + index);
+                } else {
+                    bufferInstruction(type + "store_" + index);
                 }
                 this.decrementStack(1);
-
             }
         }
         else {
