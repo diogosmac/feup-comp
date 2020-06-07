@@ -3,12 +3,12 @@
 
 **GROUP: 3F
 
-Diogo José de Sousa Machado, 201706832, GRADE: 17.5, CONTRIBUTION: 25%
-Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: 17.5, CONTRIBUTION: 25%
-Leonardo Fernandes Moura, 201706907, GRADE: 17.5, CONTRIBUTION: 25%
-Maria João Sera Viana, 201604751, GRADE: 17.5, CONTRIBUTION: 25%
+Diogo José de Sousa Machado, 201706832, GRADE: 18, CONTRIBUTION: 25%
+Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: 18, CONTRIBUTION: 25%
+Leonardo Fernandes Moura, 201706907, GRADE: 18, CONTRIBUTION: 25%
+Maria João Sera Viana, 201604751, GRADE: 18, CONTRIBUTION: 25%
 
-GLOBAL Grade of the project: 17.5
+GLOBAL Grade of the project: 18
 
 
 ** SUMMARY:
@@ -84,7 +84,7 @@ We were able to finish almost all the suggestions for this compiler, being:
 9.  Generate JVM code accepted by jasmin for loops;
 10. Generate JVM code accepted by jasmin to deal with arrays;
 11. Complete the compiler and test it using a set of Java-- classes;
-12. Proceed with the optimizations related to the code generation, related to the optimizations related to the “-o” option.
+12. Proceed with the optimizations related to the code generation, the optimizations related to the “-o” option.
 
 
 **TASK DISTRIBUTION:
