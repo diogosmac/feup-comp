@@ -1035,26 +1035,31 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTWhileBlock node, Object data) {
+
         String whileLabel = "while_" +  while_counter;
         String endWhileLabel = "end_while_" + while_counter;
         while_counter++;
 
-        bufferInstruction(whileLabel + ":");
         node.jjtGetChild(0).jjtAccept(this, data);      // accept condition
         bufferInstruction("ifeq " + endWhileLabel);
         this.decrementStack(1);
-        // clear stack
         this.clearStack();
+
+        bufferInstruction(whileLabel + ":");
         for (int i = 1; i < node.jjtGetNumChildren(); i++) {    // accept statements
             // visit child statements
             node.jjtGetChild(i).jjtAccept(this, data);
             // clear stack
             this.clearStack();
         }
-        bufferInstruction("goto " + whileLabel);
+        node.jjtGetChild(0).jjtAccept(this, data);      // test after statements
+        bufferInstruction("ifne " + whileLabel);
+        this.decrementStack(1);
+        this.clearStack();
         bufferInstruction(endWhileLabel + ":");
 
         return null;
+
     }
 
     @Override
@@ -1151,23 +1156,15 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTnot node, Object data) {
 
-        String trueLabel = "not_eq_" + logic_operation_counter;
-        String falseLabel = "eq_" + logic_operation_counter;
-        logic_operation_counter++;
-
         // visit child
         node.childrenAccept(this, data);
         // compare
-        bufferInstruction("ifne " + trueLabel);
-        this.decrementStack(1);
         bufferInstruction("iconst_1");
-        bufferInstruction("goto " + falseLabel);
-        bufferInstruction(trueLabel + ":");
-        bufferInstruction("iconst_0");
-        bufferInstruction(falseLabel + ":");
+        this.incrementStack();
+        bufferInstruction("ixor");
+        this.decrementStack(1);
 
         // place result on stack
-        this.incrementStack();
         return null;
 
     }
