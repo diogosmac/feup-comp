@@ -39,12 +39,30 @@ The compiler implements the following semantic rules:
 * Parameter List: it verifies if the number of the invoked arguments is equal to the number of parameters of the declaration;
 * Parameter Type List: it verifies if the type of the parameters matches the type of arguments.
 
-**INTERMEDIATE REPRESENTATIONS (IRs): (for example, when applicable, briefly describe the HLIR (high-level IR) and the LLIR (low-level IR) used, if your tool includes an LLIR with structure different from the HLIR)
+**INTERMEDIATE REPRESENTATIONS (IRs):
+The intermediate representation is being delivered by the Syntax Tree (Abstract Syntax Tree) that has in mind the preservations of the operations order based on their priorities. This helps in the overall project but most importantly in the code generation phase.
 
-**CODE GENERATION: (describe how the code generation of your tool works and identify the possible problems your tool has regarding code generation.)
+**CODE GENERATION: 
 
-**OVERVIEW: (refer the approach used in your tool, the main algorithms, the third-party tools and/or packages, etc.)
+If there are no errors during the semantic and syntatic analysis, the code for the specified file is generated, generating for each AST node the corresponding jvm code.
 
+
+**OVERVIEW:
+
+We were able to finish almost all the suggestions for this compiler, being:
+
+1. Develop a parser for Java-- using JavaCC and taking as starting point the Java-- grammar furnished;
+2. Include error treatment and recovery mechanisms;
+3. Proceed with the specification of the AST;
+4. Include the necessary symbol tables;
+5. Semantic Analysis;
+6. Generate JVM code accepted by jasmin corresponding to the invocation of functions in
+Java--;
+7. Generate JVM code accepted by jasmin for arithmetic expressions;
+8. Generate JVM code accepted by jasmin for conditional instructions (if and if-else);
+9. Generate JVM code accepted by jasmin for loops;
+10. Generate JVM code accepted by jasmin to deal with arrays.
+11. Complete the compiler and test it using a set of Java-- classes;
 
 
 **TASK DISTRIBUTION:
@@ -54,10 +72,10 @@ Every member contributed equally to every stage of the development.
 
 **PROS: 
 
+The usage of some built in javacc features (parser visitor), which makes our project scalable easily
 Functional and easy to understand AST
 Runs all test files
 
 
 **CONS:
-
-The register allocation optimization was not implemented
+None of the optimizations were implemented, which is something that can be improved in the future.
