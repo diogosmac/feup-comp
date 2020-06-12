@@ -6,7 +6,7 @@
 Diogo José de Sousa Machado, 201706832, GRADE: 18, CONTRIBUTION: 25%
 Gonçalo José Marantes Pimenta da Costa Monteiro, 201706917, GRADE: 18, CONTRIBUTION: 25%
 Leonardo Fernandes Moura, 201706907, GRADE: 18, CONTRIBUTION: 25%
-Maria João Sera Viana, 201604751, GRADE: 18, CONTRIBUTION: 25%
+Maria João Senra Viana, 201604751, GRADE: 18, CONTRIBUTION: 25%
 
 GLOBAL Grade of the project: 18
 
@@ -66,7 +66,7 @@ The intermediate representation is being delivered by the Syntax Tree (Abstract 
 **CODE GENERATION: 
 
 If there are no errors during the semantic and syntactic analysis, the code for the specified file is generated, generating for each AST node the corresponding jvm code.
-
+It is important to note that the optimizations related to the "-o" flag have been implemented out of box, so it is only necessary to run our program normally.
 
 **OVERVIEW:
 

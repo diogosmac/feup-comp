@@ -116,6 +116,6 @@ To test the program, run ``gradle test``. This will execute the build, and run t
  - [X] **README.txt:** Group information, contributions, compiling and execution instructions
  - [ ] **Complete Form:** Eventually
  - [ ] **`-r=<num>`:** Where `<num>` equals the maximum number of available registers
- - [ ] **`-o`:** This option should include the following optimizations:
-     - [ ] Replace constant variables with respective values
+ - [X] **`-o`:** This option should include the following optimizations:
+     - [X] Replace constant variables with respective values
      - [X] Don't use `goto`'s on `while` loops
