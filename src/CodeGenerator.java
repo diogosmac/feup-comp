@@ -12,21 +12,73 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * <h1>Code Generator</h1>
+ * <p>The main goal of this class is to generate JVM instructions
+ * for a J-- class given an AST and a symbol table.</p>
+ * <p>This class makes use of the ParserVisitor and uses
+ * the visitor pattern supported by JavaCC to visit all
+ * nodes of the AST.</p>
+ * <p>This makes it easy to treat each node type in a
+ * specific way. generating instructions based on which
+ * type of node we are currently visiting.</p>
+ * @see ParserVisitor
+ */
 public class CodeGenerator implements ParserVisitor{
+    /**
+     * Symbol Table
+     */
     private final SymbolTable symbolTable;
+    /**
+     * Output .j file
+     */
     private FileWriter outFileWriter;
+    /**
+     * AST root node
+     */
     private final SimpleNode root;
+    /**
+     * Buffer to write down instructions for each method
+     */
     private StringBuilder instructionBuffer;
-
+    /**
+     * Variable Map
+     * The arrayList stores the following information:
+     * [0] - The index of the variable
+     * [1] - The type of the variable
+     * [3] (if exists) value of the variable
+     */
     private HashMap<String, ArrayList<String>> variableMap;
+    /**
+     * Variable index counter for instructions
+     */
     private int currentVariableIndex;
+    /**
+     * IF_ELSE block counters for jump labels
+     */
     private int if_counter = 0;
+    /**
+     * WHILE block counters for jump labels
+     */
     private int while_counter = 0;
+    /**
+     * logic operations counters for jump labels
+     */
     private int logic_operation_counter = 0;
-
+    /**
+     * Value of the stack for each method
+     */
     private int maxStack = 0;
+    /**
+     * Current size of stack while parsing
+     */
     private int currentStack = 0;
 
+    /**
+     * Default Constructor
+     * @param table symbol table
+     * @param root AST root node
+     */
     public CodeGenerator(SymbolTable table, SimpleNode root) {
         this.symbolTable = table;
         this.root = root;
@@ -54,10 +106,19 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Initiator method for code generator
+     */
     public void generateCode() {
         this.visit(this.root, null);
     }
 
+    /**
+     * Add variable to variable map
+     * @param variableId variable identifier
+     * @param variableType variable type
+     * @return true if variable was stored correctly
+     */
     private boolean addVariable(String variableId, String variableType) {
         if (!this.variableMap.containsKey(variableId)) {
             ArrayList<String> paramInfo = new ArrayList<>();
@@ -73,16 +134,30 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Increment current stack and update max
+     * stack
+     */
     public void incrementStack() {
         currentStack++;
         if (currentStack > maxStack)
             maxStack = currentStack;
     }
 
+    /**
+     * Decrement current stack
+     * @param value number of 'pops' on the stack
+     *              after performing an operation
+     */
     public void decrementStack(int value) {
         currentStack -= value;
     }
 
+    /**
+     * Called after each statement. Clears the stack
+     * to size 0 while writing pops to the instruction
+     * buffer.
+     */
     public void clearStack() {
         while (this.currentStack != 0) {
             bufferInstruction("pop");
@@ -124,6 +199,11 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Return the accordingly JVM type
+     * @param type value type (i.e int, boolean, void...)
+     * @return JVM type according to specified type
+     */
     private String convertType(String type) {
         switch (type) {
             case "void":
@@ -143,6 +223,12 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Convert List of String parameter types to JVM
+     * instruction fashion
+     * @param args method arguments in List of Strings
+     * @return string with params in JVM instruction fashion
+     */
     private String convertParams(LinkedList<String> args) {
         String result = "";
 
@@ -153,6 +239,11 @@ public class CodeGenerator implements ParserVisitor{
         return result;
     }
 
+    /**
+     * Convert regular types to JVM instruction fashion
+     * @param type value type
+     * @return JVM instruction type
+     */
     private String convertInstructionType(String type) {
         switch (type) {
             case "boolean":
@@ -167,6 +258,12 @@ public class CodeGenerator implements ParserVisitor{
         }
     }
 
+    /**
+     * Return method's list of arguments
+     * @param node CallMethodNode
+     * @param methodDescriptor method descriptor
+     * @return List of Arguments in List of Strings
+     */
     private LinkedList<String> fetchMethodArgs(ASTCallMethod node, MethodDescriptor methodDescriptor) {
         LinkedList<String> args = new LinkedList<>();
         // create semantic analyzer
@@ -177,6 +274,11 @@ public class CodeGenerator implements ParserVisitor{
         return args;
     }
 
+    /**
+     * Calculate limit locals for main method
+     * @param node main method node
+     * @return limit locals value
+     */
     private int getLimitLocals(ASTMainMethod node) {
         // get method name and parameter types
         String methodName = "main";
@@ -194,6 +296,11 @@ public class CodeGenerator implements ParserVisitor{
         return localLimit;
     }
 
+    /**
+     * Calculate limit locals for a regular method
+     * @param node regular method node
+     * @return limit locals value
+     */
     private int getLimitLocals(ASTRegularMethod node) {
         // get method name
         String methodName = (String) node.jjtGetValue();
@@ -224,9 +331,19 @@ public class CodeGenerator implements ParserVisitor{
         return localLimit;
     }
 
-    private int getLimitStack(String methodName) {
-
-        return 0;
+    private void loadInteger(int number) {
+        if (number < 6) {
+            bufferInstruction("iconst_" + number);
+        }
+        else if (number < 128) {
+            bufferInstruction("bipush " + number);
+        }
+        else if (number < 32768) { //65536 = 2^15 -> number of bits in a signed short
+            bufferInstruction("sipush " + number);
+        }
+        else {
+            bufferInstruction("ldc_w " + number);
+        }
     }
 
     @Override
@@ -609,9 +726,44 @@ public class CodeGenerator implements ParserVisitor{
                 this.decrementStack(3);
             }
             else {
+                SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+
+                try {
+                    VariableDescriptor descriptor = ((MethodDescriptor) data).lookupVariable(identifier);
+
+                    if (node.jjtGetNumChildren() == 2 && node.jjtGetChild(1) instanceof ASTinteger && descriptor.isConstant()) {
+                        //Assign the integer to the variable map
+                        ArrayList<String> paramInfo = new ArrayList<>();
+                        paramInfo.add(variableInfo.get(0));
+                        paramInfo.add(variableInfo.get(1));
+                        paramInfo.add((String) ((ASTinteger) node.jjtGetChild(1)).jjtGetValue());
+                        this.variableMap.put(identifier,paramInfo);
+
+                        return null;
+                    }
+                    // x = x + 1: iinc x 1; instead of laod x > iconst 1 > istore
+                    else if (rightChild instanceof ASTsum ) {
+                        // get two operands
+                        SimpleNode leftOperand = (SimpleNode) rightChild.jjtGetChild(0);
+                        SimpleNode rightOperand = (SimpleNode) rightChild.jjtGetChild(1);
+                        // check if one of the two operands is equal to 'identifier' and the
+                        // other is equal to 1
+                        boolean firstCondition = rightOperand.jjtGetValue().equals("1") && leftOperand.jjtGetValue().equals(identifier);
+                        boolean secondCondition = rightOperand.jjtGetValue().equals(identifier) && leftOperand.jjtGetValue().equals("1");
+                        if (firstCondition || secondCondition) {
+                            int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
+                            bufferInstruction("iinc " + index + " 1");
+                            return null;
+                        }
+                    }
+
+                } catch (SemanticErrorException e) {
+                    //this should never happen
+                }
+
                 //visit children but not the identifier
                 for (int i = 1; i < node.jjtGetNumChildren(); i++) { //Get the value to store in the array
-                    node.jjtGetChild(i).jjtAccept(this,data);
+                    node.jjtGetChild(i).jjtAccept(this, data);
                 }
 
                 int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
@@ -620,12 +772,10 @@ public class CodeGenerator implements ParserVisitor{
                 //assign the variable assuming the value to be assigned is on top of the stack
                 if (index > 3) {
                     bufferInstruction(type + "store " + index);
-                }
-                else {
-                    bufferInstruction(type +  "store_" + index);
+                } else {
+                    bufferInstruction(type + "store_" + index);
                 }
                 this.decrementStack(1);
-
             }
         }
         else {
@@ -676,13 +826,22 @@ public class CodeGenerator implements ParserVisitor{
             ArrayList<String> variableInfo = this.variableMap.get(id);
             int index = Integer.parseInt(variableInfo.get(0)); //The index in the variable table
             String type = convertInstructionType(variableInfo.get(1)); //the type of the variable
-            // load variable
-            if (index > 3) {
-                bufferInstruction(type + "load " + index);
+
+            if (variableInfo.size() == 3) { //The variable is a constant
+                String value = variableInfo.get(2);
+
+                loadInteger(Integer.parseInt(value));
             }
             else {
-                bufferInstruction(type + "load_" + index);
+                // load variable
+                if (index > 3) {
+                    bufferInstruction(type + "load " + index);
+                }
+                else {
+                    bufferInstruction(type + "load_" + index);
+                }
             }
+
             this.incrementStack();
 
         }
@@ -727,12 +886,7 @@ public class CodeGenerator implements ParserVisitor{
     public Object visit(ASTinteger node, Object data) {
         int number = Integer.parseInt((String) node.jjtGetValue());
 
-        if (number > 200) {
-            bufferInstruction("ldc_w " + number);
-        }
-        else {
-            bufferInstruction("bipush " + number);
-        }
+        loadInteger(number);
 
         // push integer value to stack
         this.incrementStack();
@@ -920,26 +1074,31 @@ public class CodeGenerator implements ParserVisitor{
 
     @Override
     public Object visit(ASTWhileBlock node, Object data) {
+
         String whileLabel = "while_" +  while_counter;
         String endWhileLabel = "end_while_" + while_counter;
         while_counter++;
 
-        bufferInstruction(whileLabel + ":");
         node.jjtGetChild(0).jjtAccept(this, data);      // accept condition
         bufferInstruction("ifeq " + endWhileLabel);
         this.decrementStack(1);
-        // clear stack
         this.clearStack();
+
+        bufferInstruction(whileLabel + ":");
         for (int i = 1; i < node.jjtGetNumChildren(); i++) {    // accept statements
             // visit child statements
             node.jjtGetChild(i).jjtAccept(this, data);
             // clear stack
             this.clearStack();
         }
-        bufferInstruction("goto " + whileLabel);
+        node.jjtGetChild(0).jjtAccept(this, data);      // test after statements
+        bufferInstruction("ifne " + whileLabel);
+        this.decrementStack(1);
+        this.clearStack();
         bufferInstruction(endWhileLabel + ":");
 
         return null;
+
     }
 
     @Override
@@ -976,12 +1135,25 @@ public class CodeGenerator implements ParserVisitor{
         String falseLabel = "false_lt_" + logic_operation_counter;
         logic_operation_counter++;
 
-        // visit 2 children
-        node.childrenAccept(this, data);
+        // (x < 0): iload x > iflt
+        // get right hand child
+        SimpleNode rightChild = (SimpleNode) node.jjtGetChild(1);
+        if (rightChild instanceof ASTinteger && rightChild.jjtGetValue().equals("0")) {
+            // visit first child
+            node.jjtGetChild(0).jjtAccept(this, data);
+            // compare
+            bufferInstruction("iflt " + trueLabel);
+            this.decrementStack(1);
+        }
+        // (x < 1): iload x > iconst_0 > if_icmplt
+        else {
+            // visit 2 children
+            node.childrenAccept(this, data);
+            // compare
+            bufferInstruction("if_icmplt " + trueLabel);
+            this.decrementStack(2);
+        }
 
-        // compare
-        bufferInstruction("if_icmplt " + trueLabel);
-        this.decrementStack(2);
         bufferInstruction("iconst_0");
         bufferInstruction("goto " + falseLabel);
         bufferInstruction(trueLabel + ":");
@@ -1023,23 +1195,15 @@ public class CodeGenerator implements ParserVisitor{
     @Override
     public Object visit(ASTnot node, Object data) {
 
-        String trueLabel = "not_eq_" + logic_operation_counter;
-        String falseLabel = "eq_" + logic_operation_counter;
-        logic_operation_counter++;
-
         // visit child
         node.childrenAccept(this, data);
         // compare
-        bufferInstruction("ifne " + trueLabel);
-        this.decrementStack(1);
         bufferInstruction("iconst_1");
-        bufferInstruction("goto " + falseLabel);
-        bufferInstruction(trueLabel + ":");
-        bufferInstruction("iconst_0");
-        bufferInstruction(falseLabel + ":");
+        this.incrementStack();
+        bufferInstruction("ixor");
+        this.decrementStack(1);
 
         // place result on stack
-        this.incrementStack();
         return null;
 
     }

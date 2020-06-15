@@ -1,23 +1,6 @@
 import static ioPlus.printHelloWorld(void) void;
-import static io.printArray(int[]) void;
-import static io.print(int) void;
-import Math;
-import Math.calculate(int, int, int[]) int;
-import static Math.cenas() boolean;
-
 class HelloWorld {
-    public boolean cenas() {
-        return (2 < 1) && (2 < 2);
-    }
-
 	public static void main(String[] args) {
-	    int[] a;
-
-	    a = new int[5];
-	    a[3] = 2;
-
-	    io.print(a[3]);
-
-        ioPlus.printHelloWorld();
+		ioPlus.printHelloWorld();
 	}
 }

@@ -6,6 +6,16 @@ import SymbolTable.SymbolTable;
 
 import java.util.LinkedList;
 
+/**
+ * <h1>Semantic Analyser</h1>
+ * <p>This class makes use of the ParserVisitor and uses
+ * the visitor pattern supported by JavaCC to visit all
+ * nodes of the AST.</p>
+ * <p>This makes it easy to analyse each node type in a
+ * specific way, analysing a node based on which type
+ * of node we are currently visiting.</p>
+ * @see ParserVisitor
+ */
 public class SemanticAnalyser implements ParserVisitor {
 
     /**
@@ -19,13 +29,26 @@ public class SemanticAnalyser implements ParserVisitor {
      */
     private int numErrors = 0;
 
+    /**
+     * Symbol Table
+     */
     private final SymbolTable table;
 
+    /**
+     * Constructor
+     * @param table symbol table
+     * @param numErrors current number of errors
+     */
     public SemanticAnalyser(SymbolTable table, int numErrors) {
         this.table = table;
         this.numErrors = numErrors;
     }
 
+    /**
+     * Initiator method for analysis starting
+     * @param root AST root node
+     * @return true if no errors were found
+     */
     public boolean analise(SimpleNode root) {
         // visit root node
         this.visit(root, null);
@@ -33,6 +56,12 @@ public class SemanticAnalyser implements ParserVisitor {
         return numErrors == 0;
     }
 
+    /**
+     * Print to terminal an error message
+     * @param message error message
+     * @param line line the error occurred
+     * @param column column the error occurred
+     */
     private void printError(String message, int line, int column) {
         this.numErrors++;
         System.out.println("SEMANTIC ERROR: " + message + " at line: " + line + ", column: " + column + ".");
@@ -41,10 +70,22 @@ public class SemanticAnalyser implements ParserVisitor {
             System.exit(0);
         }
     }
+
+    /**
+     * Print to terminal a warning message
+     * @param message error message
+     * @param line line the error occurred
+     * @param column column the error occurred
+     */
     private void printWarning(String message, int line, int column) {
         System.out.println("SEMANTIC WARNING: " + message + " at line: " + line + ", column: " + column + ".");
     }
 
+    /**
+     * Set variable in method as initialised
+     * @param node identifier node
+     * @param data MethodDescriptor
+     */
     private void setAsInitialised(ASTIdentifier node, Object data) {
         // get method descriptor
         MethodDescriptor method = (MethodDescriptor) data;
@@ -73,6 +114,22 @@ public class SemanticAnalyser implements ParserVisitor {
         }
         // set variable as initialised
         descriptor.setInitialised(true);
+    }
+
+    private void setNotConstant(ASTIdentifier node, Object data) {
+        // get method descriptor
+        MethodDescriptor method = (MethodDescriptor) data;
+        // get variable id
+        String variableIdentifier = (String) node.jjtGetValue();
+        // lookup variable in method
+        try {
+            VariableDescriptor descriptor = method.lookupVariable(variableIdentifier);
+
+            descriptor.setNotConstant();
+
+        } catch (SemanticErrorException e) {
+            //it is not a class variable: do nothing
+        }
     }
 
     @Override
@@ -216,6 +273,12 @@ public class SemanticAnalyser implements ParserVisitor {
         // check if types are the same
         if (!assigneeType.equals(assignerType))
             this.printError("Assignment of different types '" + assigneeType + "' and '" + assignerType + "'", node.line, node.column);
+
+        //check if assignment makes the variable not be constant anymore
+        if (!(node.jjtGetNumChildren() == 2 && node.jjtGetChild(0) instanceof ASTIdentifier && node.jjtGetChild(1) instanceof ASTinteger)) {
+            this.setNotConstant((ASTIdentifier) assigneeNode, data);
+        }
+
         return null;
     }
 
