@@ -1,0 +1,32 @@
+import static ioPlus.requestNumber() int;
+import static io.println(int) void;
+
+class Fibonacci {
+	public static void main(String[] args) {
+	    int iterations;
+	    int i;
+	    int current;
+	    int previews;
+	    int next;
+
+        previews = 0;
+        current = 1;
+
+	    i = 0;
+	    iterations = ioPlus.requestNumber();
+
+	    while (i < iterations) {
+	        if (i < 2) {
+	            next = i;
+	        }
+	        else {
+	            next = previews + current;
+	            previews = current;
+	            current = next;
+	        }
+
+	        io.println(next);
+	        i = i + 1;
+	    }
+	}
+}
